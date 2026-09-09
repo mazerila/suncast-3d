@@ -16,132 +16,310 @@
   <script src="config.local.js" onerror="window.__noLocalConfig = true"></script>
 
   <style>
-    html, body, #cesiumContainer { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: system-ui, sans-serif; }
+    :root {
+      --bg: rgba(255,255,255,0.97);
+      --fg: #1e2530;
+      --muted: #6b7280;
+      --line: #e6e8ec;
+      --accent: #e8820c;
+      --accent-ink: #a85f07;
+      --btn: #2b3242;
+      --btn-hover: #1c2230;
+      --radius: 13px;
+    }
+    * { box-sizing: border-box; }
+    html, body, #cesiumContainer { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; }
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--fg); }
+
+    /* ---- Panel shell ---- */
     #ui-panel {
-      position: absolute; top: 15px; left: 15px; z-index: 1000;
-      background: rgba(255,255,255,0.96); padding: 18px; border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.25); width: 320px; max-height: 92vh; overflow-y: auto;
+      position: absolute; top: 16px; left: 16px; z-index: 1000;
+      width: 332px; max-height: calc(100vh - 32px); overflow-y: auto;
+      background: var(--bg); border-radius: var(--radius);
+      box-shadow: 0 12px 44px rgba(15,23,42,.30);
+      backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+      transition: transform .25s ease, opacity .2s ease;
     }
-    .control-group { margin-bottom: 14px; }
-    label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px; color: #222; }
-    input[type="range"], select, input[type="text"], input[type="number"] {
-      width: 100%; box-sizing: border-box; padding: 6px; border: 1px solid #ccc; border-radius: 4px;
+    #ui-panel.collapsed { transform: translateX(calc(-100% - 34px)); opacity: 0; pointer-events: none; }
+
+    .panel-head {
+      position: sticky; top: 0; z-index: 1;
+      display: flex; align-items: center; gap: 9px;
+      padding: 13px 16px; background: var(--bg);
+      border-bottom: 1px solid var(--line);
+      border-radius: var(--radius) var(--radius) 0 0;
     }
-    button {
-      padding: 8px; background: #0066cc; color: #fff; border: none; border-radius: 4px;
-      font-weight: 600; cursor: pointer; transition: background .2s;
+    .panel-head .mark { font-size: 18px; line-height: 1; }
+    .panel-head h1 { font-size: 15px; font-weight: 700; margin: 0; }
+    .panel-head .sub { font-size: 10.5px; color: var(--muted); margin-top: 1px; }
+    .panel-body { padding: 14px 16px 18px; }
+
+    /* ---- Buttons ---- */
+    button { font: inherit; cursor: pointer; border: 0; border-radius: 8px; font-weight: 600; transition: background .15s; }
+    .btn-primary { background: var(--btn); color: #fff; padding: 9px 12px; }
+    .btn-primary:hover { background: var(--btn-hover); }
+    .btn-ghost { background: #eceef1; color: #1e2530; padding: 9px 12px; }
+    .btn-ghost:hover { background: #e0e3e8; }
+    .btn-accent { background: var(--accent); color: #fff; padding: 9px 12px; }
+    .btn-accent:hover { background: var(--accent-ink); }
+    .row { display: flex; gap: 8px; }
+    .row > * { flex: 1; }
+
+    #panel-toggle {
+      position: absolute; top: 14px; left: 14px; z-index: 1001;
+      padding: 10px 15px; font-size: 14px; border-radius: 10px;
+      background: rgba(255,255,255,0.98); color: var(--accent-ink);
+      box-shadow: 0 3px 14px rgba(15,23,42,.30);
     }
-    button:hover { background: #004999; }
-    .value-display { float: right; font-weight: bold; color: #0066cc; }
-    .help-text { font-size: 11px; color: #666; margin-top: 4px; line-height: 1.35; }
-    .note { background: #eef4ff; border: 1px solid #cdddff; color: #234; padding: 8px; border-radius: 4px; font-size: 11px; margin-bottom: 12px; }
-    #sun-readout { font-size: 12px; color: #333; background: #f5f5f5; border-radius: 4px; padding: 8px; }
-    hr { border: none; border-top: 1px solid #eee; margin: 14px 0; }
+    #panel-toggle[hidden] { display: none; }
+    #panel-close {
+      margin-left: auto; width: 28px; height: 28px; padding: 0; font-size: 14px;
+      background: #eef0f3; color: #46505f; border-radius: 7px;
+    }
+    #panel-close:hover { background: #e2e5ea; }
+
+    /* ---- Blocks / sections ---- */
+    .block { margin-bottom: 17px; }
+    .block:last-child { margin-bottom: 0; }
+    .block > h2 {
+      font-size: 10.5px; text-transform: uppercase; letter-spacing: .7px;
+      color: var(--muted); font-weight: 700; margin: 0 0 9px;
+    }
+    label.field { display: block; font-size: 12px; font-weight: 600; margin-bottom: 5px; }
+    .hint { font-size: 11px; color: var(--muted); margin-top: 5px; line-height: 1.4; }
+    .spread { float: right; font-weight: 700; color: var(--accent-ink); }
+
+    input[type="text"], input[type="number"], input[type="date"] {
+      width: 100%; padding: 7px 8px; border: 1px solid #d3d7dd; border-radius: 7px;
+      font: inherit; background: #fff;
+    }
+    input[type="range"] { width: 100%; accent-color: var(--accent); margin: 4px 0 2px; }
+    input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+    .time-big { font-variant-numeric: tabular-nums; font-size: 23px; font-weight: 700; color: var(--accent-ink); }
+
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .chip {
+      padding: 5px 10px; font-size: 11px; font-weight: 600; border-radius: 999px;
+      background: #f1f2f4; color: #374151; border: 1px solid var(--line);
+    }
+    .chip:hover { background: #e6e8ec; }
+
+    .check { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .check input { width: 16px; height: 16px; accent-color: var(--accent); }
+
+    #sun-readout {
+      font-size: 12px; line-height: 1.45; border-radius: 9px; padding: 10px 11px;
+      background: #fff7ec; border: 1px solid #f6e0bf; color: #7a4d05;
+    }
+    #sun-readout.night { background: #eef1f6; border-color: #dce0e8; color: #3b4252; }
+    #sun-readout b { font-weight: 700; }
+
+    /* ---- Foldable sections (Camera, Map data) ---- */
+    details.fold { border-top: 1px solid var(--line); padding-top: 13px; margin-top: 4px; }
+    details.fold > summary {
+      cursor: pointer; list-style: none; font-size: 10.5px; text-transform: uppercase;
+      letter-spacing: .7px; color: var(--muted); font-weight: 700;
+      display: flex; align-items: center; gap: 6px;
+    }
+    details.fold > summary::-webkit-details-marker { display: none; }
+    details.fold > summary::before { content: "▸"; color: #9aa1ab; font-size: 10px; }
+    details.fold[open] > summary::before { content: "▾"; }
+    details.fold > summary .src-now { margin-left: auto; text-transform: none; letter-spacing: 0; color: var(--accent-ink); }
+    .fold-body { padding-top: 11px; }
+
+    .tag { font-size: 9px; font-weight: 800; padding: 1px 6px; border-radius: 999px; letter-spacing: .3px; margin-left: 4px; vertical-align: 1px; }
+    .tag.free { background: #e6f6ec; color: #1a7f43; }
+    .tag.paid { background: #fdeaea; color: #b3261e; }
+
+    details.how-to {
+      font-size: 11px; color: #234; background: #f7f8fa; border: 1px solid var(--line);
+      border-radius: 7px; padding: 6px 9px; margin: 7px 0 2px;
+    }
+    details.how-to summary { cursor: pointer; font-weight: 600; color: var(--accent-ink); }
+    details.how-to[open] summary { margin-bottom: 6px; }
+    details.how-to ol { margin: 4px 0; padding-left: 18px; line-height: 1.5; }
+    details.how-to li { margin-bottom: 5px; }
+    details.how-to code { background: #eceef1; padding: 0 3px; border-radius: 3px; font-size: 10px; }
+    details.how-to .aside { margin: 5px 0 0; color: var(--muted); }
+
+    .mini-label { font-size: 11.5px; font-weight: 600; margin: 10px 0 5px; }
+    .setup-btn { width: 100%; margin-top: 6px; }
+
+    @media (max-width: 640px) {
+      #ui-panel { top: 10px; left: 10px; right: 10px; width: auto; max-height: calc(100vh - 20px); }
+      #panel-toggle { top: 10px; left: 10px; }
+      .cesium-viewer-geocoderContainer { max-width: 52vw; }
+    }
   </style>
 </head>
 <body>
 
   <div id="cesiumContainer"></div>
 
+  <button id="panel-toggle" type="button" aria-label="Show controls" aria-expanded="true" aria-controls="ui-panel" hidden>☰ Controls</button>
+
   <div id="ui-panel">
-    <div class="note">
-      <strong>Step 1 — 3D buildings source.</strong> Pick one and click its button.<br>
-      • <b>OSM Buildings</b> (free): paste a free Cesium ion token from
-      <a href="https://ion.cesium.com/tokens" target="_blank" rel="noopener">ion.cesium.com/tokens</a>.<br>
-      • <b>Google Photorealistic</b>: needs a Google Cloud key with the Map Tiles API enabled.
-    </div>
-
-    <div class="control-group">
-      <label>Cesium ion access token</label>
-      <input type="text" id="ion-token" placeholder="eyJhbGciOi...">
-      <button id="btn-load-osm" style="width:100%; margin-top:6px;">Load OSM 3D Buildings</button>
-      <div class="help-text">Also enables the address search box (top-right) and a real base map.</div>
-    </div>
-
-    <div class="control-group">
-      <label>Google Maps API key (optional)</label>
-      <input type="text" id="api-key" placeholder="AIza...">
-      <button id="btn-load-google" style="width:100%; margin-top:6px;">Load Google Photorealistic</button>
-    </div>
-
-    <hr>
-
-    <div class="control-group">
-      <label>Coordinates (Lat, Lng)</label>
-      <div style="display:flex; gap:8px; margin-bottom:6px;">
-        <input type="number" id="lat" value="40.7484" step="0.0001" placeholder="Lat">
-        <input type="number" id="lng" value="-73.9857" step="0.0001" placeholder="Lng">
+    <div class="panel-head">
+      <span class="mark">☀️</span>
+      <div>
+        <h1>Suncast&nbsp;3D</h1>
+        <div class="sub">Daylight &amp; shadow simulator</div>
       </div>
-      <div style="display:flex; gap:6px;">
-        <button id="btn-fly" style="flex:1;">Fly to</button>
-        <button id="btn-geo" style="flex:1; background:#28a745;">📍 My location</button>
+      <button id="panel-close" type="button" aria-label="Hide controls" title="Hide panel">✕</button>
+    </div>
+
+    <div class="panel-body">
+
+      <!-- LOCATION -->
+      <div class="block">
+        <h2>Location</h2>
+        <div class="row" style="margin-bottom:7px;">
+          <input type="number" id="lat" value="48.8049" step="0.0001" aria-label="Latitude" placeholder="Latitude">
+          <input type="number" id="lng" value="2.1204" step="0.0001" aria-label="Longitude" placeholder="Longitude">
+        </div>
+        <div class="row">
+          <button id="btn-fly" class="btn-ghost">Go to coordinates</button>
+          <button id="btn-geo" class="btn-ghost" style="flex:0 0 auto;" title="Use my current location">📍</button>
+        </div>
+        <div class="hint">Or search an address in the box at the top-right of the map.</div>
       </div>
-    </div>
 
-    <div class="control-group">
-      <label>UTC offset (hours) <span id="tz-val" class="value-display">-5</span></label>
-      <input type="range" id="tz" min="-12" max="14" step="1" value="-5">
-      <div class="help-text">Auto-estimated from longitude when you fly. Adjust for the real local time zone / DST.</div>
-    </div>
+      <!-- DATE & TIME -->
+      <div class="block">
+        <h2>Date &amp; time</h2>
+        <label class="field" for="date">Date</label>
+        <input type="date" id="date">
+        <div class="chips">
+          <button class="chip" type="button" data-date="today">Today</button>
+          <button class="chip" type="button" data-date="03-20">Mar equinox</button>
+          <button class="chip" type="button" data-date="06-21">Jun solstice</button>
+          <button class="chip" type="button" data-date="09-22">Sep equinox</button>
+          <button class="chip" type="button" data-date="12-21">Dec solstice</button>
+        </div>
 
-    <div class="control-group">
-      <label>Season / Date</label>
-      <select id="season">
-        <option value="spring">Spring Equinox (Mar 20)</option>
-        <option value="summer">Summer Solstice (Jun 21)</option>
-        <option value="autumn">Autumn Equinox (Sep 22)</option>
-        <option value="winter">Winter Solstice (Dec 21)</option>
-      </select>
-    </div>
+        <label class="field" for="time" style="margin-top:13px;">
+          Time of day <span id="time-val" class="time-big spread">12:00</span>
+        </label>
+        <input type="range" id="time" min="0" max="23.75" value="12" step="0.25">
 
-    <div class="control-group">
-      <label>Local time of day <span id="time-val" class="value-display">12:00</span></label>
-      <input type="range" id="time" min="0" max="23.75" value="12" step="0.25">
-    </div>
+        <label class="field" for="tz" style="margin-top:11px;">
+          UTC offset <span id="tz-val" class="spread">+0</span>
+        </label>
+        <input type="range" id="tz" min="-12" max="14" step="1" value="0">
+        <div class="hint">Estimated from longitude when you move the map. Set the real zone / DST for accurate shadows.</div>
 
-    <div class="control-group">
-      <label style="display:flex; align-items:center; cursor:pointer; font-weight:600;">
-        <input type="checkbox" id="toggle-shadows" checked style="width:auto; margin-right:8px;">
-        Enable shadows
-      </label>
-    </div>
-
-    <hr>
-
-    <div class="control-group">
-      <label>View direction — orbit around house <span id="heading-val" class="value-display">0°</span></label>
-      <input type="range" id="heading" min="0" max="359" step="1" value="0">
-      <div style="display:flex; gap:6px; margin-top:6px;">
-        <button id="btn-rot-left"  style="flex:1;">⟲ 45°</button>
-        <button id="btn-rot-right" style="flex:1;">45° ⟳</button>
-        <button id="btn-spin" style="flex:1; background:#6c3fb5;">▶ Spin</button>
+        <label class="check" style="margin-top:12px;">
+          <input type="checkbox" id="toggle-shadows" checked>
+          Cast shadows
+        </label>
       </div>
-      <div class="help-text">Orbits the camera around the coordinates above so you can see the house from every side. Arrow keys ◀ ▶ rotate, ▲ ▼ tilt (when the map has focus). You can still drag with the mouse; Ctrl+drag or middle-drag tilts.</div>
-    </div>
 
-    <div class="control-group">
-      <label>Camera tilt <span id="pitch-val" class="value-display">-35°</span></label>
-      <input type="range" id="pitch" min="-89" max="-5" step="1" value="-35">
-    </div>
+      <!-- SUN READOUT -->
+      <div class="block">
+        <div id="sun-readout">Sun: —</div>
+      </div>
 
-    <div class="control-group">
-      <label>Camera distance <span id="range-val" class="value-display">500 m</span></label>
-      <input type="range" id="range" min="30" max="3000" step="10" value="500">
-    </div>
+      <!-- CAMERA (folded) -->
+      <details class="fold" id="fold-camera">
+        <summary>Camera &amp; orbit</summary>
+        <div class="fold-body">
+          <label class="field" for="heading">Orbit around location <span id="heading-val" class="spread">0°</span></label>
+          <input type="range" id="heading" min="0" max="359" step="1" value="0">
+          <div class="row" style="margin-top:6px;">
+            <button id="btn-rot-left" class="btn-ghost">⟲ 45°</button>
+            <button id="btn-rot-right" class="btn-ghost">45° ⟳</button>
+            <button id="btn-spin" class="btn-accent">▶ Spin</button>
+          </div>
+          <div class="hint">See the building from every side. Arrow keys ◀ ▶ rotate, ▲ ▼ tilt when the map has focus; mouse drag still works (Ctrl/middle-drag tilts).</div>
 
-    <div id="sun-readout">Sun: —</div>
+          <label class="field" for="pitch" style="margin-top:11px;">Camera tilt <span id="pitch-val" class="spread">-35°</span></label>
+          <input type="range" id="pitch" min="-89" max="-5" step="1" value="-35">
+
+          <label class="field" for="range" style="margin-top:9px;">Camera distance <span id="range-val" class="spread">500 m</span></label>
+          <input type="range" id="range" min="30" max="3000" step="10" value="500">
+        </div>
+      </details>
+
+      <!-- MAP DATA / KEYS (folded, opens itself if no token) -->
+      <details class="fold" id="setup">
+        <summary>Map data <span class="src-now" id="src-name">OSM buildings</span></summary>
+        <div class="fold-body">
+          <p class="hint" style="margin-top:0;">
+            <b>OSM 3D buildings</b> is the default and only needs a free Cesium token.
+            <b>Google Photorealistic</b> is optional, loads on demand, and needs a
+            paid Google Cloud key. Keys stay in your browser.
+          </p>
+
+          <div class="mini-label">Cesium ion token <span class="tag free">free · no card</span></div>
+          <input type="text" id="ion-token" placeholder="eyJhbGciOi…">
+          <button id="btn-load-osm" class="btn-primary setup-btn">Use OSM 3D buildings</button>
+          <details class="how-to" id="cs-howto">
+            <summary>How to get a free Cesium ion token (about 2 minutes)</summary>
+            <ol>
+              <li>Open <a href="https://ion.cesium.com/signup" target="_blank" rel="noopener">ion.cesium.com/signup</a>
+                and create a free account (email + password, or "Sign up with Google / GitHub").
+                No payment details are asked for.</li>
+              <li>After you sign in, click <b>Access Tokens</b> in the top navigation bar
+                (direct link: <a href="https://ion.cesium.com/tokens" target="_blank" rel="noopener">ion.cesium.com/tokens</a>).</li>
+              <li>A <b>Default Token</b> already exists. Click its row, then click the
+                <b>Copy</b> button next to the long token string.<br>
+                (Or click <b>Create token</b>, type any name, leave the ticked scopes
+                <code>assets:read</code> and <code>geocode</code> as they are, and <b>Create</b>, then copy it.)</li>
+              <li>Paste it in the field above and click <b>Use OSM 3D buildings</b>.</li>
+            </ol>
+            <p class="aside">The free tier is fine for personal use. The same token also
+              turns on the address search box and the satellite base map.</p>
+          </details>
+
+          <div class="mini-label">Google Maps API key <span class="tag paid">needs a card</span></div>
+          <input type="text" id="api-key" placeholder="AIza…">
+          <button id="btn-load-google" class="btn-ghost setup-btn">Load Google Photorealistic</button>
+          <details class="how-to" id="gg-howto">
+            <summary>How to get a Google Maps API key (credit card needed)</summary>
+            <ol>
+              <li>Open the <a href="https://console.cloud.google.com/" target="_blank" rel="noopener">Google Cloud Console</a> and sign in with a Google account.</li>
+              <li>Create a project: top bar → project dropdown → <b>New Project</b> → give it a name → <b>Create</b>.</li>
+              <li>Add billing: menu (☰) → <b>Billing</b> → <b>Link a billing account</b> →
+                add a card. Google gives a recurring free monthly allowance, but a card
+                is still required.</li>
+              <li>Enable the API: menu → <b>APIs &amp; Services → Library</b>, search
+                <b>Map Tiles API</b>, open it, click <b>Enable</b>.</li>
+              <li>Make the key: menu → <b>APIs &amp; Services → Credentials</b> →
+                <b>Create credentials</b> → <b>API key</b>. Copy the key it shows.</li>
+              <li>Lock the key down (click <b>Edit API key</b>):
+                <b>Application restrictions → Websites</b> → add
+                <code>http://localhost:3003/*</code> and your site's address;
+                <b>API restrictions → Restrict key</b> → tick <b>Map Tiles API</b> → <b>Save</b>.</li>
+              <li>Paste it in the field above and click <b>Load Google Photorealistic</b>.</li>
+            </ol>
+            <p class="aside">Because this is a web page, the key is visible to anyone who
+              opens your deployed site — the website + API restrictions above are what
+              keep it from being misused.</p>
+          </details>
+        </div>
+      </details>
+
+    </div>
   </div>
 
   <script>
     // ==================================================================
     // Keys come from public/config.local.js (git-ignored) if present.
-    // No file? Leave the panel fields blank and type tokens in by hand.
+    // Cesium / OSM buildings load by default. Google Photorealistic only
+    // loads when the user asks for it (it needs a paid API key).
     // ==================================================================
     const CONFIG = Object.assign({
       cesiumIonToken: "",    // free token from https://ion.cesium.com/tokens
       googleMapsKey:  "",    // Google Cloud key with the Map Tiles API enabled
-      autoLoad:       "osm"  // "osm", "google", or "" — what to load on page open
     }, window.CONFIG || {});
+
+    const $ = (id) => document.getElementById(id);
+
+    // Assign the ion token BEFORE creating the Viewer so Cesium never shows its
+    // "default access token" warning. loadOsmBuildings() re-assigns if the user
+    // types a different token into the panel later.
+    if (CONFIG.cesiumIonToken) Cesium.Ion.defaultAccessToken = CONFIG.cesiumIonToken;
 
     // ------------------------------------------------------------------
     // Viewer. baseLayer:false so it works with NO token until one is given.
@@ -174,19 +352,14 @@
     // Camera
     // ------------------------------------------------------------------
     function flyToLocation(lat, lng) {
-      // rough time-zone estimate from longitude (ignores DST / borders)
       const tz = Math.max(-12, Math.min(14, Math.round(lng / 15)));
-      document.getElementById('tz').value = tz;
-      document.getElementById('tz-val').innerText = tz;
+      $('tz').value = tz;
+      $('tz-val').innerText = (tz >= 0 ? '+' : '') + tz;
       updateSunPosition();
 
       viewer.camera.flyTo({
         destination: Cesium.Cartesian3.fromDegrees(lng, lat, 400),
-        orientation: {
-          heading: Cesium.Math.toRadians(0),
-          pitch: Cesium.Math.toRadians(-35),
-          roll: 0.0
-        },
+        orientation: { heading: Cesium.Math.toRadians(0), pitch: Cesium.Math.toRadians(-35), roll: 0.0 },
         duration: 2,
         complete: () => seedOrbitFromCamera(lat, lng)
       });
@@ -199,8 +372,8 @@
     let spinning = false;
 
     function orbitCenter() {
-      const lat = parseFloat(document.getElementById('lat').value);
-      const lng = parseFloat(document.getElementById('lng').value);
+      const lat = parseFloat($('lat').value);
+      const lng = parseFloat($('lng').value);
       if (Number.isNaN(lat) || Number.isNaN(lng)) return null;
       const carto = Cesium.Cartographic.fromDegrees(lng, lat);
       let h = viewer.scene.globe.getHeight(carto);
@@ -219,21 +392,19 @@
           orbit.range
         )
       );
-      // Release the reference frame so normal mouse navigation keeps working
-      viewer.camera.lookAtTransform(Cesium.Matrix4.IDENTITY);
+      viewer.camera.lookAtTransform(Cesium.Matrix4.IDENTITY); // release frame so mouse nav still works
     }
 
     function syncOrbitUI() {
       const hdg = (((orbit.heading % 360) + 360) % 360);
-      document.getElementById('heading').value = hdg;
-      document.getElementById('heading-val').innerText = Math.round(hdg) + '°';
-      document.getElementById('pitch').value = orbit.pitch;
-      document.getElementById('pitch-val').innerText = Math.round(orbit.pitch) + '°';
-      document.getElementById('range').value = orbit.range;
-      document.getElementById('range-val').innerText = Math.round(orbit.range) + ' m';
+      $('heading').value = hdg;
+      $('heading-val').innerText = Math.round(hdg) + '°';
+      $('pitch').value = orbit.pitch;
+      $('pitch-val').innerText = Math.round(orbit.pitch) + '°';
+      $('range').value = orbit.range;
+      $('range-val').innerText = Math.round(orbit.range) + ' m';
     }
 
-    // Read the real camera pose after a flyTo so the sliders start in sync
     function seedOrbitFromCamera(lat, lng) {
       const carto = Cesium.Cartographic.fromDegrees(lng, lat);
       let h = viewer.scene.globe.getHeight(carto);
@@ -255,44 +426,47 @@
     // ------------------------------------------------------------------
     // Sun / clock
     // ------------------------------------------------------------------
-    function seasonToMonthDay(season) {
-      if (season === 'summer') return [5, 21];
-      if (season === 'autumn') return [8, 22];
-      if (season === 'winter') return [11, 21];
-      return [2, 20]; // spring
+    function todayISO() {
+      const t = new Date();
+      return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
+    }
+
+    function dateParts() {
+      const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec($('date').value);
+      if (m) return { year: +m[1], month: +m[2] - 1, day: +m[3] };
+      const n = new Date();
+      return { year: n.getFullYear(), month: n.getMonth(), day: n.getDate() };
     }
 
     function updateSunPosition() {
-      const timeVal  = parseFloat(document.getElementById('time').value);
-      const season   = document.getElementById('season').value;
-      const tzOffset = parseFloat(document.getElementById('tz').value);
-      const lat      = parseFloat(document.getElementById('lat').value);
-      const lng      = parseFloat(document.getElementById('lng').value);
+      const timeVal  = parseFloat($('time').value);
+      const tzOffset = parseFloat($('tz').value);
+      const lat      = parseFloat($('lat').value);
+      const lng      = parseFloat($('lng').value);
 
       const hours   = Math.floor(timeVal);
       const minutes = Math.round((timeVal % 1) * 60);
-      document.getElementById('time-val').innerText =
-        `${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}`;
-      document.getElementById('tz-val').innerText = tzOffset;
+      $('time-val').innerText = `${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}`;
+      $('tz-val').innerText = (tzOffset >= 0 ? '+' : '') + tzOffset;
 
-      const year = new Date().getFullYear();
-      const [month, day] = seasonToMonthDay(season);
+      const { year, month, day } = dateParts();
 
       // Local wall-clock time -> UTC instant
       const utcMs = Date.UTC(year, month, day, hours, minutes, 0) - tzOffset * 3600 * 1000;
       const when  = new Date(utcMs);
       viewer.clock.currentTime = Cesium.JulianDate.fromDate(when);
 
-      // Readout (SunCalc is independent of Cesium's own sun math, just for info)
       if (window.SunCalc && !Number.isNaN(lat) && !Number.isNaN(lng)) {
         const p = SunCalc.getPosition(when, lat, lng);
         const altDeg = p.altitude * 180 / Math.PI;
         const aziDeg = (p.azimuth * 180 / Math.PI + 180 + 360) % 360; // 0 = N, 90 = E
-        const el = document.getElementById('sun-readout');
+        const el = $('sun-readout');
         if (altDeg <= 0) {
-          el.innerHTML = `<b>Night</b> — sun ${altDeg.toFixed(1)}° below horizon (no shadows).`;
+          el.className = 'night';
+          el.innerHTML = `<b>Night</b> — the sun is ${Math.abs(altDeg).toFixed(1)}° below the horizon, so nothing casts a shadow.`;
         } else {
-          el.innerHTML = `Sun altitude <b>${altDeg.toFixed(1)}°</b> · azimuth <b>${aziDeg.toFixed(0)}°</b>`;
+          el.className = '';
+          el.innerHTML = `☀️ Sun <b>${altDeg.toFixed(1)}°</b> above the horizon · bearing <b>${aziDeg.toFixed(0)}°</b> (0°=N, 90°=E)`;
         }
       }
     }
@@ -300,13 +474,21 @@
     // ------------------------------------------------------------------
     // Data sources
     // ------------------------------------------------------------------
+    function setSourceLabel(name) {
+      $('src-name').textContent = name;
+    }
+
     async function loadOsmBuildings() {
-      const token = document.getElementById('ion-token').value.trim() || CONFIG.cesiumIonToken;
-      if (!token) { alert('Paste a Cesium ion access token first (ion.cesium.com/tokens).'); return; }
+      const token = $('ion-token').value.trim() || CONFIG.cesiumIonToken;
+      if (!token) {
+        $('setup').open = true;
+        $('cs-howto').open = true;
+        $('ion-token').focus();
+        return;
+      }
       Cesium.Ion.defaultAccessToken = token;
 
       try {
-        // Real base map + terrain now that we have a token
         const imagery = await Cesium.ImageryLayer.fromWorldImagery({});
         viewer.imageryLayers.removeAll();
         viewer.imageryLayers.add(imagery);
@@ -319,17 +501,22 @@
         osmBuildings = await Cesium.createOsmBuildingsAsync();
         osmBuildings.shadows = Cesium.ShadowMode.ENABLED;
         viewer.scene.primitives.add(osmBuildings);
+        setSourceLabel('OSM 3D buildings');
 
-        flyToLocation(parseFloat(document.getElementById('lat').value),
-                      parseFloat(document.getElementById('lng').value));
+        flyToLocation(parseFloat($('lat').value), parseFloat($('lng').value));
       } catch (e) {
-        alert('Failed to load OSM buildings: ' + e.message + '\n(Check the ion token.)');
+        alert('Could not load OSM 3D buildings: ' + e.message + '\n(Check the Cesium ion token.)');
       }
     }
 
     async function loadGoogleTiles() {
-      const key = document.getElementById('api-key').value.trim() || CONFIG.googleMapsKey;
-      if (!key) { alert('Paste a Google Maps API key first.'); return; }
+      const key = $('api-key').value.trim() || CONFIG.googleMapsKey;
+      if (!key) {
+        $('setup').open = true;
+        $('gg-howto').open = true;
+        $('api-key').focus();
+        return;
+      }
       Cesium.GoogleMaps.defaultApiKey = key;
 
       try {
@@ -339,68 +526,71 @@
         googleTileset = await Cesium.createGooglePhotorealistic3DTileset();
         googleTileset.shadows = Cesium.ShadowMode.ENABLED;
         viewer.scene.primitives.add(googleTileset);
+        viewer.scene.globe.show = false; // photorealistic mesh contains the ground
+        setSourceLabel('Google Photorealistic');
 
-        // Photorealistic mesh already contains the ground -> hide the ellipsoid globe
-        viewer.scene.globe.show = false;
-
-        flyToLocation(parseFloat(document.getElementById('lat').value),
-                      parseFloat(document.getElementById('lng').value));
+        flyToLocation(parseFloat($('lat').value), parseFloat($('lng').value));
       } catch (e) {
-        alert('Failed to load Google 3D Tiles: ' + e.message);
+        alert('Could not load Google Photorealistic 3D Tiles: ' + e.message);
       }
     }
 
     // ------------------------------------------------------------------
     // Wiring
     // ------------------------------------------------------------------
-    document.getElementById('btn-load-osm').addEventListener('click', loadOsmBuildings);
-    document.getElementById('btn-load-google').addEventListener('click', loadGoogleTiles);
+    $('btn-load-osm').addEventListener('click', loadOsmBuildings);
+    $('btn-load-google').addEventListener('click', loadGoogleTiles);
 
-    document.getElementById('btn-fly').addEventListener('click', () => {
-      flyToLocation(parseFloat(document.getElementById('lat').value),
-                    parseFloat(document.getElementById('lng').value));
+    $('btn-fly').addEventListener('click', () => {
+      flyToLocation(parseFloat($('lat').value), parseFloat($('lng').value));
     });
 
-    document.getElementById('btn-geo').addEventListener('click', () => {
-      if (!navigator.geolocation) { alert('Geolocation not available.'); return; }
+    $('btn-geo').addEventListener('click', () => {
+      if (!navigator.geolocation) { alert('Geolocation is not available in this browser.'); return; }
       navigator.geolocation.getCurrentPosition((pos) => {
-        document.getElementById('lat').value = pos.coords.latitude.toFixed(4);
-        document.getElementById('lng').value = pos.coords.longitude.toFixed(4);
+        $('lat').value = pos.coords.latitude.toFixed(4);
+        $('lng').value = pos.coords.longitude.toFixed(4);
         flyToLocation(pos.coords.latitude, pos.coords.longitude);
       });
     });
 
-    document.getElementById('time').addEventListener('input', updateSunPosition);
-    document.getElementById('season').addEventListener('change', updateSunPosition);
-    document.getElementById('tz').addEventListener('input', updateSunPosition);
-    document.getElementById('toggle-shadows').addEventListener('change', (e) => {
-      viewer.shadows = e.target.checked;
+    $('time').addEventListener('input', updateSunPosition);
+    $('date').addEventListener('change', updateSunPosition);
+    $('tz').addEventListener('input', updateSunPosition);
+    $('toggle-shadows').addEventListener('change', (e) => { viewer.shadows = e.target.checked; });
+
+    document.querySelectorAll('.chip[data-date]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const v = btn.dataset.date;
+        $('date').value = (v === 'today') ? todayISO() : `${new Date().getFullYear()}-${v}`;
+        updateSunPosition();
+      });
     });
 
-    // ---- Orbit / camera controls ----
-    document.getElementById('heading').addEventListener('input', (e) => {
+    // ---- Camera / orbit ----
+    $('heading').addEventListener('input', (e) => {
       orbit.heading = parseFloat(e.target.value);
-      document.getElementById('heading-val').innerText = Math.round(orbit.heading) + '°';
+      $('heading-val').innerText = Math.round(orbit.heading) + '°';
       applyOrbit();
     });
-    document.getElementById('pitch').addEventListener('input', (e) => {
+    $('pitch').addEventListener('input', (e) => {
       orbit.pitch = parseFloat(e.target.value);
-      document.getElementById('pitch-val').innerText = Math.round(orbit.pitch) + '°';
+      $('pitch-val').innerText = Math.round(orbit.pitch) + '°';
       applyOrbit();
     });
-    document.getElementById('range').addEventListener('input', (e) => {
+    $('range').addEventListener('input', (e) => {
       orbit.range = parseFloat(e.target.value);
-      document.getElementById('range-val').innerText = Math.round(orbit.range) + ' m';
+      $('range-val').innerText = Math.round(orbit.range) + ' m';
       applyOrbit();
     });
-    document.getElementById('btn-rot-left').addEventListener('click',  () => nudgeHeading(-45));
-    document.getElementById('btn-rot-right').addEventListener('click', () => nudgeHeading(45));
+    $('btn-rot-left').addEventListener('click',  () => nudgeHeading(-45));
+    $('btn-rot-right').addEventListener('click', () => nudgeHeading(45));
 
-    const btnSpin = document.getElementById('btn-spin');
+    const btnSpin = $('btn-spin');
     btnSpin.addEventListener('click', () => {
       spinning = !spinning;
       btnSpin.innerText = spinning ? '⏸ Stop' : '▶ Spin';
-      btnSpin.style.background = spinning ? '#c0392b' : '#6c3fb5';
+      btnSpin.style.background = spinning ? '#c0392b' : '';
     });
     function spinTick() {
       if (spinning) {
@@ -421,12 +611,61 @@
       else if (e.key === 'ArrowDown') { orbit.pitch = Math.max(-89, orbit.pitch - 3); syncOrbitUI(); applyOrbit(); e.preventDefault(); }
     });
 
-    // Prefill panel fields from CONFIG and optionally auto-load a source
-    if (CONFIG.cesiumIonToken) document.getElementById('ion-token').value = CONFIG.cesiumIonToken;
-    if (CONFIG.googleMapsKey)  document.getElementById('api-key').value = CONFIG.googleMapsKey;
-    if (CONFIG.autoLoad === 'osm' && CONFIG.cesiumIonToken) loadOsmBuildings();
-    if (CONFIG.autoLoad === 'google' && CONFIG.googleMapsKey) loadGoogleTiles();
+    // ---- Collapsible panel (esp. small / touch screens) ----
+    const uiPanel     = $('ui-panel');
+    const panelToggle = $('panel-toggle');
+    const smallScreen = window.matchMedia('(max-width: 640px)');
+    function setPanelOpen(open) {
+      uiPanel.classList.toggle('collapsed', !open);
+      panelToggle.hidden = open;
+      panelToggle.setAttribute('aria-expanded', String(open));
+    }
+    panelToggle.addEventListener('click', () => setPanelOpen(true));
+    $('panel-close').addEventListener('click', () => setPanelOpen(false));
+    setPanelOpen(!smallScreen.matches);
+    smallScreen.addEventListener('change', (e) => setPanelOpen(!e.matches));
 
+    // Prefill key fields from CONFIG
+    if (CONFIG.cesiumIonToken) $('ion-token').value = CONFIG.cesiumIonToken;
+    if (CONFIG.googleMapsKey)  $('api-key').value = CONFIG.googleMapsKey;
+
+    // Default the date picker to today
+    $('date').value = todayISO();
+
+    // ------------------------------------------------------------------
+    // Startup: fly to current location (fallback: Château de Versailles),
+    // then load OSM 3D buildings if a Cesium token is available.
+    // ------------------------------------------------------------------
+    const FALLBACK_LOCATION = { lat: 48.8049, lng: 2.1204, label: 'Château de Versailles' };
+    const hasCesiumToken = !!($('ion-token').value.trim());
+
+    function startAtBestLocation() {
+      function proceed() {
+        if (hasCesiumToken) loadOsmBuildings();
+        else {
+          flyToLocation(parseFloat($('lat').value), parseFloat($('lng').value));
+          $('setup').open = true; // no token yet — show the (short) setup section
+        }
+      }
+      function fallback(why) {
+        $('lat').value = FALLBACK_LOCATION.lat;
+        $('lng').value = FALLBACK_LOCATION.lng;
+        if (why) console.info('Geolocation unavailable (' + why + '); starting at ' + FALLBACK_LOCATION.label);
+        proceed();
+      }
+      if (!navigator.geolocation) { fallback('not supported'); return; }
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          $('lat').value = pos.coords.latitude.toFixed(4);
+          $('lng').value = pos.coords.longitude.toFixed(4);
+          proceed();
+        },
+        (err) => fallback(err && err.message ? err.message : 'permission denied'),
+        { enableHighAccuracy: false, timeout: 8000, maximumAge: 600000 }
+      );
+    }
+
+    startAtBestLocation();
     updateSunPosition();
   </script>
 </body>

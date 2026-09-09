@@ -8,7 +8,6 @@
 // Restrict the keys in their provider consoles (HTTP referrer + API limits).
 // -----------------------------------------------------------------------------
 window.CONFIG = {
-  cesiumIonToken: "",    // https://ion.cesium.com/tokens
-  googleMapsKey:  "",    // Google Cloud key with the Map Tiles API enabled
-  autoLoad:       "osm"  // "osm", "google", or "" — what to load on page open
+  cesiumIonToken: "",   // https://ion.cesium.com/tokens  — OSM 3D buildings load automatically when set
+  googleMapsKey:  "",   // Google Cloud key with the Map Tiles API enabled — used only when you click "Load Google Photorealistic"
 };

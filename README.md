@@ -18,6 +18,12 @@ suntrace3d.com/viewer.
   keys).
 - Shows a live **sun altitude / azimuth** readout and tells you when it is
   night.
+- Exposes a keyless **JSON API** (`/api/sun`, `/api/daylight`) so other apps can
+  pull sun position and daily daylight metrics for any coordinate — see
+  [`docs/API.md`](docs/API.md).
+
+On load it flies to your **current location** (browser geolocation); if that is
+denied or unavailable it falls back to the **Château de Versailles**.
 
 ## Quick start
 
@@ -27,8 +33,9 @@ cp public/config.local.example.js public/config.local.js   # then add your keys
 npm start                                                   # http://localhost:3003
 ```
 
-Open <http://localhost:3003>. If you did not add keys to `config.local.js`, paste
-them into the panel fields instead and click the matching **Load** button.
+Open <http://localhost:3003>. With a Cesium token in `config.local.js`, OSM 3D
+buildings load automatically. Otherwise, open **Map data** at the bottom of the
+panel, paste a token, and click **Use OSM 3D buildings**.
 
 You need **at least one** of:
 
@@ -46,9 +53,8 @@ Keys live in **`public/config.local.js`**, which is listed in `.gitignore` and i
 
 ```js
 window.CONFIG = {
-  cesiumIonToken: "eyJhbGciOi...",
-  googleMapsKey:  "AIza...",
-  autoLoad:       "osm"   // "osm", "google", or "" — what to load on page open
+  cesiumIonToken: "eyJhbGciOi...",  // OSM 3D buildings load automatically when this is set
+  googleMapsKey:  "AIza...",        // optional; only used when you click "Load Google Photorealistic"
 };
 ```
 
@@ -62,18 +68,6 @@ Commit **`config.local.example.js`** (the template) but not `config.local.js`.
 > (HTTP-referrer allow-list + per-API limits). Treat the key that was previously
 > hard-coded in `index.html` as exposed and rotate it.
 
-## Publish to GitHub
-
-```bash
-git init
-git add .
-git status                     # confirm public/config.local.js is NOT listed
-git commit -m "3D sun & shadow simulator"
-git branch -M main
-git remote add origin git@github.com:<you>/suncast-3d.git
-git push -u origin main
-```
-
 ## Docs
 
 - [`docs/SETUP.md`](docs/SETUP.md) — getting the API keys, configuration
@@ -84,11 +78,14 @@ git push -u origin main
 ## Files
 
 ```
-server.js                        Express static server (port 3003)
+server.js                        Express server: static viewer + /api JSON routes
+lib/sun.js                       Server-side sun math (SunCalc) behind the API
 public/index.html                Entire frontend (Cesium viewer + controls)
 public/config.local.example.js   Key template — copy to config.local.js
 public/config.local.js           Your real keys (git-ignored)
-docs/                            Setup + architecture notes
+docs/SETUP.md                    Keys, config, LAN access, deploy, troubleshooting
+docs/ARCHITECTURE.md             How the viewer + API are built
+docs/API.md                      HTTP API reference
 ```
 
 ## License
