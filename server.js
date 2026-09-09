@@ -1,0 +1,12 @@
+const express = require('express');
+const path = require('path');
+
+const app = express();
+const PORT = process.env.PORT || 3003;
+
+// Serve static assets from public directory
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.listen(PORT, () => {
+  console.log(`Suncast 3D running at http://localhost:${PORT}`);
+});

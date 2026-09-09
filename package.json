@@ -1,0 +1,16 @@
+{
+  "name": "suncast-3d",
+  "version": "1.0.0",
+  "description": "Suncast 3D — a daylight & shadow simulator. Pick any location, date, and time; watch astronomically accurate sun-cast shadows on 3D buildings (CesiumJS + OSM / Google Photorealistic tiles) and orbit around them.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
