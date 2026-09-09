@@ -169,20 +169,50 @@ viewer.clock.currentTime = Cesium.JulianDate.fromDate(new Date(utcMs));
 - **Date** is a native `<input type="date">` (defaults to today); four preset
   chips set it to that year's equinoxes / solstices. `dateParts()` regex-parses
   the value, falling back to today's date if it is blank.
-- **UTC offset** is auto-seeded on every fly as `round(lng / 15)` (clamped
-  −12…14); the user corrects it for the real zone / DST.
+- **UTC offset** (`applyTzFromLocation`) is re-estimated as `round(lng / 15)`
+  (clamped −12…14) every time the map location changes — on a fly, and on every
+  adopt-on-move. Dragging the `#tz` slider sets `tzUserSet`, after which the
+  automatic estimate is skipped (a deliberate `flyToLocation`, e.g. the 📍
+  button, passes `force` and clears that flag). No IANA / DST database.
 - **SunCalc** is called separately with the same `Date` and the lat/lng purely
   to print `altitude° / azimuth°` (azimuth normalised so 0° = N, 90° = E) and to
   detect night (`altitude <= 0`). It does **not** affect rendering.
 
 ## Camera
 
+The orbit pivots around **`orbitAnchor`** — a `Cartesian3` on the ground — not
+around the Lat/Lng fields. The anchor (and the fields, and the UTC offset) are
+**re-adopted from wherever the camera lands** whenever it moves for a reason
+other than the orbit controls. This is what stops an address search or a mouse
+drag from being undone the moment you touch an orbit slider.
+
 ### Fly
 
-`flyToLocation(lat, lng)` re-estimates the UTC offset, then
-`viewer.camera.flyTo({ destination: fromDegrees(lng, lat, 400), orientation:
-{ heading: 0, pitch: -35°, roll: 0 }, duration: 2, complete: () =>
-seedOrbitFromCamera(lat, lng) })`.
+`flyToLocation(lat, lng)` force-refreshes the UTC offset, sets
+`orbitAnchor = anchorForLatLng(lat, lng)`, then
+`viewer.camera.flyToBoundingSphere(new BoundingSphere(orbitAnchor, 60),
+{ offset: HeadingPitchRange(0, -35°, 600), duration: 2 })` — `flyToBoundingSphere`
+frames the camera so it looks **at** the anchor (a plain `flyTo` to
+`(lng,lat,400)` would leave it looking ~570 m past it).
+
+### Adopt-on-move
+
+```js
+viewer.scene.camera.moveEnd.addEventListener(() => {
+  if (spinning) return;
+  if (performance.now() - lastCameraDrive < 500) return;   // our own lookAt / flyTo
+  adoptView();
+});
+viewer.geocoder.viewModel.complete.addEventListener(() => { lastCameraDrive = 0; setTimeout(adoptView, 50); });
+```
+
+`adoptView()` picks the screen-centre ground point (`globe.pick` →
+`scene.pickPosition` → `camera.pickEllipsoid`, so it works even before tiles
+stream in), sets `orbitAnchor` to it, writes `#lat`/`#lng`, calls
+`applyTzFromLocation(lng)` (which is a no-op once the user has dragged `#tz`),
+and rewrites the orbit sliders from the real camera pose. `applyOrbit()` sets
+`lastCameraDrive = performance.now()` so its own `lookAt` never triggers a
+re-adopt.
 
 ### Orbit ("see all sides")
 
@@ -190,7 +220,8 @@ State: `const orbit = { heading, pitch, range }` (degrees, degrees, metres).
 
 ```js
 function applyOrbit() {
-  const center = orbitCenter();               // fromDegrees(lng, lat, terrainHeight + 3)
+  const center = resolveAnchor();             // orbitAnchor ?? view-centre pick ?? Lat/Lng fields
+  lastCameraDrive = performance.now();
   viewer.camera.lookAt(
     center,
     new Cesium.HeadingPitchRange(
@@ -201,15 +232,9 @@ function applyOrbit() {
 }
 ```
 
-- `orbitCenter()` anchors on the **Lat/Lng fields**, lifted by
-  `scene.globe.getHeight()` (falls back to 0 when terrain/globe is absent, e.g.
-  Google mesh mode).
 - `lookAt` + immediate `lookAtTransform(IDENTITY)` is the standard Cesium idiom:
   it positions the camera relative to the target, then hands control back so
   drag / zoom / tilt keep working.
-- `seedOrbitFromCamera()` runs after each `flyTo` completes: it reads
-  `camera.positionWC`, `camera.heading`, `camera.pitch`, derives `range` from
-  the distance to `center`, and writes the sliders so they start truthful.
 - **Spin** is a `requestAnimationFrame` loop that adds `0.25°` to
   `orbit.heading` each frame while `spinning` is true.
 - Arrow keys (`keydown` on `window`, ignored while an `INPUT/SELECT/TEXTAREA`
@@ -222,13 +247,17 @@ function applyOrbit() {
 | `#btn-load-osm` / `#btn-load-google` | `loadOsmBuildings` / `loadGoogleTiles` |
 | `#btn-fly` | `flyToLocation(lat, lng)` |
 | `#btn-geo` | `navigator.geolocation` → fill fields → `flyToLocation` |
-| `#time` / `#date` / `#tz` | `updateSunPosition` |
+| `#time` / `#date` | `updateSunPosition` |
+| `#tz` | set `tzUserSet = true` (manual offset now sticks) → `updateSunPosition` |
 | `.chip[data-date]` | set `#date` to today / an equinox / a solstice → `updateSunPosition` |
-| `#toggle-shadows` | `viewer.shadows = checked` |
 | `#heading` / `#pitch` / `#range` | update `orbit.*` → `applyOrbit` |
 | `#btn-rot-left` / `#btn-rot-right` | `nudgeHeading(∓45)` |
 | `#btn-spin` | toggle `spinning`, relabel button |
 | `window` keydown | arrow-key rotate / tilt |
+| `scene.camera.moveEnd` | if not an orbit/fly move: `adoptView()` — re-read location + tz + orbit sliders from where the camera landed |
+| `geocoder.viewModel.complete` | `adoptView()` after an address search |
+
+Shadows are always on (`viewer.shadows = true`, no toggle).
 
 ## Extension ideas
 

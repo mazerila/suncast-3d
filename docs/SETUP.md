@@ -112,9 +112,10 @@ buildings automatically.
    - **Date** — pick any date, or tap a preset chip (**Today**, **Mar equinox**,
      **Jun solstice**, **Sep equinox**, **Dec solstice**).
    - **Time of day** — 00:00–23:45 in 15-min steps.
-   - **UTC offset** — auto-guessed from longitude as `round(lng / 15)`; fix it
-     for the true time zone and DST.
-   - **Cast shadows** — toggle the shadow map.
+   - **UTC offset** — auto-set from the map location (`round(lng / 15)`) every
+     time you move; nudge it for the true zone / DST and your value then sticks.
+
+Shadows are always on; at night the sun readout says so and nothing casts one.
 3. **Camera & orbit** (folded section):
    - **Orbit around location** slider / **⟲ 45°** / **45° ⟳** / **▶ Spin**.
    - **Camera tilt** and **Camera distance** sliders.
@@ -180,6 +181,6 @@ endpoints you need a Node host running `server.js`.
 | Bottom bar: *"using Cesium's default ion access token"* | No `cesiumIonToken`. Add one to `config.local.js` and reload, or paste it in **Map data**. The **Cesium ion · Data attribution** credit stays either way — it is required and cannot be removed. |
 | *"Could not load OSM 3D buildings"* | Bad / expired ion token, or missing `assets:read` scope. |
 | *"Could not load Google Photorealistic 3D Tiles"* | Map Tiles API not enabled, billing off, or referrer restriction blocks `localhost`. |
-| Shadows never appear | Sun is below the horizon (check the readout), or **Cast shadows** is off, or camera is > ~8 km away (`shadowMap.maximumDistance`). |
+| Shadows never appear | Sun is below the horizon (check the readout), or the camera is > ~8 km away (`shadowMap.maximumDistance`). |
 | Shadows point the wrong way | Wrong **UTC offset** — adjust for the real time zone / DST. |
 | Address search box missing | Needs the ion token (`geocoder: true` uses ion). |

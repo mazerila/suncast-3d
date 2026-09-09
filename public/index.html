@@ -207,12 +207,7 @@
           UTC offset <span id="tz-val" class="spread">+0</span>
         </label>
         <input type="range" id="tz" min="-12" max="14" step="1" value="0">
-        <div class="hint">Estimated from longitude when you move the map. Set the real zone / DST for accurate shadows.</div>
-
-        <label class="check" style="margin-top:12px;">
-          <input type="checkbox" id="toggle-shadows" checked>
-          Cast shadows
-        </label>
+        <div class="hint">Auto-set from the map location; adjust for the real zone / DST, then it stays put.</div>
       </div>
 
       <!-- SUN READOUT -->
@@ -349,41 +344,68 @@
     let googleTileset = null;
 
     // ------------------------------------------------------------------
-    // Camera
+    // Time zone: auto-estimated from longitude, but a manual change sticks.
     // ------------------------------------------------------------------
-    function flyToLocation(lat, lng) {
-      const tz = Math.max(-12, Math.min(14, Math.round(lng / 15)));
+    let tzUserSet = false;
+    function estimateTzFromLng(lng) {
+      return Math.max(-12, Math.min(14, Math.round(lng / 15)));
+    }
+    function applyTzFromLocation(lng, { force = false } = {}) {
+      if (Number.isNaN(lng)) return;
+      if (tzUserSet && !force) return;      // respect the user's manual offset
+      if (force) tzUserSet = false;         // a deliberate new place → fresh estimate
+      const tz = estimateTzFromLng(lng);
       $('tz').value = tz;
       $('tz-val').innerText = (tz >= 0 ? '+' : '') + tz;
-      updateSunPosition();
-
-      viewer.camera.flyTo({
-        destination: Cesium.Cartesian3.fromDegrees(lng, lat, 400),
-        orientation: { heading: Cesium.Math.toRadians(0), pitch: Cesium.Math.toRadians(-35), roll: 0.0 },
-        duration: 2,
-        complete: () => seedOrbitFromCamera(lat, lng)
-      });
     }
 
     // ------------------------------------------------------------------
-    // Orbit the camera around the current coordinates (see all sides)
+    // Camera + orbit. The orbit pivots around `orbitAnchor` (a point on the
+    // ground). Whenever the camera is moved by anything OTHER than the orbit
+    // controls (address search, drag, "Go to coordinates"), the anchor and the
+    // Lat/Lng + UTC-offset fields are re-adopted from wherever the view lands.
     // ------------------------------------------------------------------
     const orbit = { heading: 0, pitch: -35, range: 500 };
     let spinning = false;
+    let orbitAnchor = null;        // Cesium.Cartesian3 on the ground
+    let lastCameraDrive = 0;       // performance.now() of our last programmatic move
 
-    function orbitCenter() {
-      const lat = parseFloat($('lat').value);
-      const lng = parseFloat($('lng').value);
+    function anchorForLatLng(lat, lng) {
       if (Number.isNaN(lat) || Number.isNaN(lng)) return null;
       const carto = Cesium.Cartographic.fromDegrees(lng, lat);
       let h = viewer.scene.globe.getHeight(carto);
       if (h === undefined || Number.isNaN(h)) h = 0;
-      return Cesium.Cartesian3.fromRadians(carto.longitude, carto.latitude, h + 3);
+      return Cesium.Cartesian3.fromRadians(carto.longitude, carto.latitude, h);
+    }
+
+    // The point at the centre of the screen, on the ground. Tries terrain / 3D
+    // tiles first, then the bare WGS84 ellipsoid (always works, even before
+    // tiles have streamed in).
+    function viewCenterCartesian() {
+      const canvas = viewer.scene.canvas;
+      const mid = new Cesium.Cartesian2(canvas.clientWidth / 2, canvas.clientHeight / 2);
+      const ray = viewer.camera.getPickRay(mid);
+      let c = ray ? viewer.scene.globe.pick(ray, viewer.scene) : null;
+      if (!c && viewer.scene.pickPositionSupported) {
+        const pp = viewer.scene.pickPosition(mid);
+        if (Cesium.defined(pp)) c = pp;
+      }
+      if (!c) c = viewer.camera.pickEllipsoid(mid, viewer.scene.globe.ellipsoid);
+      return c || null;
+    }
+
+    function resolveAnchor() {
+      if (!orbitAnchor) {
+        orbitAnchor = viewCenterCartesian()
+          || anchorForLatLng(parseFloat($('lat').value), parseFloat($('lng').value));
+      }
+      return orbitAnchor;
     }
 
     function applyOrbit() {
-      const center = orbitCenter();
+      const center = resolveAnchor();
       if (!center) return;
+      lastCameraDrive = performance.now();
       viewer.camera.lookAt(
         center,
         new Cesium.HeadingPitchRange(
@@ -405,16 +427,48 @@
       $('range-val').innerText = Math.round(orbit.range) + ' m';
     }
 
-    function seedOrbitFromCamera(lat, lng) {
-      const carto = Cesium.Cartographic.fromDegrees(lng, lat);
-      let h = viewer.scene.globe.getHeight(carto);
-      if (h === undefined || Number.isNaN(h)) h = 0;
-      const center = Cesium.Cartesian3.fromRadians(carto.longitude, carto.latitude, h + 3);
-      const diff = Cesium.Cartesian3.subtract(viewer.camera.positionWC, center, new Cesium.Cartesian3());
-      orbit.range   = Math.max(30, Math.min(3000, Cesium.Cartesian3.magnitude(diff)));
+    // Adopt whatever the camera is now looking at: update the anchor, the
+    // Lat/Lng + UTC-offset fields, the orbit sliders, and the sun readout.
+    function adoptView() {
+      const center = viewCenterCartesian();
+      if (center) {
+        orbitAnchor = center;
+        const c = Cesium.Cartographic.fromCartesian(center);
+        if (c) {
+          const lat = Cesium.Math.toDegrees(c.latitude);
+          const lng = Cesium.Math.toDegrees(c.longitude);
+          $('lat').value = lat.toFixed(4);
+          $('lng').value = lng.toFixed(4);
+          applyTzFromLocation(lng);
+        }
+      }
+      const anchor = orbitAnchor;
+      if (anchor) {
+        const diff = Cesium.Cartesian3.subtract(viewer.camera.positionWC, anchor, new Cesium.Cartesian3());
+        orbit.range = Math.max(30, Math.min(3000, Cesium.Cartesian3.magnitude(diff)));
+      }
       orbit.heading = (((Cesium.Math.toDegrees(viewer.camera.heading) % 360) + 360) % 360);
       orbit.pitch   = Math.max(-89, Math.min(-5, Cesium.Math.toDegrees(viewer.camera.pitch)));
       syncOrbitUI();
+      updateSunPosition();
+    }
+
+    // ------------------------------------------------------------------
+    // Fly to a coordinate, framed so the camera looks AT it (not past it).
+    // ------------------------------------------------------------------
+    function flyToLocation(lat, lng) {
+      applyTzFromLocation(lng, { force: true });
+      updateSunPosition();
+
+      orbitAnchor = anchorForLatLng(lat, lng);
+      if (!orbitAnchor) return;
+      orbit.heading = 0; orbit.pitch = -35; orbit.range = 600;
+      lastCameraDrive = performance.now();
+      viewer.camera.flyToBoundingSphere(new Cesium.BoundingSphere(orbitAnchor, 60), {
+        offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-35), 600),
+        duration: 2,
+        complete: () => { lastCameraDrive = performance.now(); syncOrbitUI(); }
+      });
     }
 
     function nudgeHeading(delta) {
@@ -556,8 +610,23 @@
 
     $('time').addEventListener('input', updateSunPosition);
     $('date').addEventListener('change', updateSunPosition);
-    $('tz').addEventListener('input', updateSunPosition);
-    $('toggle-shadows').addEventListener('change', (e) => { viewer.shadows = e.target.checked; });
+    $('tz').addEventListener('input', () => { tzUserSet = true; updateSunPosition(); });
+
+    // Re-adopt the location whenever the camera settles after a non-orbit move
+    // (mouse drag, "Go to coordinates").
+    viewer.scene.camera.moveEnd.addEventListener(() => {
+      if (spinning) return;
+      if (performance.now() - lastCameraDrive < 500) return; // our own lookAt / flyTo
+      adoptView();
+    });
+
+    // The address-search box flies the camera itself — adopt the result too.
+    if (viewer.geocoder && viewer.geocoder.viewModel && viewer.geocoder.viewModel.complete) {
+      viewer.geocoder.viewModel.complete.addEventListener(() => {
+        lastCameraDrive = 0;
+        setTimeout(adoptView, 50);
+      });
+    }
 
     document.querySelectorAll('.chip[data-date]').forEach((btn) => {
       btn.addEventListener('click', () => {
