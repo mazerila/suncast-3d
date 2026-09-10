@@ -146,10 +146,46 @@
     .mini-label { font-size: 11.5px; font-weight: 600; margin: 10px 0 5px; }
     .setup-btn { width: 100%; margin-top: 6px; }
 
+    /* ---- Persistent time-of-day bar (fixed, over the map) ---- */
+    #timebar {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 1002;
+      display: flex; align-items: center; gap: 12px;
+      padding: 9px 16px calc(9px + env(safe-area-inset-bottom, 0px));
+      background: var(--bg);
+      box-shadow: 0 -3px 22px rgba(15,23,42,.20);
+      backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    }
+    #timebar #time { flex: 1; margin: 0; }
+    #timebar .time-big { min-width: 58px; text-align: right; }
+    #timebar-menu {
+      flex: 0 0 auto; width: 34px; height: 34px; padding: 0; font-size: 16px;
+      background: #eceef1; color: var(--accent-ink);
+    }
+    #timebar-menu:hover { background: #e0e3e8; }
+    /* keep Cesium's required credit + the fullscreen toggle clear of the bar */
+    .cesium-widget-credits,
+    .cesium-viewer-bottom { bottom: 54px !important; }
+    .cesium-viewer-fullscreenContainer { bottom: 58px !important; right: 60px !important; }
+
+    #zoombar {
+      position: fixed; right: 12px; bottom: 76px; z-index: 1002;
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    #zoombar button {
+      width: 40px; height: 40px; padding: 0; font-size: 21px; line-height: 1;
+      background: var(--bg); color: var(--fg);
+      box-shadow: 0 2px 12px rgba(15,23,42,.28);
+    }
+    #zoombar button:hover { background: #fff; }
+
     @media (max-width: 640px) {
-      #ui-panel { top: 10px; left: 10px; right: 10px; width: auto; max-height: calc(100vh - 20px); }
+      #ui-panel { top: 10px; left: 10px; right: 10px; width: auto; max-height: calc(100vh - 84px); }
       #panel-toggle { top: 10px; left: 10px; }
       .cesium-viewer-geocoderContainer { max-width: 52vw; }
+      body.panel-open #zoombar { display: none; }  /* panel covers the map anyway */
+    }
+    @media (min-width: 641px) {
+      #timebar-menu { display: none; }   /* desktop panel is always open */
     }
   </style>
 </head>
@@ -180,14 +216,15 @@
         </div>
         <div class="row">
           <button id="btn-fly" class="btn-ghost">Go to coordinates</button>
-          <button id="btn-geo" class="btn-ghost" style="flex:0 0 auto;" title="Use my current location">📍</button>
+          <button id="btn-geo" class="btn-ghost" style="flex:0 0 auto;" title="Use my current location">📍 My location</button>
         </div>
+        <div id="loc-status" class="hint" role="status" hidden></div>
         <div class="hint">Or search an address in the box at the top-right of the map.</div>
       </div>
 
-      <!-- DATE & TIME -->
+      <!-- DATE -->
       <div class="block">
-        <h2>Date &amp; time</h2>
+        <h2>Date &amp; zone</h2>
         <label class="field" for="date">Date</label>
         <input type="date" id="date">
         <div class="chips">
@@ -198,16 +235,11 @@
           <button class="chip" type="button" data-date="12-21">Dec solstice</button>
         </div>
 
-        <label class="field" for="time" style="margin-top:13px;">
-          Time of day <span id="time-val" class="time-big spread">12:00</span>
-        </label>
-        <input type="range" id="time" min="0" max="23.75" value="12" step="0.25">
-
-        <label class="field" for="tz" style="margin-top:11px;">
+        <label class="field" for="tz" style="margin-top:13px;">
           UTC offset <span id="tz-val" class="spread">+0</span>
         </label>
         <input type="range" id="tz" min="-12" max="14" step="1" value="0">
-        <div class="hint">Auto-set from the map location; adjust for the real zone / DST, then it stays put.</div>
+        <div class="hint">Auto-set from the map location; adjust for the real zone / DST, then it stays put. Drag the time slider at the bottom of the screen to move the sun.</div>
       </div>
 
       <!-- SUN READOUT -->
@@ -296,6 +328,19 @@
       </details>
 
     </div>
+  </div>
+
+  <!-- Zoom buttons (pinch / wheel still work too) -->
+  <div id="zoombar">
+    <button id="zoom-in" type="button" aria-label="Zoom in">+</button>
+    <button id="zoom-out" type="button" aria-label="Zoom out">&minus;</button>
+  </div>
+
+  <!-- Persistent time-of-day bar, fixed over the map so the sun can always be moved -->
+  <div id="timebar">
+    <button id="timebar-menu" type="button" aria-label="Open controls" title="Controls">☰</button>
+    <span id="time-val" class="time-big">12:00</span>
+    <input type="range" id="time" min="0" max="23.75" value="12" step="0.25" aria-label="Time of day">
   </div>
 
   <script>
@@ -599,13 +644,39 @@
       flyToLocation(parseFloat($('lat').value), parseFloat($('lng').value));
     });
 
+    function showLocStatus(msg, tone) {
+      const el = $('loc-status');
+      el.textContent = msg || '';
+      el.hidden = !msg;
+      el.style.color = tone === 'error' ? '#b3261e' : (tone === 'ok' ? '#1a7f43' : '');
+    }
+    // navigator.geolocation only works in a secure context: HTTPS, or localhost.
+    // On a phone opening http://<lan-ip>:3003 it is silently blocked.
+    const GEO_INSECURE_MSG =
+      'Location needs a secure page — it works on localhost or HTTPS, but a phone ' +
+      'opening http://<ip> has it blocked. Type coordinates or use the address search instead.';
+
     $('btn-geo').addEventListener('click', () => {
-      if (!navigator.geolocation) { alert('Geolocation is not available in this browser.'); return; }
-      navigator.geolocation.getCurrentPosition((pos) => {
-        $('lat').value = pos.coords.latitude.toFixed(4);
-        $('lng').value = pos.coords.longitude.toFixed(4);
-        flyToLocation(pos.coords.latitude, pos.coords.longitude);
-      });
+      if (!('geolocation' in navigator)) { showLocStatus('This browser has no geolocation.', 'error'); return; }
+      if (!window.isSecureContext)       { showLocStatus(GEO_INSECURE_MSG, 'error'); return; }
+      showLocStatus('Locating…');
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          showLocStatus('');
+          $('lat').value = pos.coords.latitude.toFixed(5);
+          $('lng').value = pos.coords.longitude.toFixed(5);
+          flyToLocation(pos.coords.latitude, pos.coords.longitude);
+        },
+        (err) => {
+          const msg = {
+            1: 'Permission denied — allow location for this site in your browser/OS settings, then tap again.',
+            2: 'Position unavailable — no GPS or network fix right now.',
+            3: 'Timed out — try again with a clearer view of the sky.'
+          }[err.code] || ('Location failed: ' + err.message);
+          showLocStatus(msg, 'error');
+        },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }
+      );
     });
 
     $('time').addEventListener('input', updateSunPosition);
@@ -655,6 +726,20 @@
     $('btn-rot-left').addEventListener('click',  () => nudgeHeading(-45));
     $('btn-rot-right').addEventListener('click', () => nudgeHeading(45));
 
+    // ---- Zoom buttons (mouse wheel / two-finger pinch also work natively) ----
+    function zoomStep(dir) {
+      const anchor = orbitAnchor || viewCenterCartesian();
+      const dist = anchor
+        ? Cesium.Cartesian3.distance(viewer.camera.positionWC, anchor)
+        : viewer.camera.positionCartographic.height;
+      const amount = Math.min(Math.max(dist * 0.35, 3), 5000);
+      lastCameraDrive = performance.now();
+      if (dir < 0) viewer.camera.zoomIn(amount); else viewer.camera.zoomOut(amount);
+      adoptView();
+    }
+    $('zoom-in').addEventListener('click',  () => zoomStep(-1));
+    $('zoom-out').addEventListener('click', () => zoomStep(1));
+
     const btnSpin = $('btn-spin');
     btnSpin.addEventListener('click', () => {
       spinning = !spinning;
@@ -686,10 +771,12 @@
     const smallScreen = window.matchMedia('(max-width: 640px)');
     function setPanelOpen(open) {
       uiPanel.classList.toggle('collapsed', !open);
+      document.body.classList.toggle('panel-open', open);
       panelToggle.hidden = open;
       panelToggle.setAttribute('aria-expanded', String(open));
     }
     panelToggle.addEventListener('click', () => setPanelOpen(true));
+    $('timebar-menu').addEventListener('click', () => setPanelOpen(uiPanel.classList.contains('collapsed')));
     $('panel-close').addEventListener('click', () => setPanelOpen(false));
     setPanelOpen(!smallScreen.matches);
     smallScreen.addEventListener('change', (e) => setPanelOpen(!e.matches));
@@ -720,13 +807,15 @@
         $('lat').value = FALLBACK_LOCATION.lat;
         $('lng').value = FALLBACK_LOCATION.lng;
         if (why) console.info('Geolocation unavailable (' + why + '); starting at ' + FALLBACK_LOCATION.label);
+        if (why === 'insecure context') showLocStatus(GEO_INSECURE_MSG, 'error');
         proceed();
       }
-      if (!navigator.geolocation) { fallback('not supported'); return; }
+      if (!('geolocation' in navigator)) { fallback('not supported'); return; }
+      if (!window.isSecureContext)       { fallback('insecure context'); return; }
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          $('lat').value = pos.coords.latitude.toFixed(4);
-          $('lng').value = pos.coords.longitude.toFixed(4);
+          $('lat').value = pos.coords.latitude.toFixed(5);
+          $('lng').value = pos.coords.longitude.toFixed(5);
           proceed();
         },
         (err) => fallback(err && err.message ? err.message : 'permission denied'),

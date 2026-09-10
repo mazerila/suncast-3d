@@ -75,19 +75,29 @@ HTTPS/geolocation caveats.
   #cesiumContainer      full-viewport Cesium canvas
   #panel-toggle         floating "☰ Controls" button (shown when the panel is hidden)
   #ui-panel             control panel (top-left): sticky header + .panel-body
-    ├─ Location         lat/lng + "Go to coordinates" + 📍
-    ├─ Date & time      <input type=date> + preset chips, big time slider, UTC offset, shadows
+    ├─ Location         lat/lng + "Go to coordinates" + "📍 My location" + #loc-status
+    ├─ Date & zone      <input type=date> + preset chips + UTC-offset slider
     ├─ #sun-readout     altitude / bearing, or "Night"
     ├─ <details> Camera & orbit     heading / tilt / distance / spin  (folded)
     └─ <details> #setup Map data & keys   ion token, Google key, how-to guides (folded;
                                           opens itself when no token is present)
+  #zoombar             fixed bottom-right: ＋ / − buttons
+  #timebar             fixed full-width bottom: ☰ (mobile) + HH:MM + the #time slider
   <script>              config merge → viewer → functions → event wiring
 </body>
 ```
 
-The panel collapses (`#ui-panel.collapsed` slides it off-canvas) via the header
-`✕` / floating `☰`; it starts collapsed under 640 px and re-applies that default
-when the viewport crosses the breakpoint.
+- The time-of-day slider lives in `#timebar`, **fixed over the map**, so the sun
+  can be moved even while the panel is closed (the key mobile fix). `#time` /
+  `#time-val` keep their ids, so `updateSunPosition()` is unchanged.
+- The panel collapses (`#ui-panel.collapsed` slides it off-canvas) via the header
+  `✕`, the floating `☰`, or `#timebar`'s `☰`; it starts collapsed under 640 px
+  and re-applies that default when the viewport crosses the breakpoint.
+  `body.panel-open` hides `#zoombar` on phones while the panel covers the map.
+- `#zoombar` calls `camera.zoomIn/zoomOut` by a fraction of the
+  camera-to-anchor distance; wheel and pinch zoom work natively regardless.
+- CSS nudges Cesium's required credit and the fullscreen toggle up so `#timebar`
+  never covers them.
 
 ### Config merge
 
@@ -246,7 +256,9 @@ function applyOrbit() {
 |---------|---------|
 | `#btn-load-osm` / `#btn-load-google` | `loadOsmBuildings` / `loadGoogleTiles` |
 | `#btn-fly` | `flyToLocation(lat, lng)` |
-| `#btn-geo` | `navigator.geolocation` → fill fields → `flyToLocation` |
+| `#btn-geo` | secure-context check → `getCurrentPosition` (high-accuracy, 15 s) → fill fields → `flyToLocation`; `#loc-status` shows progress / errors |
+| `#zoom-in` / `#zoom-out` | `camera.zoomIn/Out` by a fraction of the camera-to-anchor distance → `adoptView` |
+| `#timebar-menu` (mobile ☰) | toggle the panel |
 | `#time` / `#date` | `updateSunPosition` |
 | `#tz` | set `tzUserSet = true` (manual offset now sticks) → `updateSunPosition` |
 | `.chip[data-date]` | set `#date` to today / an equinox / a solstice → `updateSunPosition` |

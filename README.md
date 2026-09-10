@@ -1,8 +1,8 @@
 # Suncast 3D
 
 **Daylight &amp; shadow simulator.** A small web app that shows a real 3D city
-model and casts **astronomically accurate sun shadows** for any location, date
-(equinox / solstice), and local time of day. Built with
+model and casts **astronomically accurate sun shadows** for any location, date,
+and time of day. Built with
 [CesiumJS](https://cesium.com/platform/cesiumjs/). Similar in spirit to
 suntrace3d.com/viewer.
 
@@ -11,11 +11,12 @@ suntrace3d.com/viewer.
 - Loads 3D buildings for the whole planet (grey OSM extrusions, or Google
   photorealistic mesh).
 - Puts the sun exactly where it would really be for the chosen **latitude /
-  longitude**, **season**, **local time**, and **UTC offset**, and renders the
-  resulting shadows in real time.
+  longitude**, **date**, **time of day**, and **UTC offset**, and renders the
+  resulting shadows in real time. The time slider is fixed along the bottom of
+  the screen so it works with the panel closed (handy on a phone).
 - Lets you **orbit the camera around a building** to inspect it from every side
   (heading slider, 45° step buttons, continuous spin, tilt, distance, arrow
-  keys).
+  keys), plus ＋/− zoom buttons.
 - Shows a live **sun altitude / azimuth** readout and tells you when it is
   night.
 - Exposes a keyless **JSON API** (`/api/sun`, `/api/daylight`) so other apps can

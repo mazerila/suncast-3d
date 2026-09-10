@@ -106,21 +106,29 @@ On load the app flies to your current location (or the Château de Versailles if
 geolocation is denied) and, if a Cesium token is available, loads OSM 3D
 buildings automatically.
 
-1. **Location** — type **Lat / Lng** and **Go to coordinates**, hit **📍**, or
-   use the address search box at the top-right of the map.
-2. **Date & time:**
+1. **Location** — type **Lat / Lng** and **Go to coordinates**, hit
+   **📍 My location** (needs HTTPS or localhost — see §5), or use the address
+   search box at the top-right of the map.
+2. **Time of day** — the slider fixed along the **bottom of the screen**, always
+   visible over the map. 00:00–23:45 in 15-min steps. On a phone the **☰** at its
+   left opens/closes the panel.
+3. **Date & zone** (in the panel):
    - **Date** — pick any date, or tap a preset chip (**Today**, **Mar equinox**,
      **Jun solstice**, **Sep equinox**, **Dec solstice**).
-   - **Time of day** — 00:00–23:45 in 15-min steps.
    - **UTC offset** — auto-set from the map location (`round(lng / 15)`) every
      time you move; nudge it for the true zone / DST and your value then sticks.
 
 Shadows are always on; at night the sun readout says so and nothing casts one.
-3. **Camera & orbit** (folded section):
+4. **Move / zoom the map:**
+   - **Zoom** — the **＋ / −** buttons (bottom-right), the mouse wheel, or a
+     two-finger pinch on touch.
+   - **Rotate / pan** — drag with the mouse or one finger. Tilt with Ctrl-drag,
+     the middle mouse button, or a two-finger drag.
+5. **Camera & orbit** (folded panel section):
    - **Orbit around location** slider / **⟲ 45°** / **45° ⟳** / **▶ Spin**.
    - **Camera tilt** and **Camera distance** sliders.
    - Arrow keys: **◀ ▶** rotate, **▲ ▼** tilt (when the map, not a field, has
-     focus). Mouse drag still works; Ctrl-drag or middle-drag tilts.
+     focus).
 
 The **Sun** readout shows altitude / azimuth, or "Night" when the sun is below
 the horizon.
@@ -155,10 +163,18 @@ Open the `on your LAN` URL from a phone or another computer on the same network.
   on public / untrusted Wi-Fi.
 - Add the LAN origin (e.g. `http://192.168.1.40:3003/*`) to each key's referrer
   allow-list or the map tiles will 403.
-- **Browser geolocation only works on `localhost` or HTTPS**, not on a plain
-  `http://192.168.x.x` address. On LAN devices the "start at my location" step
-  silently fails and the app opens at the **Château de Versailles** fallback —
-  use the address search box or type coordinates instead.
+- **Browser geolocation ("📍 My location") only works on `localhost` or HTTPS**,
+  never on a plain `http://192.168.x.x` (or Tailscale IP) address — the browser
+  blocks it. So **on a phone over LAN, 📍 will not work**; the panel now shows
+  "Location needs a secure page…" and the app opens at the **Château de
+  Versailles** fallback. Use the address-search box or type coordinates.
+  To get 📍 working on a phone, serve the app over HTTPS. Quickest options:
+  - **Tailscale** (already installed here): `tailscale serve --bg 3003` gives a
+    `https://<machine>.<tailnet>.ts.net` URL with a real cert — open that on the
+    phone (it must be on your tailnet). `tailscale serve --https=443 off` to stop.
+  - A reverse proxy (Caddy/nginx) terminating TLS in front of `server.js`.
+  - `mkcert` for a locally-trusted cert (you also have to install its CA on the
+    phone).
 - The `/api` routes are open (no key, `Access-Control-Allow-Origin: *`). They
   only do public astronomy math, but anyone on the LAN can call them.
 
