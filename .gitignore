@@ -28,6 +28,11 @@ build/
 coverage/
 *.tsbuildinfo
 
+# --- firebase / gcloud ---
+.firebase/
+firebase-debug.log
+.gcloudignore
+
 # --- runtime ---
 pids/
 *.pid

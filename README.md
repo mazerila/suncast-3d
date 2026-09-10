@@ -71,8 +71,11 @@ Commit **`config.local.example.js`** (the template) but not `config.local.js`.
 
 ## Docs
 
-- [`docs/SETUP.md`](docs/SETUP.md) — getting the API keys, configuration
-  options, deploying.
+- [`docs/SETUP.md`](docs/SETUP.md) — API keys, configuration, LAN access,
+  troubleshooting.
+- [`docs/DEPLOY.md`](docs/DEPLOY.md) — step-by-step deploy to Firebase Hosting
+  (`*.web.app`) + Cloud Run for the API, from a fresh Google account.
+- [`docs/API.md`](docs/API.md) — HTTP API reference.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — how the viewer, sun math, and
   orbit camera work.
 
@@ -84,9 +87,9 @@ lib/sun.js                       Server-side sun math (SunCalc) behind the API
 public/index.html                Entire frontend (Cesium viewer + controls)
 public/config.local.example.js   Key template — copy to config.local.js
 public/config.local.js           Your real keys (git-ignored)
-docs/SETUP.md                    Keys, config, LAN access, deploy, troubleshooting
-docs/ARCHITECTURE.md             How the viewer + API are built
-docs/API.md                      HTTP API reference
+firebase.json / .firebaserc      Firebase Hosting config (+ /api rewrite to Cloud Run)
+Dockerfile / .dockerignore       Cloud Run image for the API
+docs/                            SETUP, DEPLOY, API, ARCHITECTURE
 ```
 
 ## License

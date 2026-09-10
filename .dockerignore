@@ -1,0 +1,12 @@
+node_modules
+.git
+.github
+.firebase
+public
+docs
+*.md
+firebase.json
+.firebaserc
+.gitignore
+.dockerignore
+*.log
