@@ -98,16 +98,26 @@ If you created a **named Hosting site** in step 3 (e.g. `suncast`), also add a
 
 ## 7. Choose viewer-only vs viewer + API
 
-- **Viewer + API** (default): leave `firebase.json` as-is. The `rewrites` block
-  sends `/api/**` to a Cloud Run service called `suncast-api` in
-  `europe-west1`. Continue to step 8.
-- **Viewer only**: delete the entire `"rewrites": [ ... ]` array from
-  `firebase.json` (otherwise the deploy fails looking for a service that does
-  not exist), then jump to step 10.
+`firebase.json` ships with **no `rewrites` block** by default, so a plain
+`firebase deploy --only hosting` gives you the viewer only — this is exactly
+what happened on the live `suncast.web.app`: Blaze wasn't finished yet, so the
+`/api` rewrite was left out to unblock the deploy.
 
-If you want the API in a **different region**, change it in **both** places:
-`firebase.json` → `rewrites[0].run.region`, and the `--region` flag in step 8.
-`europe-west1` (Belgium) is a good default for Europe.
+- **Viewer only**: nothing to do — you already have it. Jump to step 10.
+- **Viewer + API**: once Cloud Run is deployed (step 8), add the rewrite back
+  into the `hosting` block of `firebase.json`:
+  ```json
+  "rewrites": [
+    { "source": "/api/**", "run": { "serviceId": "suncast-api", "region": "europe-west1" } }
+  ]
+  ```
+  then redeploy Hosting (step 10). Deploying Hosting with this block present
+  **before** the Cloud Run service exists fails with a 403/"Cloud Run Admin API
+  has not been used" error — deploy Cloud Run first.
+
+If you want the API in a different region, change it in **both** places: the
+`rewrites` block above, and the `--region` flag in step 8. `europe-west1`
+(Belgium) is a good default for Europe.
 
 ## 8. (API) Deploy the server to Cloud Run
 

@@ -1,17 +1,12 @@
 {
   "hosting": {
+    "site": "suncast",
     "public": "public",
     "ignore": [
       "firebase.json",
       "**/.*",
       "**/node_modules/**",
       "config.local.example.js"
-    ],
-    "rewrites": [
-      {
-        "source": "/api/**",
-        "run": { "serviceId": "suncast-api", "region": "europe-west1" }
-      }
     ],
     "headers": [
       {
