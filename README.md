@@ -74,7 +74,8 @@ Commit **`config.local.example.js`** (the template) but not `config.local.js`.
 - [`docs/SETUP.md`](docs/SETUP.md) — API keys, configuration, LAN access,
   troubleshooting.
 - [`docs/DEPLOY.md`](docs/DEPLOY.md) — step-by-step deploy to Firebase Hosting
-  (`*.web.app`) + Cloud Run for the API, from a fresh Google account.
+  (`*.web.app`) + Cloud Run for the API, from a fresh Google account, plus
+  GitHub Actions CI/CD (auto-deploy on merge to `main`).
 - [`docs/API.md`](docs/API.md) — HTTP API reference.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — how the viewer, sun math, and
   orbit camera work.
@@ -89,6 +90,7 @@ public/config.local.example.js   Key template — copy to config.local.js
 public/config.local.js           Your real keys (git-ignored)
 firebase.json / .firebaserc      Firebase Hosting config (+ /api rewrite to Cloud Run)
 Dockerfile / .dockerignore       Cloud Run image for the API
+.github/workflows/               Auto-deploy Hosting to suncast.web.app on merge to main
 docs/                            SETUP, DEPLOY, API, ARCHITECTURE
 ```
 

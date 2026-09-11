@@ -200,6 +200,38 @@ Open `https://<your-site>.web.app`:
 
 ---
 
+## CI/CD: auto-deploy the viewer on every merge to `main`
+
+`.github/workflows/firebase-hosting-merge.yml` is already in the repo. It runs
+on every push to `main` (i.e. every merged PR), recreates
+`public/config.local.js` from GitHub secrets (it's git-ignored, so it never
+reaches the checkout otherwise), and deploys Hosting. It deploys **only the
+viewer** — the `/api` Cloud Run service is not part of this workflow.
+
+**One-time setup — 3 repository secrets needed:**
+
+1. **`FIREBASE_SERVICE_ACCOUNT_SUNCAST_3D`** — easiest way to create it:
+   ```bash
+   firebase init hosting:github
+   ```
+   Answer its prompts (GitHub repo = `mazerila/suncast-3d`, branch = `main`).
+   It authorizes against GitHub (opens a browser) and creates a scoped Google
+   service account + adds this secret to the repo automatically. When it asks
+   to overwrite `.github/workflows/firebase-hosting-merge.yml`, answer **N** —
+   keep the version in this repo, it already has the `config.local.js` step
+   the generated one won't have. (The secret is created either way, regardless
+   of that answer.)
+2. **`CESIUM_ION_TOKEN`** and **`GOOGLE_MAPS_KEY`** — on GitHub:
+   **repo → Settings → Secrets and variables → Actions → New repository
+   secret.** Paste the same values you have in your local
+   `public/config.local.js`. Leave `GOOGLE_MAPS_KEY` empty (create the secret
+   with an empty value) if you don't use Google Photorealistic.
+
+After that, merge anything into `main` and check the **Actions** tab on GitHub
+— the run deploys to `https://suncast.web.app` in about a minute.
+
+---
+
 ## Staying inside the free tier
 
 | Service | Always-free allowance | Notes |
