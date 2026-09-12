@@ -25,6 +25,7 @@ The **viewer** pulls its libraries from CDNs at runtime — nothing is bundled:
 |---------|---------|---------|
 | CesiumJS | 1.115 (`cesium.com`) | globe, 3D tiles, camera, shadow map, geocoder |
 | SunCalc | 1.9.0 (`cdnjs`) | altitude / azimuth **readout only** (not the shadows) |
+| tz-lookup | 6.1.0 (`jsDelivr`) | lat/lng → IANA time zone for the UTC-offset slider (offline data, ~120 KB) |
 
 The **API** depends on `express` and `suncalc` from npm (`package.json`); it
 never loads Cesium.
@@ -83,7 +84,7 @@ HTTPS/geolocation caveats.
     ├─ <details> Camera & orbit     heading / tilt / distance / spin  (folded)
     └─ <details> #setup Map data & keys   ion token, Google key, how-to guides (folded;
                                           opens itself when no token is present)
-  #zoombar             fixed bottom-right: ＋ / − buttons
+  #mapctl              fixed right column above the time bar: #compass · ＋ · − · fullscreen (Cesium's, re-parented)
   #timebar             fixed full-width bottom: ☰ (mobile) + HH:MM + the #time slider
   <script>              config merge → viewer → functions → event wiring
 </body>
@@ -95,11 +96,15 @@ HTTPS/geolocation caveats.
 - The panel collapses (`#ui-panel.collapsed` slides it off-canvas) via the header
   `✕`, the floating `☰`, or `#timebar`'s `☰`; it starts collapsed under 640 px
   and re-applies that default when the viewport crosses the breakpoint.
-  `body.panel-open` hides `#zoombar` on phones while the panel covers the map.
-- `#zoombar` calls `camera.zoomIn/zoomOut` by a fraction of the
-  camera-to-anchor distance; wheel and pinch zoom work natively regardless.
-- CSS nudges Cesium's required credit and the fullscreen toggle up so `#timebar`
-  never covers them.
+  `body.panel-open` hides `#mapctl` on phones while the panel covers the map.
+- `#mapctl` is one 38px-wide column: the **compass** (SVG rose counter-rotated
+  by the camera heading each frame so N points to true north; an orange dot at
+  the sun's bearing; click = face north), **＋ / −** (`camera.zoomIn/zoomOut` by
+  35 % of the camera-to-anchor distance; wheel and pinch work regardless), and
+  Cesium's **fullscreen** button, moved into the column at startup.
+- `#timebar` also carries **▶ play**: sweeps the time slider through 24 h at
+  1 h/s from the rAF loop; grabbing the slider pauses it.
+- CSS nudges Cesium's required credit up so `#timebar` never covers it.
 
 ### Config merge — and the publish boundary
 
@@ -148,7 +153,7 @@ viewer.clock.shouldAnimate = false;   // clock holds whatever time we set
 viewer.shadows = true;
 viewer.shadowMap.softShadows = true;
 viewer.shadowMap.darkness = 0.35;
-viewer.shadowMap.maximumDistance = 8000;   // metres; shadows fade past this
+viewer.shadowMap.maximumDistance = 25000;  // metres; the opening view is ~10 km out
 ```
 
 ## Buildings data sources
@@ -193,11 +198,19 @@ viewer.clock.currentTime = Cesium.JulianDate.fromDate(new Date(utcMs));
 - **Date** is a native `<input type="date">` (defaults to today); four preset
   chips set it to that year's equinoxes / solstices. `dateParts()` regex-parses
   the value, falling back to today's date if it is blank.
-- **UTC offset** (`applyTzFromLocation`) is re-estimated as `round(lng / 15)`
-  (clamped −12…14) every time the map location changes — on a fly, and on every
-  adopt-on-move. Dragging the `#tz` slider sets `tzUserSet`, after which the
-  automatic estimate is skipped (a deliberate `flyToLocation`, e.g. the 📍
-  button, passes `force` and clears that flag). No IANA / DST database.
+- **UTC offset** (`applyTzFromLocation(lat, lng)`) is set from the location's
+  real time zone every time the map location changes (on a fly and on every
+  adopt-on-move): [`tz-lookup`](https://github.com/photostructure/tz-lookup)
+  (~120 KB, loaded from jsDelivr, offline lookup) maps lat/lng → an IANA zone
+  such as `Europe/Paris`, stored in `currentZone`; `zoneOffsetHours(zone, date)`
+  then asks the browser's `Intl.DateTimeFormat(…, { timeZoneName: 'longOffset' })`
+  for that zone's offset **at local noon of the selected date**, so DST is
+  right (Paris: +2 in June, +1 in December). `refreshTzFromZone()` re-runs on
+  every date change / preset chip. The slider is in ½-hour steps (Tehran +3:30).
+  If `tz-lookup` failed to load, it falls back to `round(lng / 15)` and says
+  "estimated from longitude". Dragging the `#tz` slider sets `tzUserSet`, after
+  which automatic updates are skipped (label "manual") until a deliberate
+  `flyToLocation` — the 📍 / Go-to buttons — passes `force` and clears it.
 - **SunCalc** is called separately with the same `Date` and the lat/lng purely
   to print `altitude° / azimuth°` (azimuth normalised so 0° = N, 90° = E) and to
   detect night (`altitude <= 0`). It does **not** affect rendering.
@@ -291,7 +304,6 @@ Shadows are always on (`viewer.shadows = true`, no toggle).
   (`viewer.clock` sweep + sampled shadow tests).
 - Play button: animate the day with `viewer.clock.shouldAnimate = true` and a
   multiplier, record a shadow time-lapse.
-- Real IANA time zone from a lat/lng → tz lookup instead of `round(lng / 15)`.
 - Compass rose / sun-path arc overlay tied to `orbit.heading` and the SunCalc
   azimuth.
 - Persist the last location + settings in `localStorage`.

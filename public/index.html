@@ -12,6 +12,10 @@
   <link href="https://cesium.com/downloads/cesiumjs/releases/1.115/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
   <!-- SunCalc: tiny lib just for the azimuth/altitude readout -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/suncalc/1.9.0/suncalc.min.js"></script>
+  <!-- tz-lookup: offline lat/lng -> IANA time zone (e.g. Europe/Paris), so the
+       UTC offset (incl. DST) is set correctly for the map location. If it fails
+       to load we fall back to round(longitude / 15). -->
+  <script src="https://cdn.jsdelivr.net/npm/tz-lookup@6.1.0/tz.js" onerror="window.__noTzLookup = true"></script>
 
   <!-- Keys. Both files are git-ignored and both are optional (you can always
        type keys into the panel). Each one merges into window.CONFIG.
@@ -190,7 +194,7 @@
       display: flex; flex-direction: column; align-items: center; gap: 6px;
     }
     #mapctl > button, #mapctl .cesium-viewer-fullscreenContainer {
-      width: 40px; height: 40px; padding: 0; font-size: 21px; line-height: 1;
+      width: 38px; height: 38px; padding: 0; font-size: 19px; line-height: 1;
       background: var(--bg); color: var(--fg); border-radius: 10px;
       box-shadow: 0 2px 12px rgba(15,23,42,.28);
     }
@@ -199,16 +203,16 @@
       position: static !important; display: flex; align-items: center; justify-content: center;
     }
     #mapctl .cesium-button.cesium-fullscreenButton {
-      width: 32px; height: 32px; margin: 0; padding: 4px; border: 0; background: transparent; box-shadow: none;
+      width: 30px; height: 30px; margin: 0; padding: 5px; border: 0; background: transparent; box-shadow: none;
       fill: var(--fg);
     }
     #mapctl .cesium-button.cesium-fullscreenButton:hover { background: transparent; }
 
     /* ---- Compass: rotates with the camera so N/E/S/W always point true ---- */
-    #compass { width: 48px !important; height: 48px !important; border-radius: 50% !important; }
+    #compass { width: 38px !important; height: 38px !important; border-radius: 50% !important; }
     #compass svg { width: 100%; height: 100%; display: block; }
     #compass .rose { transform-origin: 50% 50%; transition: transform .08s linear; }
-    #compass .lbl { font: 700 15px system-ui, sans-serif; fill: #46505f; text-anchor: middle; dominant-baseline: central; }
+    #compass .lbl { font: 800 20px system-ui, sans-serif; fill: #46505f; text-anchor: middle; dominant-baseline: central; }
     #compass .lbl.n { fill: #c0392b; }
     #compass .tick { stroke: #c9ced6; stroke-width: 1.5; }
     #compass .needle-n { fill: #c0392b; }
@@ -290,8 +294,9 @@
         <label class="field" for="tz" style="margin-top:13px;">
           UTC offset <span id="tz-val" class="spread">+0</span>
         </label>
-        <input type="range" id="tz" min="-12" max="14" step="1" value="0">
-        <div class="hint">Auto-set from the map location; adjust for the real zone / DST, then it stays put. Drag the time slider at the bottom of the screen to move the sun.</div>
+        <input type="range" id="tz" min="-12" max="14" step="0.5" value="0">
+        <div class="hint"><span id="tz-zone"></span></div>
+        <div class="hint">Set automatically from the map location (time zone + daylight saving for the chosen date). Drag it to override; your value then stays put until you go to a new place.</div>
       </div>
 
       <!-- SUN READOUT -->
@@ -312,11 +317,11 @@
           </div>
           <div class="hint">See the building from every side. Arrow keys ◀ ▶ rotate, ▲ ▼ tilt when the map has focus; mouse drag still works (Ctrl/middle-drag tilts).</div>
 
-          <label class="field" for="pitch" style="margin-top:11px;">Camera tilt <span id="pitch-val" class="spread">-35°</span></label>
-          <input type="range" id="pitch" min="-89" max="-5" step="1" value="-35">
+          <label class="field" for="pitch" style="margin-top:11px;">Camera tilt <span id="pitch-val" class="spread">-40°</span></label>
+          <input type="range" id="pitch" min="-89" max="-5" step="1" value="-40">
 
-          <label class="field" for="range" style="margin-top:9px;">Camera distance <span id="range-val" class="spread">500 m</span></label>
-          <input type="range" id="range" min="30" max="3000" step="10" value="500">
+          <label class="field" for="range" style="margin-top:9px;">Camera distance <span id="range-val" class="spread">10000 m</span></label>
+          <input type="range" id="range" min="30" max="15000" step="10" value="10000">
         </div>
       </details>
 
@@ -397,15 +402,14 @@
     <button id="compass" type="button" title="North is where the red N points. Click to face north." aria-label="Compass — click to face north">
       <svg viewBox="0 0 100 100" aria-hidden="true">
         <g class="rose" id="compass-rose">
-          <circle cx="50" cy="50" r="46" fill="none" class="tick"/>
-          <polygon points="50,14 43,50 57,50" class="needle-n"/>
-          <polygon points="50,86 43,50 57,50" class="needle-s"/>
-          <text x="50" y="22" class="lbl n">N</text>
-          <text x="80" y="50" class="lbl">E</text>
+          <polygon points="50,12 44,50 56,50" class="needle-n"/>
+          <polygon points="50,88 44,50 56,50" class="needle-s"/>
+          <text x="50" y="21" class="lbl n">N</text>
+          <text x="79" y="51" class="lbl">E</text>
           <text x="50" y="80" class="lbl">S</text>
-          <text x="20" y="50" class="lbl">W</text>
+          <text x="21" y="51" class="lbl">W</text>
           <g id="compass-sun" hidden>
-            <circle cx="50" cy="9" r="6" class="sun"/>
+            <circle cx="50" cy="8" r="7" class="sun"/>
           </g>
         </g>
       </svg>
@@ -462,7 +466,7 @@
     viewer.shadows = true;
     viewer.shadowMap.softShadows = true;
     viewer.shadowMap.darkness = 0.35;
-    viewer.shadowMap.maximumDistance = 8000;
+    viewer.shadowMap.maximumDistance = 25000;   // the opening view is ~10 km out; keep shadows visible there
 
     // Re-parent Cesium's fullscreen button into our control column so it lines
     // up with the compass and zoom buttons instead of floating on its own.
@@ -477,16 +481,67 @@
     // Time zone: auto-estimated from longitude, but a manual change sticks.
     // ------------------------------------------------------------------
     let tzUserSet = false;
+    let currentZone = null;               // IANA zone for the map location, e.g. "Europe/Paris"
+
     function estimateTzFromLng(lng) {
       return Math.max(-12, Math.min(14, Math.round(lng / 15)));
     }
-    function applyTzFromLocation(lng, { force = false } = {}) {
+    // IANA zone for a coordinate (null if tz-lookup didn't load).
+    function zoneFor(lat, lng) {
+      if (typeof tzlookup !== 'function') return null;
+      try { return tzlookup(lat, lng); } catch (_) { return null; }
+    }
+    // UTC offset in hours that `zone` has at instant `date` (DST-aware).
+    function zoneOffsetHours(zone, date) {
+      try {
+        const name = new Intl.DateTimeFormat('en-US', { timeZone: zone, timeZoneName: 'longOffset' })
+          .formatToParts(date).find(p => p.type === 'timeZoneName').value;   // "GMT+02:00" / "GMT"
+        const m = /GMT([+-])(\d{1,2})(?::?(\d{2}))?/.exec(name);
+        if (!m) return 0;
+        return (m[1] === '-' ? -1 : 1) * (+m[2] + (m[3] ? +m[3] / 60 : 0));
+      } catch (_) {
+        // Older browsers: diff the wall-clock in the zone against UTC.
+        const utc = new Date(date.toLocaleString('en-US', { timeZone: 'UTC' }));
+        const loc = new Date(date.toLocaleString('en-US', { timeZone: zone }));
+        return Math.round(((loc - utc) / 3600000) * 4) / 4;
+      }
+    }
+    // Short zone label for the panel, e.g. "CEST" — falls back to the IANA name.
+    function zoneAbbrev(zone, date) {
+      try {
+        return new Intl.DateTimeFormat('en-US', { timeZone: zone, timeZoneName: 'short' })
+          .formatToParts(date).find(p => p.type === 'timeZoneName').value;
+      } catch (_) { return zone; }
+    }
+    function fmtOffset(tz) {
+      const sign = tz < 0 ? '−' : '+', a = Math.abs(tz), h = Math.floor(a), m = Math.round((a - h) * 60);
+      return sign + h + (m ? ':' + String(m).padStart(2, '0') : '');
+    }
+    function setTzValue(tz, label) {
+      $('tz').value = tz;
+      $('tz-val').innerText = fmtOffset(tz);
+      $('tz-zone').textContent = label || '';
+    }
+    // Set the UTC offset for a location. Uses the real time zone (DST-aware for
+    // the currently selected date) when tz-lookup is available.
+    function applyTzFromLocation(lat, lng, { force = false } = {}) {
       if (Number.isNaN(lng)) return;
       if (tzUserSet && !force) return;      // respect the user's manual offset
-      if (force) tzUserSet = false;         // a deliberate new place → fresh estimate
-      const tz = estimateTzFromLng(lng);
-      $('tz').value = tz;
-      $('tz-val').innerText = (tz >= 0 ? '+' : '') + tz;
+      if (force) tzUserSet = false;         // a deliberate new place → fresh value
+      currentZone = Number.isNaN(lat) ? null : zoneFor(lat, lng);
+      refreshTzFromZone(lng);
+    }
+    // Recompute the offset from currentZone for the selected date (DST changes
+    // with the date), or fall back to the longitude estimate.
+    function refreshTzFromZone(lng) {
+      if (tzUserSet) return;
+      if (currentZone) {
+        const { year, month, day } = dateParts();
+        const noon = new Date(Date.UTC(year, month, day, 12));
+        setTzValue(zoneOffsetHours(currentZone, noon), currentZone + ' · ' + zoneAbbrev(currentZone, noon));
+      } else if (!Number.isNaN(lng)) {
+        setTzValue(estimateTzFromLng(lng), 'estimated from longitude');
+      }
     }
 
     // ------------------------------------------------------------------
@@ -495,9 +550,12 @@
     // controls (address search, drag, "Go to coordinates"), the anchor and the
     // Lat/Lng + UTC-offset fields are re-adopted from wherever the view lands.
     // ------------------------------------------------------------------
-    const orbit = { heading: 0, pitch: -35, range: 500 };
+    // Opening view: far enough to see the whole neighbourhood, not just one block.
+    const DEFAULT_PITCH = -40, DEFAULT_RANGE = 10000;  // degrees, metres — opening view ~10 km out
+    const orbit = { heading: 0, pitch: DEFAULT_PITCH, range: DEFAULT_RANGE };
     let spinning = false;
     let orbitAnchor = null;        // Cesium.Cartesian3 on the ground
+    let hasFlown = false;          // no adopt-on-move until the first fly has aimed the camera
     let lastCameraDrive = 0;       // performance.now() of our last programmatic move
 
     function anchorForLatLng(lat, lng) {
@@ -514,14 +572,16 @@
     function viewCenterCartesian() {
       const canvas = viewer.scene.canvas;
       const mid = new Cesium.Cartesian2(canvas.clientWidth / 2, canvas.clientHeight / 2);
+      const cam = viewer.camera.positionWC;
+      // A pick that lands (almost) on the camera itself is garbage — pickPosition
+      // does that when nothing valid is under the screen centre yet (tiles still
+      // streaming). Using it made the orbit range collapse to its 30 m minimum.
+      const sane = (p) => Cesium.defined(p) && Cesium.Cartesian3.distance(p, cam) > 5;
       const ray = viewer.camera.getPickRay(mid);
-      let c = ray ? viewer.scene.globe.pick(ray, viewer.scene) : null;
-      if (!c && viewer.scene.pickPositionSupported) {
-        const pp = viewer.scene.pickPosition(mid);
-        if (Cesium.defined(pp)) c = pp;
-      }
-      if (!c) c = viewer.camera.pickEllipsoid(mid, viewer.scene.globe.ellipsoid);
-      return c || null;
+      let c = ray ? viewer.scene.globe.pick(ray, viewer.scene) : undefined;         // terrain (best)
+      if (!sane(c)) c = viewer.camera.pickEllipsoid(mid, viewer.scene.globe.ellipsoid); // always sane if it hits
+      if (!sane(c) && viewer.scene.pickPositionSupported) c = viewer.scene.pickPosition(mid); // last resort (globe hidden)
+      return sane(c) ? c : null;
     }
 
     function resolveAnchor() {
@@ -570,13 +630,14 @@
           const lng = Cesium.Math.toDegrees(c.longitude);
           $('lat').value = lat.toFixed(4);
           $('lng').value = lng.toFixed(4);
-          applyTzFromLocation(lng);
+          applyTzFromLocation(lat, lng);
         }
       }
-      const anchor = orbitAnchor;
-      if (anchor) {
-        const diff = Cesium.Cartesian3.subtract(viewer.camera.positionWC, anchor, new Cesium.Cartesian3());
-        orbit.range = Math.max(30, Math.min(3000, Cesium.Cartesian3.magnitude(diff)));
+      // Only trust a freshly picked anchor for the distance; otherwise keep the
+      // range we already had rather than clamping a bogus value to 30 m.
+      if (center) {
+        const d = Cesium.Cartesian3.distance(viewer.camera.positionWC, center);
+        if (d >= 30) orbit.range = Math.min(15000, d);
       }
       orbit.heading = (((Cesium.Math.toDegrees(viewer.camera.heading) % 360) + 360) % 360);
       orbit.pitch   = Math.max(-89, Math.min(-5, Cesium.Math.toDegrees(viewer.camera.pitch)));
@@ -589,17 +650,18 @@
     // Fly to a coordinate, framed so the camera looks AT it (not past it).
     // ------------------------------------------------------------------
     function flyToLocation(lat, lng) {
-      applyTzFromLocation(lng, { force: true });
+      applyTzFromLocation(lat, lng, { force: true });
       updateSunPosition();
 
       orbitAnchor = anchorForLatLng(lat, lng);
       if (!orbitAnchor) return;
-      orbit.heading = 0; orbit.pitch = -35; orbit.range = 600;
+      hasFlown = true;
+      orbit.heading = 0; orbit.pitch = DEFAULT_PITCH; orbit.range = DEFAULT_RANGE;
       lastCameraDrive = performance.now();
       viewer.camera.flyToBoundingSphere(new Cesium.BoundingSphere(orbitAnchor, 60), {
-        offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-35), 600),
+        offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(DEFAULT_PITCH), DEFAULT_RANGE),
         duration: 2,
-        complete: () => { lastCameraDrive = performance.now(); syncOrbitUI(); if (typeof updateCompass === 'function') updateCompass(); }
+        complete: () => { applyOrbit(); syncOrbitUI(); lastCameraDrive = performance.now(); }
       });
     }
 
@@ -633,7 +695,7 @@
       const hours   = Math.floor(timeVal);
       const minutes = Math.round((timeVal % 1) * 60);
       $('time-val').innerText = `${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}`;
-      $('tz-val').innerText = (tzOffset >= 0 ? '+' : '') + tzOffset;
+      $('tz-val').innerText = fmtOffset(tzOffset);
 
       const { year, month, day } = dateParts();
 
@@ -854,13 +916,13 @@
       }
       dayLastTs = ts;
     }
-    $('date').addEventListener('change', updateSunPosition);
-    $('tz').addEventListener('input', () => { tzUserSet = true; updateSunPosition(); });
+    $('date').addEventListener('change', () => { refreshTzFromZone(parseFloat($('lng').value)); updateSunPosition(); });
+    $('tz').addEventListener('input', () => { tzUserSet = true; $('tz-zone').textContent = 'manual — go to a new place to reset'; updateSunPosition(); });
 
     // Re-adopt the location whenever the camera settles after a non-orbit move
     // (mouse drag, "Go to coordinates").
     viewer.scene.camera.moveEnd.addEventListener(() => {
-      if (spinning) return;
+      if (spinning || !hasFlown) return;
       if (performance.now() - lastCameraDrive < 500) return; // our own lookAt / flyTo
       adoptView();
     });
@@ -877,6 +939,7 @@
       btn.addEventListener('click', () => {
         const v = btn.dataset.date;
         $('date').value = (v === 'today') ? todayISO() : `${new Date().getFullYear()}-${v}`;
+        refreshTzFromZone(parseFloat($('lng').value));
         updateSunPosition();
       });
     });

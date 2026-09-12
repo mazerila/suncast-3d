@@ -97,7 +97,12 @@ app.get('/api', (req, res) => {
 // ---------------------------------------------------------------------------
 // Static viewer (public/) — everything that is not /api
 // ---------------------------------------------------------------------------
-app.use(express.static(path.join(__dirname, 'public')));
+// Dev server: always revalidate so an edited index.html shows up on plain refresh
+// (browsers otherwise cache it heuristically and you see a stale page).
+app.use(express.static(path.join(__dirname, 'public'), {
+  etag: true,
+  setHeaders: (res) => res.set('Cache-Control', 'no-cache'),
+}));
 
 function lanAddresses() {
   const out = [];

@@ -121,8 +121,11 @@ buildings automatically.
 3. **Date & zone** (in the panel):
    - **Date** — pick any date, or tap a preset chip (**Today**, **Mar equinox**,
      **Jun solstice**, **Sep equinox**, **Dec solstice**).
-   - **UTC offset** — auto-set from the map location (`round(lng / 15)`) every
-     time you move; nudge it for the true zone / DST and your value then sticks.
+   - **UTC offset** — set automatically from the map location's real time
+     zone (e.g. `Europe/Paris`), **including daylight saving for the chosen
+     date** — pick the Dec solstice in Paris and it flips from +2 to +1. The
+     zone is shown under the slider. Drag the slider to override; your value
+     then sticks until you go to a new place.
 
 Shadows are always on; at night the sun readout says so and nothing casts one.
 4. **Move / zoom the map:**
@@ -207,6 +210,6 @@ endpoints you need a Node host running `server.js`.
 | *"Could not load OSM 3D buildings"* | Bad / expired ion token, or missing `assets:read` scope. |
 | *"Could not load Google Photorealistic 3D Tiles"* | Map Tiles API not enabled, billing off, or referrer restriction blocks `localhost`. |
 | Shadows never appear | Sun is below the horizon (check the readout), or the camera is > ~8 km away (`shadowMap.maximumDistance`). |
-| Shadows point the wrong way | Wrong **UTC offset** — adjust for the real time zone / DST. |
+| Shadows point the wrong way | Check the **UTC offset** and the zone shown under it. It is set from a real time-zone lookup; if that script failed to load (offline / blocked CDN) it falls back to `round(lng / 15)`, which is ±1 h off in much of Europe — drag the slider to correct it. |
 | Address search box missing | Needs the ion token (`geocoder: true` uses ion). |
 | On a phone, typing an address made the other controls vanish | Fixed: iOS zoomed the page into the sub-16px search field and scrolled the document. All text fields are now ≥16px on phones, `body` is `position: fixed`, the viewport meta has `maximum-scale=1`, and the page snaps back to (0,0) on blur / keyboard close. |
