@@ -13,9 +13,14 @@
   <!-- SunCalc: tiny lib just for the azimuth/altitude readout -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/suncalc/1.9.0/suncalc.min.js"></script>
 
-  <!-- Local, git-ignored keys. Copy config.local.example.js -> config.local.js.
-       Missing file is fine: you can still type tokens into the panel. -->
-  <script src="config.local.js" onerror="window.__noLocalConfig = true"></script>
+  <!-- Keys. Both files are git-ignored and both are optional (you can always
+       type keys into the panel). Each one merges into window.CONFIG.
+         config.public.js  – generated at deploy time; holds ONLY keys that are
+                             safe to publish (the free Cesium ion token).
+         config.local.js   – your machine only; may also hold the Google Maps
+                             key. Never uploaded by `firebase deploy`. -->
+  <script src="config.public.js" onerror="window.__noPublicConfig = true"></script>
+  <script src="config.local.js"  onerror="window.__noLocalConfig  = true"></script>
 
   <style>
     :root {
@@ -39,6 +44,7 @@
     #ui-panel {
       position: fixed; top: 16px; left: 16px; z-index: 1000;
       width: 332px; max-height: calc(100vh - 32px); overflow-y: auto;
+      overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
       background: var(--bg); border-radius: var(--radius);
       box-shadow: 0 12px 44px rgba(15,23,42,.30);
       backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
@@ -183,7 +189,15 @@
     #zoombar button:hover { background: #fff; }
 
     @media (max-width: 640px) {
-      #ui-panel { top: 10px; left: 10px; right: 10px; width: auto; max-height: calc(100vh - 84px); }
+      /* 100vh on phones includes the space behind the browser's own bars, so the
+         panel's bottom was clipped. 100dvh is the *visible* height; keep the
+         time bar (52px + safe area) and a 10px gap clear. */
+      #ui-panel {
+        top: 10px; left: 10px; right: 10px; width: auto;
+        max-height: calc(100vh  - 72px - env(safe-area-inset-bottom, 0px));
+        max-height: calc(100dvh - 72px - env(safe-area-inset-bottom, 0px));
+      }
+      .panel-body { padding-bottom: 28px; }   /* last section never sits flush on the edge */
       #panel-toggle { top: 10px; left: 10px; }
       .cesium-viewer-geocoderContainer { max-width: 60vw; }
       body.panel-open #zoombar { display: none; }  /* panel covers the map anyway */

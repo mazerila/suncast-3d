@@ -1,5 +1,6 @@
 # --- secrets / local config (NEVER commit) ---
 public/config.local.js
+public/config.public.js
 .env
 .env.*
 !.env.example

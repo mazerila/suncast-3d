@@ -14,7 +14,9 @@ Two loosely-coupled parts:
 server.js                  Express: static public/ + /api routes + LAN banner
 lib/sun.js                  sunPosition() / daylight() — SunCalc, no Cesium
 public/index.html           viewer: markup + CSS + one inline <script>
-public/config.local.js      window.CONFIG = { keys }   (git-ignored)
+public/config.public.js     generated; publishable keys only (git-ignored)
+public/config.local.js      machine-only; all keys (git-ignored, never deployed)
+scripts/build-public-config.js  local → public allow-list copy (predeploy hook)
 ```
 
 The **viewer** pulls its libraries from CDNs at runtime — nothing is bundled:
@@ -99,10 +101,22 @@ HTTPS/geolocation caveats.
 - CSS nudges Cesium's required credit and the fullscreen toggle up so `#timebar`
   never covers them.
 
-### Config merge
+### Config merge — and the publish boundary
 
-`config.local.js` (loaded in `<head>`, `onerror` tolerated) sets `window.CONFIG`.
-The inline script merges it over blank defaults:
+Two optional, git-ignored key files load in `<head>` (`onerror` tolerated),
+each doing `window.CONFIG = Object.assign(window.CONFIG || {}, {...})`:
+
+1. `config.public.js` — **generated**, the only key file that is deployed.
+   Written by `scripts/build-public-config.js` (Firebase `predeploy` hook, and
+   by CI from a secret) from an explicit allow-list: `PUBLIC_KEYS =
+   ['cesiumIonToken']`.
+2. `config.local.js` — machine-only; may also hold `googleMapsKey`.
+   `firebase.json` lists it under `ignore`, so `firebase deploy` never uploads
+   it. Loaded second, so locally it overrides/extends the public file.
+
+Net effect: the live site has the free Cesium token and **no Google key** —
+visitors paste their own into the panel. The inline script then merges over
+blank defaults:
 
 ```js
 const CONFIG = Object.assign(
@@ -111,7 +125,7 @@ const CONFIG = Object.assign(
 );
 ```
 
-So the file is optional and no key is ever hard-coded in `index.html`. The
+So both files are optional and no key is ever hard-coded in `index.html`. The
 Cesium token, if present, is assigned to `Cesium.Ion.defaultAccessToken`
 **before** the `Viewer` is constructed, so Cesium never prints its
 "default access token" warning. On startup the app loads **OSM 3D buildings**

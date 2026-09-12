@@ -59,21 +59,26 @@ gcloud auth login
 gcloud config set project <PROJECT_ID>      # from step 1
 ```
 
-## 5. Add your API keys for the live site
+## 5. Your API keys — only the Cesium token is published
 
-The viewer reads keys from `public/config.local.js` (git-ignored). It must exist
-on disk when you deploy — `firebase deploy` uploads it from your machine.
+Keep your keys in `public/config.local.js` (git-ignored, machine-only):
 
 ```bash
 cp public/config.local.example.js public/config.local.js   # if you don't have it
 # then edit public/config.local.js and fill in:
-#   cesiumIonToken: "..."     (required — OSM buildings + base map + search)
-#   googleMapsKey:  "..."     (optional — only if you use Google Photorealistic)
+#   cesiumIonToken: "..."     (required — free; this one IS published)
+#   googleMapsKey:  "..."     (optional, paid — stays on your machine, NEVER published)
 ```
 
-> Deploying from CI instead of your laptop? `config.local.js` won't be in the
-> checkout — have the CI job write it from repository secrets before
-> `firebase deploy`.
+`firebase.json` **excludes** `config.local.js` from every upload. Instead its
+`predeploy` hook runs `scripts/build-public-config.js`, which writes
+`public/config.public.js` containing **only** the allow-listed
+`cesiumIonToken`. That generated file is what the live site loads. The Google
+key therefore never leaves your machine — visitors who want Google
+Photorealistic paste their own key into the panel (it stays in their browser).
+
+CI does the same thing from a secret (see the CI/CD section) and needs no
+Google key at all.
 
 ## 6. Point the repo at your project
 
@@ -203,32 +208,39 @@ Open `https://<your-site>.web.app`:
 ## CI/CD: auto-deploy the viewer on every merge to `main`
 
 `.github/workflows/firebase-hosting-merge.yml` is already in the repo. It runs
-on every push to `main` (i.e. every merged PR), recreates
-`public/config.local.js` from GitHub secrets (it's git-ignored, so it never
-reaches the checkout otherwise), and deploys Hosting. It deploys **only the
-viewer** — the `/api` Cloud Run service is not part of this workflow.
+on every push to `main` (i.e. every merged PR), writes
+`public/config.public.js` from a GitHub secret (only the Cesium token — the
+Google key is never part of a deploy), and deploys Hosting. It deploys **only
+the viewer** — the `/api` Cloud Run service is not part of this workflow.
 
-**One-time setup — 3 repository secrets needed:**
+The workflow's first step checks the secrets and fails with a plain-English
+message naming any that is missing, so the Actions log tells you exactly what
+to add.
 
-1. **`FIREBASE_SERVICE_ACCOUNT_SUNCAST_3D`** — easiest way to create it:
-   ```bash
-   firebase init hosting:github
-   ```
-   Answer its prompts (GitHub repo = `mazerila/suncast-3d`, branch = `main`).
-   It authorizes against GitHub (opens a browser) and creates a scoped Google
-   service account + adds this secret to the repo automatically. When it asks
-   to overwrite `.github/workflows/firebase-hosting-merge.yml`, answer **N** —
-   keep the version in this repo, it already has the `config.local.js` step
-   the generated one won't have. (The secret is created either way, regardless
-   of that answer.)
-2. **`CESIUM_ION_TOKEN`** and **`GOOGLE_MAPS_KEY`** — on GitHub:
-   **repo → Settings → Secrets and variables → Actions → New repository
-   secret.** Paste the same values you have in your local
-   `public/config.local.js`. Leave `GOOGLE_MAPS_KEY` empty (create the secret
-   with an empty value) if you don't use Google Photorealistic.
+**One-time setup — 2 repository secrets needed:**
 
-After that, merge anything into `main` and check the **Actions** tab on GitHub
-— the run deploys to `https://suncast.web.app` in about a minute.
+1. **`FIREBASE_SERVICE_ACCOUNT_SUNCAST_3D`** — a Google service-account JSON.
+   Either:
+   - **CLI (one command):**
+     ```bash
+     firebase init hosting:github
+     ```
+     Repo = `mazerila/suncast-3d`; authorize in the browser; build script
+     **N**; auto-deploy on merge **Y**; branch `main`; when asked to overwrite
+     `.github/workflows/firebase-hosting-merge.yml` answer **N** (keep the
+     repo's version). It creates the service account and uploads the secret
+     itself, regardless of that last answer.
+   - **Browser only:** Firebase console → ⚙️ *Project settings* →
+     *Service accounts* → **Generate new private key** → a `.json` downloads.
+     GitHub → repo → *Settings → Secrets and variables → Actions → New
+     repository secret* → name `FIREBASE_SERVICE_ACCOUNT_SUNCAST_3D`, value =
+     the entire contents of that `.json`. Delete the file afterwards.
+2. **`CESIUM_ION_TOKEN`** — same GitHub Secrets page → New repository secret →
+   value = the `cesiumIonToken` string from your local `public/config.local.js`.
+
+That's all. (No `GOOGLE_MAPS_KEY` secret — by design.) Then **Actions → latest
+run → Re-run all jobs**, or merge anything into `main`; it deploys to
+`https://suncast.web.app` in about a minute.
 
 ---
 

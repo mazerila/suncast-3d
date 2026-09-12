@@ -47,27 +47,35 @@ You need **at least one** of:
 
 OSM mode needs no billing setup and is enough to "see the model in 3D".
 
-## API keys &amp; the public repo
+## API keys — what is published and what is not
 
-Keys live in **`public/config.local.js`**, which is listed in `.gitignore` and is
-**never committed**. The file just sets a global:
+Two git-ignored files, both optional, both merged into `window.CONFIG`:
+
+| File | Lives | Holds | Deployed? |
+|------|-------|-------|-----------|
+| `public/config.local.js` | your machine | `cesiumIonToken` **and** `googleMapsKey` | **No** — `firebase.json` ignores it |
+| `public/config.public.js` | generated | `cesiumIonToken` only | **Yes** — this is what `suncast.web.app` loads |
+
+`scripts/build-public-config.js` (run automatically by `firebase deploy` and by
+CI) copies an explicit allow-list — currently just `cesiumIonToken` — from
+`config.local.js` into `config.public.js`. **The Google Maps key can never reach
+the public site**; visitors who want Google Photorealistic paste their own key
+into the panel's *Map data* section (it stays in their browser).
 
 ```js
-window.CONFIG = {
-  cesiumIonToken: "eyJhbGciOi...",  // OSM 3D buildings load automatically when this is set
-  googleMapsKey:  "AIza...",        // optional; only used when you click "Load Google Photorealistic"
-};
+// public/config.local.js
+window.CONFIG = Object.assign(window.CONFIG || {}, {
+  cesiumIonToken: "eyJhbGciOi...",  // free tier — published; OSM 3D buildings load automatically
+  googleMapsKey:  "AIza...",        // paid — local use only, never deployed
+});
 ```
 
-`public/index.html` merges `window.CONFIG` over its built-in blank defaults, so a
-missing file is harmless — the app still runs and you type tokens into the panel.
-Commit **`config.local.example.js`** (the template) but not `config.local.js`.
+A missing file is harmless: the app still runs and you type keys into the panel.
+Commit `config.local.example.js` (the template); never `config.local.js` or
+`config.public.js`.
 
-> **Note:** this is a static front-end, so any key it uses is visible to anyone
-> who loads the deployed page. Keeping keys out of git avoids *publishing* them,
-> but real protection is restricting each key in its provider console
-> (HTTP-referrer allow-list + per-API limits). Treat the key that was previously
-> hard-coded in `index.html` as exposed and rotate it.
+> The published Cesium token is still visible to anyone who loads the page, so
+> restrict it to `https://suncast.web.app` in your ion token settings.
 
 ## Docs
 
@@ -87,7 +95,9 @@ server.js                        Express server: static viewer + /api JSON route
 lib/sun.js                       Server-side sun math (SunCalc) behind the API
 public/index.html                Entire frontend (Cesium viewer + controls)
 public/config.local.example.js   Key template — copy to config.local.js
-public/config.local.js           Your real keys (git-ignored)
+public/config.local.js           Your real keys, machine-only (git-ignored, never deployed)
+public/config.public.js          Generated: publishable keys only (git-ignored)
+scripts/build-public-config.js   Generates config.public.js from config.local.js (predeploy hook)
 firebase.json / .firebaserc      Firebase Hosting config (+ /api rewrite to Cloud Run)
 Dockerfile / .dockerignore       Cloud Run image for the API
 .github/workflows/               Auto-deploy Hosting to suncast.web.app on merge to main

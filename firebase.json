@@ -2,15 +2,17 @@
   "hosting": {
     "site": "suncast",
     "public": "public",
+    "predeploy": ["node scripts/build-public-config.js"],
     "ignore": [
       "firebase.json",
       "**/.*",
       "**/node_modules/**",
+      "config.local.js",
       "config.local.example.js"
     ],
     "headers": [
       {
-        "source": "/config.local.js",
+        "source": "/config.public.js",
         "headers": [{ "key": "Cache-Control", "value": "no-store" }]
       },
       {

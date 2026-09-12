@@ -1,13 +1,16 @@
 // -----------------------------------------------------------------------------
 // Copy this file to  public/config.local.js  and fill in your own keys.
-// config.local.js is listed in .gitignore and is never committed.
 //
-// These values end up in the browser (this is a static front-end), so they are
-// not "secret" from users of the deployed site. Keeping them out of the repo
-// just avoids publishing them and lets each person use their own quota.
-// Restrict the keys in their provider consoles (HTTP referrer + API limits).
+// config.local.js stays on YOUR machine: it is git-ignored AND `firebase deploy`
+// never uploads it. At deploy time, scripts/build-public-config.js copies only
+// the allow-listed keys (just cesiumIonToken) into public/config.public.js,
+// which is what the live site loads. So:
+//   • cesiumIonToken  – free tier; safe to publish; gets deployed.
+//   • googleMapsKey   – paid; NEVER deployed. Visitors who want Google
+//                       Photorealistic paste their own key into the panel.
+// Restrict the keys in their provider consoles anyway (HTTP referrer + API).
 // -----------------------------------------------------------------------------
-window.CONFIG = {
+window.CONFIG = Object.assign(window.CONFIG || {}, {
   cesiumIonToken: "",   // https://ion.cesium.com/tokens  — OSM 3D buildings load automatically when set
-  googleMapsKey:  "",   // Google Cloud key with the Map Tiles API enabled — used only when you click "Load Google Photorealistic"
-};
+  googleMapsKey:  "",   // Google Cloud key with the Map Tiles API enabled — local use only
+});

@@ -85,17 +85,23 @@ cp public/config.local.example.js public/config.local.js
 ```
 
 ```js
-// public/config.local.js   (git-ignored — never committed)
-window.CONFIG = {
+// public/config.local.js   (git-ignored, machine-only — never committed, never deployed)
+window.CONFIG = Object.assign(window.CONFIG || {}, {
   cesiumIonToken: "eyJhbGciOi...",
   googleMapsKey:  "AIza...",
-};
+});
 ```
 
-| Field | Meaning |
-|-------|---------|
-| `cesiumIonToken` | Enables OSM buildings, world terrain + imagery, and the top-right address search box. When set, **OSM 3D buildings load automatically** on page open. |
-| `googleMapsKey` | Optional. Used **only** when you open **Map data** in the panel and click **Load Google Photorealistic** (it needs a paid key, so it never auto-loads). |
+| Field | Meaning | Published to the live site? |
+|-------|---------|-----------------------------|
+| `cesiumIonToken` | Enables OSM buildings, world terrain + imagery, and the top-right address search box. When set, **OSM 3D buildings load automatically** on page open. | **Yes** (free tier). At deploy time it is copied into the generated `public/config.public.js`. |
+| `googleMapsKey` | Optional. Used **only** when you open **Map data** in the panel and click **Load Google Photorealistic** (it needs a paid key, so it never auto-loads). | **No — never.** It stays on your machine. Visitors to the live site paste their own key into the panel. |
+
+The page loads `config.public.js` (published keys) and then `config.local.js`
+(your machine); each merges into `window.CONFIG`. `firebase.json` excludes
+`config.local.js` from uploads and regenerates `config.public.js` via
+`scripts/build-public-config.js` before every deploy. See
+[`DEPLOY.md`](DEPLOY.md) §5.
 
 No `config.local.js`? The app still loads. Open **Map data** in the panel, paste
 a token, and click **Use OSM 3D buildings**.
@@ -158,9 +164,11 @@ Open the `on your LAN` URL from a phone or another computer on the same network.
 
 **Before exposing it on a shared network, know that:**
 
-- The page serves your `public/config.local.js` — i.e. **your API keys** — to
-  anyone who opens it. Keep the keys HTTP-referrer-restricted, and don't do this
-  on public / untrusted Wi-Fi.
+- The local dev server (`server.js`) serves your `public/config.local.js` —
+  i.e. **all your keys, including the paid Google one** — to anyone on the
+  network who opens it. (This is only true for the LAN dev server; the deployed
+  site never gets that file.) Keep the keys HTTP-referrer-restricted, and don't
+  do this on public / untrusted Wi-Fi.
 - Add the LAN origin (e.g. `http://192.168.1.40:3003/*`) to each key's referrer
   allow-list or the map tiles will 403.
 - **Browser geolocation ("📍 My location") only works on `localhost` or HTTPS**,
@@ -183,10 +191,11 @@ Open the `on your LAN` URL from a phone or another computer on the same network.
 Any static host serves `public/` (the viewer). To also expose the `/api`
 endpoints you need a Node host running `server.js`.
 
-- Put a `config.local.js` on the host (or bake keys into a build step). It is
-  git-ignored, so it will not arrive via `git push` — upload it separately or
-  generate it in CI from secrets.
-- Add the deployed origin to the **HTTP-referrer allow-list** of both keys.
+- Publish a `config.public.js` containing only the Cesium token — run
+  `node scripts/build-public-config.js` (Firebase does this for you as a
+  predeploy hook) or generate it in CI from a secret. Never ship
+  `config.local.js`.
+- Add the deployed origin to the Cesium token's **allowed-URL** list.
 - Behind a reverse proxy (nginx, Caddy, …) terminate HTTPS there and forward to
   `server.js`; that also restores geolocation for every visitor.
 
