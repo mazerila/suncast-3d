@@ -74,6 +74,7 @@
     .btn-accent:hover { background: var(--accent-ink); }
     .row { display: flex; gap: 8px; }
     .row > * { flex: 1; }
+    .row-tight > button { white-space: nowrap; padding: 9px 6px; font-size: 12.5px; }
 
     #panel-toggle {
       position: fixed; top: 14px; left: 14px; z-index: 1001;
@@ -178,33 +179,36 @@
     }
     #time-play:hover { background: var(--accent-ink); }
     #time-play.playing { background: #c0392b; }
-    /* keep Cesium's required credit + the fullscreen toggle clear of the bar */
+    /* keep Cesium's required credit clear of the time bar */
     .cesium-widget-credits,
     .cesium-viewer-bottom { bottom: 54px !important; }
-    .cesium-viewer-fullscreenContainer { bottom: 58px !important; right: 60px !important; }
 
-    #zoombar {
-      position: fixed; right: 12px; bottom: 76px; z-index: 1002;
-      display: flex; flex-direction: column; gap: 6px;
+    /* ---- Map controls: one tidy column on the right, above the time bar:
+            compass · zoom in · zoom out · fullscreen (Cesium's, re-parented) ---- */
+    #mapctl {
+      position: fixed; right: 12px; bottom: 64px; z-index: 1002;
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
     }
-    #zoombar button {
+    #mapctl > button, #mapctl .cesium-viewer-fullscreenContainer {
       width: 40px; height: 40px; padding: 0; font-size: 21px; line-height: 1;
-      background: var(--bg); color: var(--fg);
+      background: var(--bg); color: var(--fg); border-radius: 10px;
       box-shadow: 0 2px 12px rgba(15,23,42,.28);
     }
-    #zoombar button:hover { background: #fff; }
+    #mapctl > button:hover { background: #fff; }
+    #mapctl .cesium-viewer-fullscreenContainer {
+      position: static !important; display: flex; align-items: center; justify-content: center;
+    }
+    #mapctl .cesium-button.cesium-fullscreenButton {
+      width: 32px; height: 32px; margin: 0; padding: 4px; border: 0; background: transparent; box-shadow: none;
+      fill: var(--fg);
+    }
+    #mapctl .cesium-button.cesium-fullscreenButton:hover { background: transparent; }
 
     /* ---- Compass: rotates with the camera so N/E/S/W always point true ---- */
-    #compass {
-      position: fixed; right: 12px; bottom: 176px; z-index: 1002;
-      width: 64px; height: 64px; padding: 0; border-radius: 50%;
-      background: var(--bg); box-shadow: 0 2px 12px rgba(15,23,42,.28);
-      cursor: pointer;
-    }
-    #compass:hover { background: #fff; }
+    #compass { width: 48px !important; height: 48px !important; border-radius: 50% !important; }
     #compass svg { width: 100%; height: 100%; display: block; }
     #compass .rose { transform-origin: 50% 50%; transition: transform .08s linear; }
-    #compass .lbl { font: 700 13px system-ui, sans-serif; fill: #46505f; text-anchor: middle; dominant-baseline: central; }
+    #compass .lbl { font: 700 15px system-ui, sans-serif; fill: #46505f; text-anchor: middle; dominant-baseline: central; }
     #compass .lbl.n { fill: #c0392b; }
     #compass .tick { stroke: #c9ced6; stroke-width: 1.5; }
     #compass .needle-n { fill: #c0392b; }
@@ -224,8 +228,7 @@
       .panel-body { padding-bottom: 28px; }   /* last section never sits flush on the edge */
       #panel-toggle { top: 10px; left: 10px; }
       .cesium-viewer-geocoderContainer { max-width: 60vw; }
-      body.panel-open #zoombar,
-      body.panel-open #compass { display: none; }  /* panel covers the map anyway */
+      body.panel-open #mapctl { display: none; }  /* panel covers the map anyway */
       /* iOS Safari auto-zooms the whole page into any text field whose font is
          under 16px — and does not always zoom back out — which made every other
          control "disappear" while typing an address. 16px stops the zoom. */
@@ -263,9 +266,9 @@
           <input type="number" id="lat" value="48.8049" step="0.0001" aria-label="Latitude" placeholder="Latitude">
           <input type="number" id="lng" value="2.1204" step="0.0001" aria-label="Longitude" placeholder="Longitude">
         </div>
-        <div class="row">
-          <button id="btn-fly" class="btn-ghost">Go to coordinates</button>
-          <button id="btn-geo" class="btn-ghost" style="flex:0 0 auto;" title="Use my current location">📍 My location</button>
+        <div class="row row-tight">
+          <button id="btn-fly" class="btn-ghost" title="Fly to the coordinates above">➜ Go to coordinates</button>
+          <button id="btn-geo" class="btn-ghost" title="Use my current location">📍 My location</button>
         </div>
         <div id="loc-status" class="hint" role="status" hidden></div>
         <div class="hint">Or search an address in the box at the top-right of the map.</div>
@@ -385,31 +388,28 @@
     </div>
   </div>
 
-  <!-- Zoom buttons (pinch / wheel still work too) -->
-  <!-- Compass. The whole rose rotates by -heading, so N always points to real
-       north on screen; the ☀ dot sits at the sun's bearing. Click = face north. -->
-  <button id="compass" type="button" title="North is where the red N points. Click to face north." aria-label="Compass — click to face north">
-    <svg viewBox="0 0 100 100" aria-hidden="true">
-      <g class="rose" id="compass-rose">
-        <circle cx="50" cy="50" r="46" fill="none" class="tick"/>
-        <line x1="50" y1="6"  x2="50" y2="12" class="tick"/>
-        <line x1="94" y1="50" x2="88" y2="50" class="tick"/>
-        <line x1="50" y1="94" x2="50" y2="88" class="tick"/>
-        <line x1="6"  y1="50" x2="12" y2="50" class="tick"/>
-        <polygon points="50,20 44,50 56,50" class="needle-n"/>
-        <polygon points="50,80 44,50 56,50" class="needle-s"/>
-        <text x="50" y="16" class="lbl n">N</text>
-        <text x="84" y="50" class="lbl">E</text>
-        <text x="50" y="84" class="lbl">S</text>
-        <text x="16" y="50" class="lbl">W</text>
-        <g id="compass-sun" hidden>
-          <circle cx="50" cy="12" r="5" class="sun"/>
+  <!-- Map controls column (right side): compass, zoom, and Cesium's fullscreen
+       button, which the script moves in here so everything lines up.
+       Compass: the rose rotates by -heading so N always points to real north;
+       the ☀ dot sits at the sun's bearing. Click = face north.
+       Pinch / wheel zoom still work too. -->
+  <div id="mapctl">
+    <button id="compass" type="button" title="North is where the red N points. Click to face north." aria-label="Compass — click to face north">
+      <svg viewBox="0 0 100 100" aria-hidden="true">
+        <g class="rose" id="compass-rose">
+          <circle cx="50" cy="50" r="46" fill="none" class="tick"/>
+          <polygon points="50,14 43,50 57,50" class="needle-n"/>
+          <polygon points="50,86 43,50 57,50" class="needle-s"/>
+          <text x="50" y="22" class="lbl n">N</text>
+          <text x="80" y="50" class="lbl">E</text>
+          <text x="50" y="80" class="lbl">S</text>
+          <text x="20" y="50" class="lbl">W</text>
+          <g id="compass-sun" hidden>
+            <circle cx="50" cy="9" r="6" class="sun"/>
+          </g>
         </g>
-      </g>
-    </svg>
-  </button>
-
-  <div id="zoombar">
+      </svg>
+    </button>
     <button id="zoom-in" type="button" aria-label="Zoom in">+</button>
     <button id="zoom-out" type="button" aria-label="Zoom out">&minus;</button>
   </div>
@@ -463,6 +463,12 @@
     viewer.shadowMap.softShadows = true;
     viewer.shadowMap.darkness = 0.35;
     viewer.shadowMap.maximumDistance = 8000;
+
+    // Re-parent Cesium's fullscreen button into our control column so it lines
+    // up with the compass and zoom buttons instead of floating on its own.
+    if (viewer.fullscreenButton && viewer.fullscreenButton.container) {
+      $('mapctl').appendChild(viewer.fullscreenButton.container);
+    }
 
     let osmBuildings = null;
     let googleTileset = null;
