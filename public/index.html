@@ -188,6 +188,24 @@
     }
     #zoombar button:hover { background: #fff; }
 
+    /* ---- Compass: rotates with the camera so N/E/S/W always point true ---- */
+    #compass {
+      position: fixed; right: 12px; bottom: 176px; z-index: 1002;
+      width: 64px; height: 64px; padding: 0; border-radius: 50%;
+      background: var(--bg); box-shadow: 0 2px 12px rgba(15,23,42,.28);
+      cursor: pointer;
+    }
+    #compass:hover { background: #fff; }
+    #compass svg { width: 100%; height: 100%; display: block; }
+    #compass .rose { transform-origin: 50% 50%; transition: transform .08s linear; }
+    #compass .lbl { font: 700 13px system-ui, sans-serif; fill: #46505f; text-anchor: middle; dominant-baseline: central; }
+    #compass .lbl.n { fill: #c0392b; }
+    #compass .tick { stroke: #c9ced6; stroke-width: 1.5; }
+    #compass .needle-n { fill: #c0392b; }
+    #compass .needle-s { fill: #d5d9e0; }
+    #compass .sun { fill: var(--accent); stroke: #fff; stroke-width: 1.5; }
+    #compass .sun[hidden] { display: none; }
+
     @media (max-width: 640px) {
       /* 100vh on phones includes the space behind the browser's own bars, so the
          panel's bottom was clipped. 100dvh is the *visible* height; keep the
@@ -200,7 +218,8 @@
       .panel-body { padding-bottom: 28px; }   /* last section never sits flush on the edge */
       #panel-toggle { top: 10px; left: 10px; }
       .cesium-viewer-geocoderContainer { max-width: 60vw; }
-      body.panel-open #zoombar { display: none; }  /* panel covers the map anyway */
+      body.panel-open #zoombar,
+      body.panel-open #compass { display: none; }  /* panel covers the map anyway */
       /* iOS Safari auto-zooms the whole page into any text field whose font is
          under 16px — and does not always zoom back out — which made every other
          control "disappear" while typing an address. 16px stops the zoom. */
@@ -361,6 +380,29 @@
   </div>
 
   <!-- Zoom buttons (pinch / wheel still work too) -->
+  <!-- Compass. The whole rose rotates by -heading, so N always points to real
+       north on screen; the ☀ dot sits at the sun's bearing. Click = face north. -->
+  <button id="compass" type="button" title="North is where the red N points. Click to face north." aria-label="Compass — click to face north">
+    <svg viewBox="0 0 100 100" aria-hidden="true">
+      <g class="rose" id="compass-rose">
+        <circle cx="50" cy="50" r="46" fill="none" class="tick"/>
+        <line x1="50" y1="6"  x2="50" y2="12" class="tick"/>
+        <line x1="94" y1="50" x2="88" y2="50" class="tick"/>
+        <line x1="50" y1="94" x2="50" y2="88" class="tick"/>
+        <line x1="6"  y1="50" x2="12" y2="50" class="tick"/>
+        <polygon points="50,20 44,50 56,50" class="needle-n"/>
+        <polygon points="50,80 44,50 56,50" class="needle-s"/>
+        <text x="50" y="16" class="lbl n">N</text>
+        <text x="84" y="50" class="lbl">E</text>
+        <text x="50" y="84" class="lbl">S</text>
+        <text x="16" y="50" class="lbl">W</text>
+        <g id="compass-sun" hidden>
+          <circle cx="50" cy="12" r="5" class="sun"/>
+        </g>
+      </g>
+    </svg>
+  </button>
+
   <div id="zoombar">
     <button id="zoom-in" type="button" aria-label="Zoom in">+</button>
     <button id="zoom-out" type="button" aria-label="Zoom out">&minus;</button>
@@ -490,6 +532,7 @@
         )
       );
       viewer.camera.lookAtTransform(Cesium.Matrix4.IDENTITY); // release frame so mouse nav still works
+      if (typeof updateCompass === 'function') updateCompass();
     }
 
     function syncOrbitUI() {
@@ -526,6 +569,7 @@
       orbit.pitch   = Math.max(-89, Math.min(-5, Cesium.Math.toDegrees(viewer.camera.pitch)));
       syncOrbitUI();
       updateSunPosition();
+      if (typeof updateCompass === 'function') updateCompass();
     }
 
     // ------------------------------------------------------------------
@@ -542,7 +586,7 @@
       viewer.camera.flyToBoundingSphere(new Cesium.BoundingSphere(orbitAnchor, 60), {
         offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-35), 600),
         duration: 2,
-        complete: () => { lastCameraDrive = performance.now(); syncOrbitUI(); }
+        complete: () => { lastCameraDrive = performance.now(); syncOrbitUI(); if (typeof updateCompass === 'function') updateCompass(); }
       });
     }
 
@@ -590,15 +634,38 @@
         const altDeg = p.altitude * 180 / Math.PI;
         const aziDeg = (p.azimuth * 180 / Math.PI + 180 + 360) % 360; // 0 = N, 90 = E
         const el = $('sun-readout');
+        const sunDot = $('compass-sun');
         if (altDeg <= 0) {
           el.className = 'night';
           el.innerHTML = `<b>Night</b> — the sun is ${Math.abs(altDeg).toFixed(1)}° below the horizon, so nothing casts a shadow.`;
+          sunDot.hidden = true;
         } else {
           el.className = '';
           el.innerHTML = `☀️ Sun <b>${altDeg.toFixed(1)}°</b> above the horizon · bearing <b>${aziDeg.toFixed(0)}°</b> (0°=N, 90°=E)`;
+          // Sun dot on the compass rose: rotate around the centre by the bearing
+          sunDot.setAttribute('transform', `rotate(${aziDeg.toFixed(1)} 50 50)`);
+          sunDot.hidden = false;
         }
       }
     }
+
+    // ------------------------------------------------------------------
+    // Compass: keep the rose counter-rotated to the camera heading so the
+    // red N always points to true north on screen.
+    // ------------------------------------------------------------------
+    const compassRose = $('compass-rose');
+    let lastCompassHeading = NaN;
+    function updateCompass() {
+      const h = Cesium.Math.toDegrees(viewer.camera.heading);
+      if (Math.abs(h - lastCompassHeading) < 0.05) return;
+      lastCompassHeading = h;
+      compassRose.style.transform = `rotate(${(-h).toFixed(2)}deg)`;
+    }
+    $('compass').addEventListener('click', () => {
+      orbit.heading = 0;
+      syncOrbitUI();
+      applyOrbit();
+    });
 
     // ------------------------------------------------------------------
     // Data sources
@@ -807,20 +874,36 @@
     $('zoom-out').addEventListener('click', () => zoomStep(1));
 
     const btnSpin = $('btn-spin');
-    btnSpin.addEventListener('click', () => {
-      spinning = !spinning;
-      btnSpin.innerText = spinning ? '⏸ Stop' : '▶ Spin';
-      btnSpin.style.background = spinning ? '#c0392b' : '';
+    function setSpinning(on) {
+      spinning = on;
+      btnSpin.innerText = on ? '⏸ Stop' : '▶ Spin';
+      btnSpin.style.background = on ? '#c0392b' : '';
+      if (!on) {
+        // Hand the camera back cleanly: no leftover look-at frame, and reset
+        // Cesium's touch/mouse gesture state (a touch that began mid-spin could
+        // leave it thinking a gesture was still in progress → "can only rotate").
+        viewer.camera.lookAtTransform(Cesium.Matrix4.IDENTITY);
+        const ssc = viewer.scene.screenSpaceCameraController;
+        ssc.enableInputs = false;
+        setTimeout(() => { ssc.enableInputs = true; }, 50);
+        lastCameraDrive = performance.now();
+      }
+    }
+    btnSpin.addEventListener('click', () => setSpinning(!spinning));
+    // Any touch / mouse / wheel on the map stops the spin, like every map app.
+    ['pointerdown', 'touchstart', 'wheel'].forEach((ev) => {
+      viewer.scene.canvas.addEventListener(ev, () => { if (spinning) setSpinning(false); }, { passive: true });
     });
-    function spinTick() {
+    function frameTick() {
       if (spinning) {
         orbit.heading = (orbit.heading + 0.25) % 360;
         syncOrbitUI();
         applyOrbit();
       }
-      requestAnimationFrame(spinTick);
+      updateCompass();   // follows every camera move: drag, search, orbit, spin
+      requestAnimationFrame(frameTick);
     }
-    requestAnimationFrame(spinTick);
+    requestAnimationFrame(frameTick);
 
     window.addEventListener('keydown', (e) => {
       const tag = document.activeElement && document.activeElement.tagName;
