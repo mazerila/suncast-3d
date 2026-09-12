@@ -482,6 +482,7 @@
     }
 
     let osmBuildings = null;
+    let terrainProviderPromise = null;   // set when OSM/terrain loads; used to sample ground height
     let googleTileset = null;
 
     // ------------------------------------------------------------------
@@ -656,12 +657,36 @@
     // ------------------------------------------------------------------
     // Fly to a coordinate, framed so the camera looks AT it (not past it).
     // ------------------------------------------------------------------
-    function flyToLocation(lat, lng) {
+    // Ground height (metres above the ellipsoid) at a coordinate, asked from the
+    // terrain provider directly — so it is right even before any terrain tile
+    // has been rendered (the opening fly otherwise aimed at height 0, which is
+    // ~100 m underground in Paris, and the view looked wrong until the next fly).
+    async function groundHeight(lat, lng) {
+      const carto = Cesium.Cartographic.fromDegrees(lng, lat);
+      try {
+        if (terrainProviderPromise) {
+          const tp = await terrainProviderPromise;
+          const [s] = await Cesium.sampleTerrainMostDetailed(tp, [carto]);
+          if (Number.isFinite(s.height)) return s.height;
+        } else if (viewer.scene.sampleHeightSupported) {          // e.g. Google mesh, no terrain provider
+          const [s] = await viewer.scene.sampleHeightMostDetailed([carto]);
+          if (s && Number.isFinite(s.height)) return s.height;
+        }
+      } catch (_) { /* fall through */ }
+      const h = viewer.scene.globe.getHeight(carto);
+      return Number.isFinite(h) ? h : 0;
+    }
+
+    let flySeq = 0;   // ignore a stale fly if a newer one started while sampling terrain
+    async function flyToLocation(lat, lng) {
+      if (Number.isNaN(lat) || Number.isNaN(lng)) return;
       applyTzFromLocation(lat, lng, { force: true });
       updateSunPosition();
 
-      orbitAnchor = anchorForLatLng(lat, lng);
-      if (!orbitAnchor) return;
+      const seq = ++flySeq;
+      const h = await groundHeight(lat, lng);
+      if (seq !== flySeq) return;
+      orbitAnchor = Cesium.Cartesian3.fromDegrees(lng, lat, h);
       hasFlown = true;
       orbit.heading = 0; orbit.pitch = DEFAULT_PITCH; orbit.range = DEFAULT_RANGE;
       lastCameraDrive = performance.now();
@@ -799,7 +824,8 @@
 
         viewer.imageryLayers.removeAll();
         viewer.imageryLayers.add(imagery);
-        viewer.scene.setTerrain(new Cesium.Terrain(Cesium.CesiumTerrainProvider.fromIonAssetId(1)));
+        terrainProviderPromise = Cesium.CesiumTerrainProvider.fromIonAssetId(1);
+        viewer.scene.setTerrain(new Cesium.Terrain(terrainProviderPromise));
         viewer.scene.globe.show = true;
         if (googleTileset) { viewer.scene.primitives.remove(googleTileset); googleTileset = null; }
         if (osmBuildings)  { viewer.scene.primitives.remove(osmBuildings); }
