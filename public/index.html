@@ -47,7 +47,10 @@
     /* ---- Panel shell ---- */
     #ui-panel {
       position: fixed; top: 16px; left: 16px; z-index: 1000;
-      width: 332px; max-height: calc(100vh - 32px); overflow-y: auto;
+      width: 332px; overflow-y: auto;
+      /* never run behind the time bar (58px) — leave it plus a 10px gap clear */
+      max-height: calc(100vh  - 16px - 68px - env(safe-area-inset-bottom, 0px));
+      max-height: calc(100dvh - 16px - 68px - env(safe-area-inset-bottom, 0px));
       overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
       background: var(--bg); border-radius: var(--radius);
       box-shadow: 0 12px 44px rgba(15,23,42,.30);
@@ -233,8 +236,8 @@
          time bar (52px + safe area) and a 10px gap clear. */
       #ui-panel {
         top: 10px; left: 10px; right: 10px; width: auto;
-        max-height: calc(100vh  - 72px - env(safe-area-inset-bottom, 0px));
-        max-height: calc(100dvh - 72px - env(safe-area-inset-bottom, 0px));
+        max-height: calc(100vh  - 78px - env(safe-area-inset-bottom, 0px));
+        max-height: calc(100dvh - 78px - env(safe-area-inset-bottom, 0px));
       }
       .panel-body { padding-bottom: 28px; }   /* last section never sits flush on the edge */
       #panel-toggle { top: 10px; left: 10px; }
