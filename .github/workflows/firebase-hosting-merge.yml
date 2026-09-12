@@ -15,6 +15,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Fail early with a plain-English message if a required secret is missing,
+      # instead of deploying a broken site or dying inside the deploy action.
+      - name: Check required repository secrets
+        env:
+          SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SUNCAST_3D }}
+          ION: ${{ secrets.CESIUM_ION_TOKEN }}
+        run: |
+          ok=1
+          if [ -z "$SA" ]; then
+            echo "::error::Secret FIREBASE_SERVICE_ACCOUNT_SUNCAST_3D is not set. Run 'firebase init hosting:github' locally (it creates it), or add it under Settings → Secrets and variables → Actions."
+            ok=0
+          fi
+          if [ -z "$ION" ]; then
+            echo "::error::Secret CESIUM_ION_TOKEN is not set. Add it under Settings → Secrets and variables → Actions (value = cesiumIonToken from your local public/config.local.js)."
+            ok=0
+          fi
+          [ "$ok" = "1" ] || exit 1
+          echo "All required secrets are present."
+
       # public/config.local.js is git-ignored (it holds API keys) and so is
       # never in the checkout. Recreate it here from repo secrets.
       - name: Write public/config.local.js from repo secrets

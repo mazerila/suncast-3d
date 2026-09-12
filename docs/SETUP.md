@@ -200,3 +200,4 @@ endpoints you need a Node host running `server.js`.
 | Shadows never appear | Sun is below the horizon (check the readout), or the camera is > ~8 km away (`shadowMap.maximumDistance`). |
 | Shadows point the wrong way | Wrong **UTC offset** — adjust for the real time zone / DST. |
 | Address search box missing | Needs the ion token (`geocoder: true` uses ion). |
+| On a phone, typing an address made the other controls vanish | Fixed: iOS zoomed the page into the sub-16px search field and scrolled the document. All text fields are now ≥16px on phones, `body` is `position: fixed`, the viewport meta has `maximum-scale=1`, and the page snaps back to (0,0) on blur / keyboard close. |
