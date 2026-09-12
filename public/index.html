@@ -203,10 +203,17 @@
       position: static !important; display: flex; align-items: center; justify-content: center;
     }
     #mapctl .cesium-button.cesium-fullscreenButton {
-      width: 30px; height: 30px; margin: 0; padding: 5px; border: 0; background: transparent; box-shadow: none;
-      fill: var(--fg);
+      display: flex !important; align-items: center; justify-content: center;
+      width: 38px !important; height: 38px !important; margin: 0 !important; padding: 0 !important;
+      border: 0; border-radius: 10px; background: transparent; box-shadow: none; line-height: 0;
     }
     #mapctl .cesium-button.cesium-fullscreenButton:hover { background: transparent; }
+    /* Cesium positions this svg absolutely at top/left 0 — pin it to the centre instead */
+    #mapctl .cesium-button.cesium-fullscreenButton svg {
+      position: absolute !important; top: 50% !important; left: 50% !important;
+      width: 22px !important; height: 22px !important; margin: -11px 0 0 -11px !important;
+      display: block; fill: var(--fg);
+    }
 
     /* ---- Compass: rotates with the camera so N/E/S/W always point true ---- */
     #compass { width: 38px !important; height: 38px !important; border-radius: 50% !important; }
@@ -320,8 +327,8 @@
           <label class="field" for="pitch" style="margin-top:11px;">Camera tilt <span id="pitch-val" class="spread">-40°</span></label>
           <input type="range" id="pitch" min="-89" max="-5" step="1" value="-40">
 
-          <label class="field" for="range" style="margin-top:9px;">Camera distance <span id="range-val" class="spread">10000 m</span></label>
-          <input type="range" id="range" min="30" max="15000" step="10" value="10000">
+          <label class="field" for="range" style="margin-top:9px;">Camera distance <span id="range-val" class="spread">400 m</span></label>
+          <input type="range" id="range" min="30" max="15000" step="10" value="400">
         </div>
       </details>
 
@@ -551,7 +558,7 @@
     // Lat/Lng + UTC-offset fields are re-adopted from wherever the view lands.
     // ------------------------------------------------------------------
     // Opening view: far enough to see the whole neighbourhood, not just one block.
-    const DEFAULT_PITCH = -40, DEFAULT_RANGE = 10000;  // degrees, metres — opening view ~10 km out
+    const DEFAULT_PITCH = -40, DEFAULT_RANGE = 400;    // degrees, metres — opening view 400 m from the target
     const orbit = { heading: 0, pitch: DEFAULT_PITCH, range: DEFAULT_RANGE };
     let spinning = false;
     let orbitAnchor = null;        // Cesium.Cartesian3 on the ground
