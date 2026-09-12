@@ -172,6 +172,12 @@
       background: #eceef1; color: var(--accent-ink);
     }
     #timebar-menu:hover { background: #e0e3e8; }
+    #time-play {
+      flex: 0 0 auto; width: 40px; height: 40px; padding: 0; font-size: 17px;
+      border-radius: 50%; background: var(--accent); color: #fff;
+    }
+    #time-play:hover { background: var(--accent-ink); }
+    #time-play.playing { background: #c0392b; }
     /* keep Cesium's required credit + the fullscreen toggle clear of the bar */
     .cesium-widget-credits,
     .cesium-viewer-bottom { bottom: 54px !important; }
@@ -411,6 +417,7 @@
   <!-- Persistent time-of-day bar, fixed over the map so the sun can always be moved -->
   <div id="timebar">
     <button id="timebar-menu" type="button" aria-label="Open controls" title="Controls">☰</button>
+    <button id="time-play" type="button" aria-label="Play the day" title="Play / pause the day (1 hour per second)">▶</button>
     <span id="time-val" class="time-big">12:00</span>
     <input type="range" id="time" min="0" max="23.75" value="12" step="0.25" aria-label="Time of day">
   </div>
@@ -812,7 +819,35 @@
       );
     });
 
-    $('time').addEventListener('input', updateSunPosition);
+    $('time').addEventListener('input', () => { if (dayPlaying) setDayPlaying(false); updateSunPosition(); });
+
+    // ---- Play the day: sweep the time slider through 24 h (1 h per second) ----
+    let dayPlaying = false;
+    let dayLastTs = 0;
+    let dayT = 0;                         // unrounded playhead, in hours
+    const DAY_HOURS_PER_SECOND = 1;
+    const btnPlay = $('time-play');
+    function setDayPlaying(on) {
+      dayPlaying = on;
+      dayLastTs = 0;
+      dayT = parseFloat($('time').value);
+      btnPlay.textContent = on ? '⏸' : '▶';
+      btnPlay.classList.toggle('playing', on);
+      btnPlay.setAttribute('aria-label', on ? 'Pause the day' : 'Play the day');
+    }
+    btnPlay.addEventListener('click', () => setDayPlaying(!dayPlaying));
+    function dayTick(ts) {
+      if (!dayPlaying) return;
+      if (dayLastTs) {
+        const dt = Math.min((ts - dayLastTs) / 1000, 0.25);   // clamp after a background pause
+        dayT += dt * DAY_HOURS_PER_SECOND;
+        if (dayT > 23.75) dayT -= 24;                          // wrap around midnight
+        const stepped = Math.round(dayT * 4) / 4;              // slider keeps its 15-min steps
+        const slider = $('time');
+        if (parseFloat(slider.value) !== stepped) { slider.value = stepped; updateSunPosition(); }
+      }
+      dayLastTs = ts;
+    }
     $('date').addEventListener('change', updateSunPosition);
     $('tz').addEventListener('input', () => { tzUserSet = true; updateSunPosition(); });
 
@@ -894,12 +929,13 @@
     ['pointerdown', 'touchstart', 'wheel'].forEach((ev) => {
       viewer.scene.canvas.addEventListener(ev, () => { if (spinning) setSpinning(false); }, { passive: true });
     });
-    function frameTick() {
+    function frameTick(ts) {
       if (spinning) {
         orbit.heading = (orbit.heading + 0.25) % 360;
         syncOrbitUI();
         applyOrbit();
       }
+      dayTick(ts);       // "play the day" time-lapse
       updateCompass();   // follows every camera move: drag, search, orbit, spin
       requestAnimationFrame(frameTick);
     }
