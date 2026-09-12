@@ -46,6 +46,15 @@ The free tier is fine for personal use.
 Powers the photo-textured Google Photorealistic 3D mesh. Skip this if OSM mode is
 enough for you.
 
+> **Not available in the EU/EEA.** Google does not serve Photorealistic 3D
+> Tiles (or satellite tiles) to Google Cloud **billing accounts based in an
+> EU/EEA country** — France included. A correctly set-up key then gets
+> `403 — "satellite tiles and 3D tiles are not available for your account and
+> region"` ([Google's notice](https://developers.google.com/maps/comms/eea/map-tiles)).
+> It is decided by the billing account's country, not by where the map is.
+> OSM 3D buildings work everywhere and give the same shadows; the Google layer
+> is only prettier textures.
+
 1. Open the [Google Cloud Console](https://console.cloud.google.com/) and sign in
    with a Google account.
 2. **Create a project:** top bar → the project dropdown → **New Project** → give
@@ -208,7 +217,10 @@ endpoints you need a Node host running `server.js`.
 |---------|-----|
 | Bottom bar: *"using Cesium's default ion access token"* | No `cesiumIonToken`. Add one to `config.local.js` and reload, or paste it in **Map data**. The **Cesium ion · Data attribution** credit stays either way — it is required and cannot be removed. |
 | *"Could not load OSM 3D buildings"* | Bad / expired ion token, or missing `assets:read` scope. |
-| *"Could not load Google Photorealistic 3D Tiles"* | Map Tiles API not enabled, billing off, or referrer restriction blocks `localhost`. |
+| *"Could not load Google Photorealistic 3D Tiles: HTTP 403 — Requests to this API tile method … are blocked"* (`API_KEY_SERVICE_BLOCKED`) | The key's **API restrictions** don't include the **Map Tiles API** (people often tick "Maps JavaScript API" instead), or that API isn't enabled on the project. Credentials → the key → API restrictions → tick **Map Tiles API** (or *Don't restrict key* to test); APIs & Services → Library → Map Tiles API → Enable. Wait 1–5 min. |
+| *"… HTTP 403 — … 3D tiles are not available for your account and region"* | Google's EU/EEA restriction (see the note in §2). Nothing to fix on the key; it needs a billing account outside the EEA. The app keeps OSM buildings loaded. |
+| *"… HTTP 403 — Requests from referer … are blocked"* | **Application restrictions → Websites** on the key doesn't list the site you're on — add `https://suncast.web.app/*` and/or `http://localhost:3003/*`. |
+| Test a Google key outside the app | `curl "https://tile.googleapis.com/v1/3dtiles/root.json?key=YOUR_KEY"` — JSON with `"root"` = works; the three 403s above tell you which case you're in. |
 | Shadows never appear | Sun is below the horizon (check the readout), or the camera is > ~8 km away (`shadowMap.maximumDistance`). |
 | Shadows point the wrong way | Check the **UTC offset** and the zone shown under it. It is set from a real time-zone lookup; if that script failed to load (offline / blocked CDN) it falls back to `round(lng / 15)`, which is ±1 h off in much of Europe — drag the slider to correct it. |
 | Address search box missing | Needs the ion token (`geocoder: true` uses ion). |

@@ -43,7 +43,7 @@ You need **at least one** of:
 | Source | Looks like | Requires |
 |--------|-----------|----------|
 | **OSM 3D Buildings** (default) | Grey extruded buildings + satellite base map, worldwide | A **free** Cesium ion access token — <https://ion.cesium.com/tokens> |
-| **Google Photorealistic 3D Tiles** | Real photo-textured mesh (roofs, trees, terrain) | A Google Cloud project with billing + the **Map Tiles API**, then an API key |
+| **Google Photorealistic 3D Tiles** | Real photo-textured mesh (roofs, trees, terrain) | A Google Cloud project with billing + the **Map Tiles API**, then an API key. **Not served to EU/EEA billing accounts** (Google policy) — see `docs/SETUP.md` |
 
 OSM mode needs no billing setup and is enough to "see the model in 3D".
 
