@@ -298,9 +298,11 @@
         <div class="fold-body">
           <p class="hint" style="margin-top:0;">
             <b>OSM 3D buildings</b> is the default and only needs a free Cesium token.
-            <b>Google Photorealistic</b> is optional, loads on demand, and needs a
-            paid Google Cloud key. Keys stay in your browser.
+            <b>Google Photorealistic</b> is optional, loads on demand, and needs
+            <b>your own</b> paid Google Cloud key. Keys stay in your browser and are
+            never sent to this site's server.
           </p>
+          <div id="src-status" class="hint" role="status" hidden></div>
 
           <div class="mini-label">Cesium ion token <span class="tag free">free · no card</span></div>
           <input type="text" id="ion-token" placeholder="eyJhbGciOi…">
@@ -344,9 +346,13 @@
                 <b>API restrictions → Restrict key</b> → tick <b>Map Tiles API</b> → <b>Save</b>.</li>
               <li>Paste it in the field above and click <b>Load Google Photorealistic</b>.</li>
             </ol>
-            <p class="aside">Because this is a web page, the key is visible to anyone who
-              opens your deployed site — the website + API restrictions above are what
-              keep it from being misused.</p>
+            <p class="aside">Your key is used from your browser only; this site never stores it.
+              Still add the website + API restrictions above so it can't be misused elsewhere.</p>
+            <p class="aside"><b>Not available in Europe:</b> Google does not serve Photorealistic 3D Tiles
+              to Google Cloud accounts based in the EU/EEA (you get
+              <i>"3D tiles are not available for your account and region"</i>). OSM 3D buildings
+              work everywhere.
+              <a href="https://developers.google.com/maps/comms/eea/map-tiles" target="_blank" rel="noopener">Google's notice</a>.</p>
           </details>
         </div>
       </details>
@@ -601,34 +607,61 @@
       $('src-name').textContent = name;
     }
 
+    // Inline status under the Map-data buttons (no blocking alert()).
+    function showSrcStatus(msg, tone) {
+      const el = $('src-status');
+      el.textContent = msg || '';
+      el.hidden = !msg;
+      el.style.color = tone === 'error' ? '#b3261e' : (tone === 'ok' ? '#1a7f43' : '');
+    }
+
+    // Cesium throws RequestErrorEvent objects (no .message) for HTTP failures.
+    // Pull the real reason out: Google/ion return { error: { message } } JSON.
+    function describeLoadError(e) {
+      if (!e) return 'unknown error';
+      if (e.statusCode !== undefined) {
+        let detail = '';
+        try {
+          const body = typeof e.response === 'string' ? JSON.parse(e.response) : e.response;
+          detail = (body && body.error && (body.error.message || body.error.status)) || '';
+        } catch (_) { detail = typeof e.response === 'string' ? e.response.slice(0, 200) : ''; }
+        return 'HTTP ' + e.statusCode + (detail ? ' — ' + detail : '');
+      }
+      return e.message || String(e);
+    }
+
     async function loadOsmBuildings() {
       const token = $('ion-token').value.trim() || CONFIG.cesiumIonToken;
       if (!token) {
         $('setup').open = true;
         $('cs-howto').open = true;
         $('ion-token').focus();
+        showSrcStatus('Paste a Cesium ion token first.', 'error');
         return;
       }
       Cesium.Ion.defaultAccessToken = token;
+      showSrcStatus('Loading OSM 3D buildings…');
 
       try {
+        // Build everything first; only swap the scene once it all succeeded.
         const imagery = await Cesium.ImageryLayer.fromWorldImagery({});
+        const buildings = await Cesium.createOsmBuildingsAsync();
+        buildings.shadows = Cesium.ShadowMode.ENABLED;
+
         viewer.imageryLayers.removeAll();
         viewer.imageryLayers.add(imagery);
         viewer.scene.setTerrain(new Cesium.Terrain(Cesium.CesiumTerrainProvider.fromIonAssetId(1)));
         viewer.scene.globe.show = true;
-
         if (googleTileset) { viewer.scene.primitives.remove(googleTileset); googleTileset = null; }
         if (osmBuildings)  { viewer.scene.primitives.remove(osmBuildings); }
-
-        osmBuildings = await Cesium.createOsmBuildingsAsync();
-        osmBuildings.shadows = Cesium.ShadowMode.ENABLED;
+        osmBuildings = buildings;
         viewer.scene.primitives.add(osmBuildings);
         setSourceLabel('OSM 3D buildings');
+        showSrcStatus('');
 
         flyToLocation(parseFloat($('lat').value), parseFloat($('lng').value));
       } catch (e) {
-        alert('Could not load OSM 3D buildings: ' + e.message + '\n(Check the Cesium ion token.)');
+        showSrcStatus('Could not load OSM 3D buildings: ' + describeLoadError(e) + ' (check the Cesium ion token).', 'error');
       }
     }
 
@@ -638,23 +671,32 @@
         $('setup').open = true;
         $('gg-howto').open = true;
         $('api-key').focus();
+        showSrcStatus('Paste your own Google Maps API key first (it stays in your browser).', 'error');
         return;
       }
       Cesium.GoogleMaps.defaultApiKey = key;
+      showSrcStatus('Loading Google Photorealistic 3D Tiles…');
 
       try {
+        // Create the tileset first; the current scene stays intact if it fails.
+        const tileset = await Cesium.createGooglePhotorealistic3DTileset();
+        tileset.shadows = Cesium.ShadowMode.ENABLED;
+
         if (osmBuildings)  { viewer.scene.primitives.remove(osmBuildings); osmBuildings = null; }
         if (googleTileset) { viewer.scene.primitives.remove(googleTileset); }
-
-        googleTileset = await Cesium.createGooglePhotorealistic3DTileset();
-        googleTileset.shadows = Cesium.ShadowMode.ENABLED;
+        googleTileset = tileset;
         viewer.scene.primitives.add(googleTileset);
         viewer.scene.globe.show = false; // photorealistic mesh contains the ground
         setSourceLabel('Google Photorealistic');
+        showSrcStatus('');
 
         flyToLocation(parseFloat($('lat').value), parseFloat($('lng').value));
       } catch (e) {
-        alert('Could not load Google Photorealistic 3D Tiles: ' + e.message);
+        let msg = 'Could not load Google Photorealistic 3D Tiles: ' + describeLoadError(e);
+        if (/not available for your account and region/i.test(msg)) {
+          msg += ' — Google does not serve 3D Tiles to Google Cloud accounts based in the EEA (EU/EEA countries). This is a Google restriction, not a key problem. OSM 3D buildings are still loaded.';
+        }
+        showSrcStatus(msg, 'error');
       }
     }
 
