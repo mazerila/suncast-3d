@@ -97,6 +97,12 @@ app.get('/api', (req, res) => {
 // ---------------------------------------------------------------------------
 // Static viewer (public/) — everything that is not /api
 // ---------------------------------------------------------------------------
+// /embed and /embed/v1 serve the viewer in chrome-less embed mode (see docs/EMBED.md)
+app.get(['/embed', '/embed/{*rest}'], (req, res) => {   // Express 5 wildcard syntax
+  res.set('Cache-Control', 'no-cache');
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 // Dev server: always revalidate so an edited index.html shows up on plain refresh
 // (browsers otherwise cache it heuristically and you see a stale page).
 app.use(express.static(path.join(__dirname, 'public'), {

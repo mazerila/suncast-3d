@@ -85,7 +85,8 @@ HTTPS/geolocation caveats.
     └─ <details> #setup Map data & keys   ion token, Google key, how-to guides (folded;
                                           opens itself when no token is present)
   #mapctl              fixed right column above the time bar: #compass · ＋ · − · fullscreen (Cesium's, re-parented)
-  #timebar             fixed full-width bottom: ☰ (mobile) + HH:MM + the #time slider
+  #timebar             fixed full-width bottom: ☰ (mobile) + ▶ + HH:MM + the #time slider
+  #embed-badge         embed mode only: "Suncast 3D ↗" link + "no location" note
   <script>              config merge → viewer → functions → event wiring
 </body>
 ```
@@ -105,6 +106,18 @@ HTTPS/geolocation caveats.
 - `#timebar` also carries **▶ play**: sweeps the time slider through 24 h at
   1 h/s from the rAF loop; grabbing the slider pauses it.
 - CSS nudges Cesium's required credit up so `#timebar` never covers it.
+
+### Embed mode
+
+`/embed`, `/embed/v1` (Firebase rewrite + an Express route, both → `index.html`)
+or `?embed=1` set `body.embed`: the panel, its toggle, the geocoder and the
+time bar's ☰ are hidden; the time bar (+ ▶), `#mapctl` and a small badge stay.
+Startup skips geolocation and reads `lat/lng/date/time/tzOffset/heading/
+pitch/range` from the query string (`numParam` range-checks each; anything
+invalid falls back to that param's default; no lat/lng → Versailles + note).
+The camera hints ride into the first fly via `flyToLocation(lat, lng, view)`.
+Script `src`s are absolute (`/config.public.js`) because the page is also served
+under `/embed/v1/`. Contract: [`EMBED.md`](EMBED.md).
 
 ### Config merge — and the publish boundary
 

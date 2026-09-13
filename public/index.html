@@ -23,8 +23,9 @@
                              safe to publish (the free Cesium ion token).
          config.local.js   – your machine only; may also hold the Google Maps
                              key. Never uploaded by `firebase deploy`. -->
-  <script src="config.public.js" onerror="window.__noPublicConfig = true"></script>
-  <script src="config.local.js"  onerror="window.__noLocalConfig  = true"></script>
+  <!-- Absolute paths: the page is also served at /embed/v1, where relative URLs would break. -->
+  <script src="/config.public.js" onerror="window.__noPublicConfig = true"></script>
+  <script src="/config.local.js"  onerror="window.__noLocalConfig  = true"></script>
 
   <style>
     :root {
@@ -230,6 +231,22 @@
     #compass .sun { fill: var(--accent); stroke: #fff; stroke-width: 1.5; }
     #compass .sun[hidden] { display: none; }
 
+    /* ---- Embed mode (/embed/v1): chrome-less, keeps the time bar + map controls ---- */
+    #embed-badge { display: none; }
+    body.embed #ui-panel, body.embed #panel-toggle, body.embed #timebar-menu,
+    body.embed .cesium-viewer-geocoderContainer { display: none !important; }
+    body.embed #embed-badge {
+      display: flex; align-items: center; gap: 8px; position: fixed; top: 10px; left: 10px; z-index: 1002;
+      font-size: 12px;
+    }
+    body.embed #embed-badge a {
+      color: var(--accent-ink); background: var(--bg); text-decoration: none; font-weight: 700;
+      padding: 6px 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(15,23,42,.25);
+    }
+    body.embed #embed-badge a:hover { background: #fff; }
+    body.embed #embed-note { color: #b3261e; background: var(--bg); padding: 5px 8px; border-radius: 8px; font-size: 11px; }
+    body.embed #embed-note[hidden] { display: none; }
+
     @media (max-width: 640px) {
       /* 100vh on phones includes the space behind the browser's own bars, so the
          panel's bottom was clipped. 100dvh is the *visible* height; keep the
@@ -401,6 +418,12 @@
       </details>
 
     </div>
+  </div>
+
+  <!-- Embed mode only: small badge linking to the full app, and a note if no location was given -->
+  <div id="embed-badge">
+    <a id="embed-open" href="/" target="_blank" rel="noopener" title="Open this view in the full Suncast 3D app">☀️ Suncast 3D ↗</a>
+    <span id="embed-note" hidden>No location given — showing the Château de Versailles</span>
   </div>
 
   <!-- Map controls column (right side): compass, zoom, and Cesium's fullscreen
@@ -681,9 +704,11 @@
     }
 
     let flySeq = 0;   // ignore a stale fly if a newer one started while sampling terrain
-    async function flyToLocation(lat, lng) {
+    // view (optional): { heading, pitch, range } overrides for the arrival pose
+    async function flyToLocation(lat, lng, view) {
       if (Number.isNaN(lat) || Number.isNaN(lng)) return;
       applyTzFromLocation(lat, lng, { force: true });
+      if (typeof EMBED !== 'undefined' && EMBED) applyEmbedTz();
       updateSunPosition();
 
       const seq = ++flySeq;
@@ -691,10 +716,11 @@
       if (seq !== flySeq) return;
       orbitAnchor = Cesium.Cartesian3.fromDegrees(lng, lat, h);
       hasFlown = true;
-      orbit.heading = 0; orbit.pitch = DEFAULT_PITCH; orbit.range = DEFAULT_RANGE;
+      const v = Object.assign({ heading: 0, pitch: DEFAULT_PITCH, range: DEFAULT_RANGE }, view || {});
+      orbit.heading = v.heading; orbit.pitch = v.pitch; orbit.range = v.range;
       lastCameraDrive = performance.now();
       viewer.camera.flyToBoundingSphere(new Cesium.BoundingSphere(orbitAnchor, 60), {
-        offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(DEFAULT_PITCH), DEFAULT_RANGE),
+        offset: new Cesium.HeadingPitchRange(Cesium.Math.toRadians(v.heading), Cesium.Math.toRadians(v.pitch), v.range),
         duration: 2,
         complete: () => { applyOrbit(); syncOrbitUI(); lastCameraDrive = performance.now(); }
       });
@@ -837,7 +863,7 @@
         setSourceLabel('OSM 3D buildings');
         showSrcStatus('');
 
-        flyToLocation(parseFloat($('lat').value), parseFloat($('lng').value));
+        flyToLocation(parseFloat($('lat').value), parseFloat($('lng').value), embedView);
       } catch (e) {
         showSrcStatus('Could not load OSM 3D buildings: ' + describeLoadError(e) + ' (check the Cesium ion token).', 'error');
       }
@@ -868,7 +894,7 @@
         setSourceLabel('Google Photorealistic');
         showSrcStatus('');
 
-        flyToLocation(parseFloat($('lat').value), parseFloat($('lng').value));
+        flyToLocation(parseFloat($('lat').value), parseFloat($('lng').value), embedView);
       } catch (e) {
         let msg = 'Could not load Google Photorealistic 3D Tiles: ' + describeLoadError(e);
         if (/not available for your account and region/i.test(msg)) {
@@ -1100,13 +1126,63 @@
     const FALLBACK_LOCATION = { lat: 48.8049, lng: 2.1204, label: 'Château de Versailles' };
     const hasCesiumToken = !!($('ion-token').value.trim());
 
+    // ------------------------------------------------------------------
+    // Embed mode  —  /embed/v1?lat=&lng=&date=&time=&tzOffset=&heading=&pitch=&range=
+    // Chrome-less view for other sites (HouseHunt) to iframe. Contract: docs/EMBED.md.
+    // /embed and ?embed=1 are aliases of /embed/v1. Bad/missing params degrade
+    // gracefully (defaults), never an error page.
+    // ------------------------------------------------------------------
+    const URLP = new URLSearchParams(location.search);
+    const EMBED = /^\/embed(\/|$)/.test(location.pathname) || URLP.get('embed') === '1';
+    let embedView = null;   // camera overrides for the first fly
+    function numParam(name, min, max) {
+      if (!URLP.has(name)) return undefined;
+      const n = parseFloat(URLP.get(name));
+      return Number.isFinite(n) && n >= min && n <= max ? n : undefined;
+    }
+    function applyEmbedParams() {
+      const date = URLP.get('date');
+      if (date && /^\d{4}-\d{2}-\d{2}$/.test(date) && !Number.isNaN(Date.parse(date))) $('date').value = date;
+      const t = URLP.get('time');
+      if (t) {
+        const m = /^(\d{1,2})(?::(\d{2}))?$/.exec(t.trim());
+        const hours = m ? (+m[1] + (m[2] ? +m[2] / 60 : 0)) : parseFloat(t);
+        if (Number.isFinite(hours) && hours >= 0 && hours < 24) $('time').value = Math.round(hours * 4) / 4;
+      }
+      const heading = numParam('heading', 0, 360), pitch = numParam('pitch', -89, -5), range = numParam('range', 30, 15000);
+      embedView = { ...(heading !== undefined && { heading }), ...(pitch !== undefined && { pitch }), ...(range !== undefined && { range }) };
+    }
+    function applyEmbedTz() {
+      const tz = numParam('tzOffset', -12, 14);
+      if (tz === undefined) return;
+      tzUserSet = true;
+      setTzValue(tz, 'from URL');
+      updateSunPosition();
+    }
+    if (EMBED) {
+      document.body.classList.add('embed');
+      document.title = 'Suncast 3D — embedded view';
+      setPanelOpen(false);
+      const full = '/?' + URLP.toString();
+      $('embed-open').href = full;
+    }
+
     function startAtBestLocation() {
       function proceed() {
         if (hasCesiumToken) loadOsmBuildings();
         else {
-          flyToLocation(parseFloat($('lat').value), parseFloat($('lng').value));
+          flyToLocation(parseFloat($('lat').value), parseFloat($('lng').value), embedView);
           $('setup').open = true; // no token yet — show the (short) setup section
         }
+      }
+      if (EMBED) {
+        // Location comes from the URL, never from geolocation (an iframe can't ask anyway).
+        const lat = numParam('lat', -90, 90), lng = numParam('lng', -180, 180);
+        if (lat !== undefined && lng !== undefined) { $('lat').value = lat; $('lng').value = lng; }
+        else { $('lat').value = FALLBACK_LOCATION.lat; $('lng').value = FALLBACK_LOCATION.lng; $('embed-note').hidden = false; }
+        applyEmbedParams();
+        proceed();
+        return;
       }
       function fallback(why) {
         $('lat').value = FALLBACK_LOCATION.lat;

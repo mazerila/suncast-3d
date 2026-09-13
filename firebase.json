@@ -3,6 +3,10 @@
     "site": "suncast",
     "public": "public",
     "predeploy": ["node scripts/build-public-config.js"],
+    "rewrites": [
+      { "source": "/embed", "destination": "/index.html" },
+      { "source": "/embed/**", "destination": "/index.html" }
+    ],
     "ignore": [
       "firebase.json",
       "**/.*",

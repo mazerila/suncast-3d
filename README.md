@@ -22,6 +22,9 @@ suntrace3d.com/viewer.
 - Exposes a keyless **JSON API** (`/api/sun`, `/api/daylight`) so other apps can
   pull sun position and daily daylight metrics for any coordinate — see
   [`docs/API.md`](docs/API.md).
+- **Embeddable**: `https://suncast.web.app/embed/v1?lat=…&lng=…&date=…&time=…`
+  gives a chrome-less view (time slider kept) for an `<iframe>` — see
+  [`docs/EMBED.md`](docs/EMBED.md).
 
 On load it flies to your **current location** (browser geolocation); if that is
 denied or unavailable it falls back to the **Château de Versailles**.
@@ -84,6 +87,7 @@ Commit `config.local.example.js` (the template); never `config.local.js` or
 - [`docs/DEPLOY.md`](docs/DEPLOY.md) — step-by-step deploy to Firebase Hosting
   (`*.web.app`) + Cloud Run for the API, from a fresh Google account, plus
   GitHub Actions CI/CD (auto-deploy on merge to `main`).
+- [`docs/EMBED.md`](docs/EMBED.md) — iframe embed URL contract (`/embed/v1`) and what the 3D view can and can't show.
 - [`docs/API.md`](docs/API.md) — HTTP API reference.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — how the viewer, sun math, and
   orbit camera work.
@@ -101,7 +105,7 @@ scripts/build-public-config.js   Generates config.public.js from config.local.js
 firebase.json / .firebaserc      Firebase Hosting config (+ /api rewrite to Cloud Run)
 Dockerfile / .dockerignore       Cloud Run image for the API
 .github/workflows/               Auto-deploy Hosting to suncast.web.app on merge to main
-docs/                            SETUP, DEPLOY, API, ARCHITECTURE
+docs/                            SETUP, DEPLOY, EMBED, API, ARCHITECTURE
 ```
 
 ## License
