@@ -535,7 +535,7 @@
       get tilesLoaded() { return viewer.scene.globe.tilesLoaded; },
       get imageryLayers() { return viewer.imageryLayers.length; },
       get primitives() { return viewer.scene.primitives.length; },
-      get marker() { return marker ? { lat: markerTarget.lat, lng: markerTarget.lng, hasPin: !!marker.pin, highlightedElementId: marker.bestId, highlightedCentroidDistanceM: marker.bestDist } : null; },
+      get marker() { return marker ? { lat: markerTarget.lat, lng: markerTarget.lng, highlightedElementId: marker.bestId, highlightedCentroidDistanceM: marker.bestDist } : null; },
       get webgl() { const gl = viewer.scene.context._gl; return gl ? { lost: gl.isContextLost(), renderer: (gl.getExtension('WEBGL_debug_renderer_info') && gl.getParameter(gl.getExtension('WEBGL_debug_renderer_info').UNMASKED_RENDERER_WEBGL)) || gl.getParameter(gl.RENDERER) } : null; },
     };
     viewer.scene.renderError.addEventListener((scene, err) => {
@@ -757,18 +757,16 @@
     let urlTzApplied = false;
 
     // ------------------------------------------------------------------
-    // House marker — when the URL supplies lat/lng (deep link or /embed/v1),
-    // mark THAT house: a light cyan tint on the OSM building whose centroid is
-    // nearest the point, plus a small static screen-space pin above the roof
-    // (constant pixel size, casts no shadow, never hidden behind roofs). No
-    // flash/animation. Cyan on purpose: yellow/orange is the sun's language.
-    // Off with ?marker=0. Contract: docs/EMBED.md.
+    // House marker — the chosen house (deep link, address search, Go-to,
+    // My location) is shown by tinting the OSM building whose centroid is
+    // nearest the point light cyan. Nothing else: no pin, no flash. Cyan on
+    // purpose: yellow/orange is the sun's language. Off with ?marker=0.
+    // Contract: docs/EMBED.md.
     // ------------------------------------------------------------------
-    const MARK_COLOR = Cesium.Color.fromCssColorString('#22d3ee');   // pin
     const MARK_TINT  = Cesium.Color.fromCssColorString('#a5f3fc');   // building tint
     const MARK_MATCH_RADIUS_M = 40;
     let markerTarget = null;   // { lat, lng } — set synchronously so tile scans can start at once
-    let marker = null;         // { pin, bestDist, bestId, bestFeature }
+    let marker = null;         // { bestDist, bestId, bestFeature, scanned }
 
     function metresBetween(lat1, lng1, lat2, lng2) {
       const R = 6371000, toR = Math.PI / 180;
@@ -780,7 +778,6 @@
     function clearHouseMarker() {
       if (!marker) return;
       if (marker.bestFeature) { try { marker.bestFeature.color = Cesium.Color.WHITE; } catch (_) {} }
-      if (marker.pin) viewer.entities.remove(marker.pin);
       marker = null; markerTarget = null;
     }
     // Mark a newly chosen house (address search, Go-to-coordinates, deep link),
@@ -792,37 +789,9 @@
       addHouseMarker(lat, lng);
     }
 
-    async function addHouseMarker(lat, lng) {
+    function addHouseMarker(lat, lng) {
       markerTarget = { lat, lng };
-      marker = { pin: null, bestDist: null, bestId: null, bestFeature: null, scanned: new WeakSet() };
-
-      // A small, static pin just above the roof so the house stays identifiable
-      // from any angle after the flash (roof height from the tiles, terrain fallback).
-      const carto = Cesium.Cartographic.fromDegrees(lng, lat);
-      let h = await groundHeight(lat, lng);
-      try {
-        if (viewer.scene.sampleHeightSupported) {
-          const res = await Promise.race([
-            viewer.scene.sampleHeightMostDetailed([carto]),
-            new Promise((r) => setTimeout(() => r(null), 4000)),
-          ]);
-          if (res && res[0] && Number.isFinite(res[0].height) && res[0].height > h) h = res[0].height;
-        }
-      } catch (_) { /* terrain height is fine */ }
-      if (!marker) return;
-      marker.pin = viewer.entities.add({
-        name: 'house',
-        position: Cesium.Cartesian3.fromDegrees(lng, lat, h + 12),
-        point: {
-          pixelSize: 6, color: MARK_COLOR, outlineColor: Cesium.Color.WHITE, outlineWidth: 1.5,
-          disableDepthTestDistance: Number.POSITIVE_INFINITY,   // always visible, even behind a roof
-        },
-        polyline: {
-          positions: [Cesium.Cartesian3.fromDegrees(lng, lat, h + 0.5), Cesium.Cartesian3.fromDegrees(lng, lat, h + 12)],
-          width: 1.5, material: MARK_COLOR.withAlpha(0.8), depthFailMaterial: MARK_COLOR.withAlpha(0.25),
-          shadows: Cesium.ShadowMode.DISABLED,
-        },
-      });
+      marker = { bestDist: null, bestId: null, bestFeature: null, scanned: new WeakSet() };
     }
 
     // Called for every loaded OSM-buildings tile: tint the feature whose

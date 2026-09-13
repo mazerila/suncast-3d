@@ -42,26 +42,23 @@ the same view in the full app.
 
 ## The house marker
 
-With `lat`/`lng` supplied (on `/` and `/embed/v1` alike) the target is marked so
-it can't be confused with the neighbours:
+With `lat`/`lng` supplied (on `/` and `/embed/v1` alike) the chosen house is
+shown by **tinting the building itself light cyan** — nothing else is drawn:
+no pin, no ring, no flash.
 
-- **The building tint:** the OSM Buildings feature whose own centroid
+- The tinted building is the OSM Buildings feature whose own centroid
   (`cesium#latitude/longitude`) is nearest the point, within 40 m. Tint only, so
-  the sun shading stays readable; re-applied as tiles stream in and out. If no
-  centroid is within 40 m (a very large building, or open ground) there is no
-  tint — the pin still shows.
-- **A small static pin:** a 6 px cyan dot on a thin line just above the roof
-  (roof height from the tiles, terrain as fallback), screen-space so it stays
-  the same size at any zoom, drawn on top so a roof never hides it, and it casts
-  no shadow. Nothing flashes or pulses — the tinted building is the marker.
+  the sun shading on its faces stays readable; it is re-applied as tiles stream
+  in and out. If no centroid is within 40 m (a very large building, or open
+  ground) nothing is tinted.
 - Cyan on purpose — yellow/orange is the sun's own colour in this app.
-- `marker=0` turns both off.
-- Diagnostics: `window.suncast.marker` → `{ lat, lng, hasPin,
-  highlightedElementId, highlightedCentroidDistanceM }`.
+- `marker=0` turns it off.
+- Diagnostics: `window.suncast.marker` → `{ lat, lng, highlightedElementId,
+  highlightedCentroidDistanceM }`.
 
-The marker follows the house being examined: it moves to the result of the
-address search box, to "➜ Go to coordinates", and to "📍 My location" (the
-previous building is un-tinted). It is not moved by dragging the map.
+In the full app the tint follows the house being examined: it moves to the
+result of the address search, to "➜ Go to coordinates", and to "📍 My location"
+(the previous building is un-tinted). Dragging the map does not move it.
 
 ## What the 3D view actually shows — read this before promising overshadowing
 
