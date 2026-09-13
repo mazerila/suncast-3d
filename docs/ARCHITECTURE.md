@@ -119,6 +119,21 @@ The camera hints ride into the first fly via `flyToLocation(lat, lng, view)`.
 Script `src`s are absolute (`/config.public.js`) because the page is also served
 under `/embed/v1/`. Contract: [`EMBED.md`](EMBED.md).
 
+### House marker (building tint)
+
+`setHouseMarker(lat, lng)` (deep link, address search, Go-to, My location)
+records the target; on every OSM-buildings `tileLoad`/`tileVisible` the tile's
+features are scanned once (per-marker `WeakSet`) for the centroid
+(`cesium#latitude/longitude`) nearest the target within 40 m. **The highlight
+is expressed in the tileset's `Cesium3DTileStyle`**, not via `feature.color`:
+`applyHouseStyle()` rebuilds the style as
+`[["Number(${elementId}) === <id>", "color('#a5f3fc')"], <OSM default colour>,
+["true", "color('#ffffff')"]]`. Reason: Cesium OSM Buildings applies its default
+style to each newly loaded tile one frame *after* `tileLoad`, which overwrote a
+colour set from the load event (the tint only appeared on a second search,
+once tiles were already styled). A style condition is applied by the engine to
+loaded and future tiles alike, so it also survives tile reloads for free.
+
 ### Config merge — and the publish boundary
 
 Two optional, git-ignored key files load in `<head>` (`onerror` tolerated),

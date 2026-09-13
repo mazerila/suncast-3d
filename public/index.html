@@ -767,7 +767,7 @@
     const MARK_TINT  = Cesium.Color.fromCssColorString('#a5f3fc');   // building tint
     const MARK_MATCH_RADIUS_M = 40;
     let markerTarget = null;   // { lat, lng } — set synchronously so tile scans can start at once
-    let marker = null;         // { bestDist, bestId, bestFeature, scanned }
+    let marker = null;         // { bestDist, bestId, scanned }
 
     function metresBetween(lat1, lng1, lat2, lng2) {
       const R = 6371000, toR = Math.PI / 180;
@@ -778,8 +778,27 @@
 
     function clearHouseMarker() {
       if (!marker) return;
-      if (marker.bestFeature) { try { marker.bestFeature.color = Cesium.Color.WHITE; } catch (_) {} }
       marker = null; markerTarget = null;
+      applyHouseStyle();   // back to the default building colours
+    }
+
+    // The highlight lives in the tileset STYLE, not in per-feature colours:
+    // Cesium OSM Buildings applies its default style to every newly loaded
+    // tile one frame after tileLoad, which silently overwrote a feature.color
+    // set from the load event (the tint only "took" once tiles were already
+    // styled — i.e. on a second search). A style condition on the elementId is
+    // applied by the style engine itself, to loaded and future tiles alike.
+    const OSM_DEFAULT_COLOR = ["Boolean(${feature['cesium#color']})", "color(${feature['cesium#color']})"];
+    function applyHouseStyle() {
+      if (!osmBuildings) return;
+      const conditions = [];
+      const id = marker ? marker.bestId : null;
+      if (id !== null && id !== undefined) {
+        const test = (typeof id === 'number') ? `Number(\${elementId}) === ${id}` : `\${elementId} === '${String(id).replace(/'/g, "\\'")}'`;
+        conditions.push([test, `color('${MARK_TINT.toCssHexString()}')`]);
+      }
+      conditions.push(OSM_DEFAULT_COLOR, ['true', "color('#ffffff')"]);
+      osmBuildings.style = new Cesium.Cesium3DTileStyle({ color: { conditions } });
     }
     // Mark a newly chosen house (address search, Go-to-coordinates, deep link),
     // replacing any previous one. Already-loaded tiles are rescanned on their
@@ -792,7 +811,7 @@
 
     function addHouseMarker(lat, lng) {
       markerTarget = { lat, lng };
-      marker = { bestDist: null, bestId: null, bestFeature: null, scanned: new WeakSet() };
+      marker = { bestDist: null, bestId: null, scanned: new WeakSet() };
     }
 
     // Called for every loaded OSM-buildings tile: tint the feature whose
@@ -809,10 +828,10 @@
         const d = metresBetween(flat, flng, markerTarget.lat, markerTarget.lng);
         if (d > MARK_MATCH_RADIUS_M) continue;
         const id = f.getProperty('elementId');
-        if (marker.bestDist === null || d < marker.bestDist - 0.01 || id === marker.bestId) {
-          if (marker.bestFeature && marker.bestId !== id) { try { marker.bestFeature.color = Cesium.Color.WHITE; } catch (_) {} }
-          f.color = MARK_TINT;
-          marker.bestFeature = f; marker.bestDist = d; marker.bestId = id;
+        if (marker.bestDist === null || d < marker.bestDist - 0.01) {
+          const changed = id !== marker.bestId;
+          marker.bestDist = d; marker.bestId = id;
+          if (changed) applyHouseStyle();
         }
       }
     }
@@ -983,6 +1002,7 @@
         if (osmBuildings)  { viewer.scene.primitives.remove(osmBuildings); }
         osmBuildings = buildings;
         attachHouseHighlight(osmBuildings);
+        applyHouseStyle();
         viewer.scene.primitives.add(osmBuildings);
         setSourceLabel('OSM 3D buildings');
         showSrcStatus('');
