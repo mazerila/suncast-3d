@@ -26,6 +26,7 @@ the same view in the full app.
 | `heading` | no | 0 … 360 | `0` (north-up) | Camera bearing. |
 | `pitch` | no | −89 … −5 | `−40` | Camera tilt; −89 = top-down. |
 | `range` | no | 30 … 15000 (m) | `400` | Camera distance from the target point. |
+| `marker` | no | `0` to disable | on | When `lat`/`lng` are given, the house is marked (see below). |
 
 - Unknown params are ignored; out-of-range values fall back to the default for
   that param only.
@@ -38,6 +39,30 @@ the same view in the full app.
   opens the normal UI (panel open) already aimed at that address — that's where
   the badge in the embed points. A valid `lat`/`lng` in the URL takes precedence
   over geolocation.
+
+## The house marker
+
+With `lat`/`lng` supplied (on `/` and `/embed/v1` alike) the target is marked so
+it can't be confused with the neighbours:
+
+- **A pin at the point:** a small cyan dot on a thin vertical line, placed just
+  above the roof (roof height sampled from the building tiles, terrain as
+  fallback). It is **screen-space** — constant pixel size at any zoom — is drawn
+  **on top** (never hidden behind a roof), and **casts no shadow**. It pulses
+  three beats (~2.7 s) on load, then settles to a quiet 7 px dot.
+- **A light cyan tint on the building itself:** the OSM Buildings feature whose
+  own centroid (`cesium#latitude/longitude`) is nearest the point, within 40 m.
+  Tint only (no fill/outline change), so the sun shading stays readable. It is
+  re-applied as tiles stream in and out. If no building centroid is within 40 m
+  (e.g. a very large building, or the point is on open ground) only the pin
+  shows.
+- Cyan on purpose — yellow/orange is the sun's own colour in this app.
+- `marker=0` turns both off.
+- Diagnostics: `window.suncast.marker` → `{ lat, lng, hasPin, settled,
+  highlightedElementId, highlightedCentroidDistanceM }`.
+
+The marker stays on the house given in the URL even if the user then flies
+elsewhere; it is not moved by the search box or "Go to coordinates".
 
 ## What the 3D view actually shows — read this before promising overshadowing
 
