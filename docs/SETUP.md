@@ -121,9 +121,10 @@ On load the app flies to your current location (or the Château de Versailles if
 geolocation is denied) and, if a Cesium token is available, loads OSM 3D
 buildings automatically.
 
-1. **Location** — type **Lat / Lng** and **Go to coordinates**, hit
-   **📍 My location** (needs HTTPS or localhost — see §5), or use the address
-   search box at the top-right of the map.
+1. **Location** — search an **address** (the field at the top of the panel;
+   suggestions appear as you type), or type **Lat / Lng** and **Go to
+   coordinates**, or hit **📍 My location** (needs HTTPS or localhost — see §5).
+   Whichever you use, the chosen house is tinted cyan and gets a small pin.
 2. **Time of day** — the slider fixed along the **bottom of the screen**, always
    visible over the map. 00:00–23:45 in 15-min steps. On a phone the **☰** at its
    left opens/closes the panel.
@@ -223,5 +224,5 @@ endpoints you need a Node host running `server.js`.
 | Test a Google key outside the app | `curl "https://tile.googleapis.com/v1/3dtiles/root.json?key=YOUR_KEY"` — JSON with `"root"` = works; the three 403s above tell you which case you're in. |
 | Shadows never appear | Sun is below the horizon (check the readout), or the camera is > ~8 km away (`shadowMap.maximumDistance`). |
 | Shadows point the wrong way | Check the **UTC offset** and the zone shown under it. It is set from a real time-zone lookup; if that script failed to load (offline / blocked CDN) it falls back to `round(lng / 15)`, which is ±1 h off in much of Europe — drag the slider to correct it. |
-| Address search box missing | Needs the ion token (`geocoder: true` uses ion). |
+| Address search field empty / no suggestions | Needs the ion token (`geocoder: true` uses ion). |
 | On a phone, typing an address made the other controls vanish | Fixed: iOS zoomed the page into the sub-16px search field and scrolled the document. All text fields are now ≥16px on phones, `body` is `position: fixed`, the viewport meta has `maximum-scale=1`, and the page snaps back to (0,0) on blur / keyboard close. |

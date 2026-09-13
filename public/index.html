@@ -231,6 +231,31 @@
     #compass .sun { fill: var(--accent); stroke: #fff; stroke-width: 1.5; }
     #compass .sun[hidden] { display: none; }
 
+    /* ---- Address search (Cesium's geocoder, re-parented into the panel) ---- */
+    #geocoder-slot .cesium-viewer-geocoderContainer { position: relative; display: block; margin: 0; width: 100%; }
+    #geocoder-slot .cesium-viewer-geocoderContainer .cesium-geocoder-input,
+    #geocoder-slot .cesium-viewer-geocoderContainer:hover .cesium-geocoder-input,
+    #geocoder-slot .cesium-viewer-geocoderContainer .cesium-geocoder-input:focus,
+    #geocoder-slot .cesium-viewer-geocoderContainer .cesium-geocoder-input-wide {
+      display: block; width: 100%; height: auto; padding: 7px 38px 7px 8px; margin: 0;
+      border: 1px solid #d3d7dd; border-radius: 7px; background: #fff; color: var(--fg);
+      font: inherit; box-shadow: none; transition: none;
+    }
+    #geocoder-slot .cesium-viewer-geocoderContainer .cesium-geocoder-input:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: #d3d7dd; }
+    #geocoder-slot .cesium-geocoder-searchButton {
+      top: 50%; right: 4px; transform: translateY(-50%); width: 30px; height: 30px;
+      border-radius: 6px; background: #eceef1; fill: var(--accent-ink);
+    }
+    #geocoder-slot .cesium-geocoder-searchButton:hover { background: #e0e3e8; }
+    #geocoder-slot .cesium-viewer-geocoderContainer .search-results {
+      position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 5; width: auto;
+      background: #fff; color: var(--fg); opacity: 1; border: 1px solid var(--line); border-radius: 7px;
+      box-shadow: 0 8px 24px rgba(15,23,42,.18); max-height: 220px;
+    }
+    #geocoder-slot .cesium-viewer-geocoderContainer .search-results ul li { font-size: 12.5px; padding: 7px 10px; }
+    #geocoder-slot .cesium-viewer-geocoderContainer .search-results ul li:hover,
+    #geocoder-slot .cesium-viewer-geocoderContainer .search-results ul li.active { background: #fff3e2; }
+
     /* ---- Embed mode (/embed/v1): chrome-less, keeps the time bar + map controls ---- */
     #embed-badge { display: none; }
     body.embed #ui-panel, body.embed #panel-toggle, body.embed #timebar-menu,
@@ -258,7 +283,6 @@
       }
       .panel-body { padding-bottom: 28px; }   /* last section never sits flush on the edge */
       #panel-toggle { top: 10px; left: 10px; }
-      .cesium-viewer-geocoderContainer { max-width: 60vw; }
       body.panel-open #mapctl { display: none; }  /* panel covers the map anyway */
       /* iOS Safari auto-zooms the whole page into any text field whose font is
          under 16px — and does not always zoom back out — which made every other
@@ -293,6 +317,9 @@
       <!-- LOCATION -->
       <div class="block">
         <h2>Location</h2>
+        <label class="field" for="geocoder-slot">Address</label>
+        <div id="geocoder-slot"></div>
+        <label class="field" style="margin-top:9px;">Coordinates</label>
         <div class="row" style="margin-bottom:7px;">
           <input type="number" id="lat" value="48.8049" step="0.0001" aria-label="Latitude" placeholder="Latitude">
           <input type="number" id="lng" value="2.1204" step="0.0001" aria-label="Longitude" placeholder="Longitude">
@@ -302,7 +329,6 @@
           <button id="btn-geo" class="btn-ghost" title="Use my current location">📍 My location</button>
         </div>
         <div id="loc-status" class="hint" role="status" hidden></div>
-        <div class="hint">Or search an address in the box at the top-right of the map.</div>
       </div>
 
       <!-- DATE -->
@@ -522,6 +548,13 @@
     // up with the compass and zoom buttons instead of floating on its own.
     if (viewer.fullscreenButton && viewer.fullscreenButton.container) {
       $('mapctl').appendChild(viewer.fullscreenButton.container);
+    }
+    // …and the address search into the panel's Location section, next to the
+    // coordinates and "My location" (it was a floating box at the top-right).
+    if (viewer.geocoder && viewer.geocoder.container) {
+      $('geocoder-slot').appendChild(viewer.geocoder.container);
+      const inp = viewer.geocoder.container.querySelector('.cesium-geocoder-input');
+      if (inp) { inp.placeholder = 'Search an address or place…'; inp.id = 'geocoder-input'; }
     }
 
     let osmBuildings = null;
