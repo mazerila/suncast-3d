@@ -85,7 +85,8 @@ HTTPS/geolocation caveats.
     └─ <details> #setup Map data & keys   ion token, Google key, how-to guides (folded;
                                           opens itself when no token is present)
   #mapctl              fixed right column above the time bar: #compass · ＋ · − · fullscreen (Cesium's, re-parented)
-  #timebar             fixed full-width bottom: ☰ (mobile) + ▶ + HH:MM + the #time slider
+  #toast               fixed top-centre transient message (loading / errors), toast(msg, tone, ms)
+  #timebar             fixed full-width bottom: ☰ (mobile) + ▶ + HH:MM + #time-date + the #time slider
   #embed-badge         embed mode only: "Suncast 3D ↗" link + "no location" note
   <script>              config merge → viewer → functions → event wiring
 </body>
@@ -245,8 +246,10 @@ viewer.clock.currentTime = Cesium.JulianDate.fromDate(new Date(utcMs));
   which automatic updates are skipped (label "manual") until a deliberate
   `flyToLocation` — the 📍 / Go-to buttons — passes `force` and clears it.
 - **SunCalc** is called separately with the same `Date` and the lat/lng purely
-  to print `altitude° / azimuth°` (azimuth normalised so 0° = N, 90° = E) and to
-  detect night (`altitude <= 0`). It does **not** affect rendering.
+  for the readout: `altitude° / azimuth°` (azimuth normalised so 0° = N,
+  90° = E, plus a 16-point compass word), night detection (`altitude <= 0`), and
+  `SunCalc.getTimes()` for that day's sunrise/sunset, formatted in the chosen
+  UTC offset. It does **not** affect rendering.
 
 ## Camera
 

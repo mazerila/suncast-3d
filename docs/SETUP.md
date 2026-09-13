@@ -126,8 +126,9 @@ buildings automatically.
    coordinates**, or hit **📍 My location** (needs HTTPS or localhost — see §5).
    Whichever you use, the chosen house is tinted cyan and gets a small pin.
 2. **Time of day** — the slider fixed along the **bottom of the screen**, always
-   visible over the map. 00:00–23:45 in 15-min steps. On a phone the **☰** at its
-   left opens/closes the panel.
+   visible over the map, with **▶** to play the whole day (1 h per second) and
+   the selected date shown next to the time. 00:00–23:45 in 15-min steps. On a
+   phone the **☰** at its left opens/closes the panel.
 3. **Date & zone** (in the panel):
    - **Date** — pick any date, or tap a preset chip (**Today**, **Mar equinox**,
      **Jun solstice**, **Sep equinox**, **Dec solstice**).
@@ -153,8 +154,11 @@ Shadows are always on; at night the sun readout says so and nothing casts one.
    - Arrow keys: **◀ ▶** rotate, **▲ ▼** tilt (when the map, not a field, has
      focus).
 
-The **Sun** readout shows altitude / azimuth, or "Night" when the sun is below
-the horizon.
+The **Sun** readout shows the sun's altitude, its bearing (degrees + compass
+point, e.g. `144° SE`), and that day's **sunrise ↑ / sunset ↓** at the place —
+or "Night" when the sun is below the horizon. Press **Enter** in a coordinate
+field to go there; invalid coordinates are flagged under the buttons. A short
+message at the top of the map says when 3D buildings are loading or failed.
 
 ## 5. Access from other devices on your network (LAN)
 

@@ -6,6 +6,13 @@
        viewport-fit=cover makes env(safe-area-inset-*) work on notched phones. -->
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
   <title>Suncast 3D — Daylight &amp; Shadow Simulator</title>
+  <meta name="description" content="See real sun and building shadows in 3D for any address, date and time of day. Free, works worldwide.">
+  <meta name="theme-color" content="#e8820c">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Suncast 3D — Daylight &amp; Shadow Simulator">
+  <meta property="og:description" content="See real sun and building shadows in 3D for any address, date and time of day.">
+  <meta property="og:url" content="https://suncast.web.app/">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='88'%3E%E2%98%80%EF%B8%8F%3C/text%3E%3C/svg%3E">
 
   <!-- CesiumJS -->
   <script src="https://cesium.com/downloads/cesiumjs/releases/1.115/Build/Cesium/Cesium.js"></script>
@@ -133,6 +140,7 @@
     }
     #sun-readout.night { background: #eef1f6; border-color: #dce0e8; color: #3b4252; }
     #sun-readout b { font-weight: 700; }
+    #sun-readout .rs { display: inline-block; margin-left: 6px; opacity: .8; white-space: nowrap; }
 
     /* ---- Foldable sections (Camera, Map data) ---- */
     details.fold { border-top: 1px solid var(--line); padding-top: 13px; margin-top: 4px; }
@@ -176,6 +184,15 @@
     }
     #timebar #time { flex: 1; margin: 0; }
     #timebar .time-big { min-width: 58px; text-align: right; }
+    #timebar .time-date { font-size: 11.5px; color: var(--muted); white-space: nowrap; line-height: 1.1; }
+    #toast {
+      position: fixed; top: 14px; left: 50%; transform: translateX(-50%); z-index: 1003;
+      background: var(--bg); color: var(--fg); font-size: 12.5px; font-weight: 600;
+      padding: 8px 14px; border-radius: 999px; box-shadow: 0 4px 16px rgba(15,23,42,.25);
+      transition: opacity .25s; pointer-events: none;
+    }
+    #toast[hidden] { display: none; }
+    #toast.error { color: #b3261e; }
     #timebar-menu {
       flex: 0 0 auto; width: 34px; height: 34px; padding: 0; font-size: 16px;
       background: #eceef1; color: var(--accent-ink);
@@ -477,11 +494,14 @@
     <button id="zoom-out" type="button" aria-label="Zoom out">&minus;</button>
   </div>
 
+  <div id="toast" role="status" hidden></div>
+
   <!-- Persistent time-of-day bar, fixed over the map so the sun can always be moved -->
   <div id="timebar">
     <button id="timebar-menu" type="button" aria-label="Open controls" title="Controls">☰</button>
     <button id="time-play" type="button" aria-label="Play the day" title="Play / pause the day (1 hour per second)">▶</button>
     <span id="time-val" class="time-big">12:00</span>
+    <span id="time-date" class="time-date" title="Selected date (change it in the panel)"></span>
     <input type="range" id="time" min="0" max="23.75" value="12" step="0.25" aria-label="Time of day">
   </div>
 
@@ -916,6 +936,7 @@
       $('tz-val').innerText = fmtOffset(tzOffset);
 
       const { year, month, day } = dateParts();
+      $('time-date').textContent = new Date(year, month, day).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' });
 
       // Local wall-clock time -> UTC instant
       const utcMs = Date.UTC(year, month, day, hours, minutes, 0) - tzOffset * 3600 * 1000;
@@ -928,13 +949,19 @@
         const aziDeg = (p.azimuth * 180 / Math.PI + 180 + 360) % 360; // 0 = N, 90 = E
         const el = $('sun-readout');
         const sunDot = $('compass-sun');
+        const DIRS = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+        const dir = DIRS[Math.round(aziDeg / 22.5) % 16];
+        // sunrise / sunset for this date at this place, shown in the chosen UTC offset
+        const times = SunCalc.getTimes(when, lat, lng);
+        const hhmm = (d) => { if (!d || Number.isNaN(d.getTime())) return '—'; const t = new Date(d.getTime() + tzOffset * 3600000); return String(t.getUTCHours()).padStart(2,'0') + ':' + String(t.getUTCMinutes()).padStart(2,'0'); };
+        const riseSet = `<span class="rs" title="Sunrise · sunset">↑ ${hhmm(times.sunrise)} &nbsp; ↓ ${hhmm(times.sunset)}</span>`;
         if (altDeg <= 0) {
           el.className = 'night';
-          el.innerHTML = `<b>Night</b> — the sun is ${Math.abs(altDeg).toFixed(1)}° below the horizon, so nothing casts a shadow.`;
+          el.innerHTML = `<b>Night</b> — the sun is ${Math.abs(altDeg).toFixed(1)}° below the horizon, so nothing casts a shadow. ${riseSet}`;
           sunDot.hidden = true;
         } else {
           el.className = '';
-          el.innerHTML = `☀️ Sun <b>${altDeg.toFixed(1)}°</b> above the horizon · bearing <b>${aziDeg.toFixed(0)}°</b> (0°=N, 90°=E)`;
+          el.innerHTML = `☀️ Sun <b>${altDeg.toFixed(1)}°</b> above the horizon · bearing <b>${aziDeg.toFixed(0)}° ${dir}</b> ${riseSet}`;
           // Sun dot on the compass rose: rotate around the centre by the bearing
           sunDot.setAttribute('transform', `rotate(${aziDeg.toFixed(1)} 50 50)`);
           sunDot.hidden = false;
@@ -965,6 +992,16 @@
     // ------------------------------------------------------------------
     function setSourceLabel(name) {
       $('src-name').textContent = name;
+    }
+
+    // Small transient message at the top of the map (loading, errors).
+    let toastTimer = null;
+    function toast(msg, tone, ms) {
+      const el = $('toast');
+      clearTimeout(toastTimer);
+      if (!msg) { el.hidden = true; return; }
+      el.textContent = msg; el.className = tone === 'error' ? 'error' : ''; el.hidden = false;
+      if (ms) toastTimer = setTimeout(() => { el.hidden = true; }, ms);
     }
 
     // Inline status under the Map-data buttons (no blocking alert()).
@@ -1001,6 +1038,7 @@
       }
       Cesium.Ion.defaultAccessToken = token;
       showSrcStatus('Loading OSM 3D buildings…');
+      toast('Loading 3D buildings…');
 
       try {
         // Build everything first; only swap the scene once it all succeeded.
@@ -1021,10 +1059,12 @@
         viewer.scene.primitives.add(osmBuildings);
         setSourceLabel('OSM 3D buildings');
         showSrcStatus('');
+        toast('');
 
         flyToLocation(parseFloat($('lat').value), parseFloat($('lng').value), embedView);
       } catch (e) {
         showSrcStatus('Could not load OSM 3D buildings: ' + describeLoadError(e) + ' (check the Cesium ion token).', 'error');
+        toast('Could not load 3D buildings — see Map data in the panel', 'error', 6000);
       }
     }
 
@@ -1039,6 +1079,7 @@
       }
       Cesium.GoogleMaps.defaultApiKey = key;
       showSrcStatus('Loading Google Photorealistic 3D Tiles…');
+      toast('Loading Google Photorealistic 3D Tiles…');
 
       try {
         // Create the tileset first; the current scene stays intact if it fails.
@@ -1052,6 +1093,7 @@
         viewer.scene.globe.show = false; // photorealistic mesh contains the ground
         setSourceLabel('Google Photorealistic');
         showSrcStatus('');
+        toast('');
 
         flyToLocation(parseFloat($('lat').value), parseFloat($('lng').value), embedView);
       } catch (e) {
@@ -1060,6 +1102,7 @@
           msg += ' — Google does not serve 3D Tiles to Google Cloud accounts based in the EEA (EU/EEA countries). This is a Google restriction, not a key problem. OSM 3D buildings are still loaded.';
         }
         showSrcStatus(msg, 'error');
+        toast('Google Photorealistic not available — see Map data in the panel', 'error', 6000);
       }
     }
 
@@ -1071,9 +1114,16 @@
 
     $('btn-fly').addEventListener('click', () => {
       const lat = parseFloat($('lat').value), lng = parseFloat($('lng').value);
+      if (!(lat >= -90 && lat <= 90) || !(lng >= -180 && lng <= 180)) {
+        showLocStatus('Enter a latitude between −90 and 90 and a longitude between −180 and 180.', 'error');
+        return;
+      }
+      showLocStatus('');
       setHouseMarker(lat, lng);
       flyToLocation(lat, lng);
     });
+    // Enter in either coordinate field = Go to coordinates
+    ['lat', 'lng'].forEach((id) => $(id).addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); $('btn-fly').click(); } }));
 
     function showLocStatus(msg, tone) {
       const el = $('loc-status');
