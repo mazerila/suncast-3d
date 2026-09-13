@@ -509,7 +509,7 @@
       get tilesLoaded() { return viewer.scene.globe.tilesLoaded; },
       get imageryLayers() { return viewer.imageryLayers.length; },
       get primitives() { return viewer.scene.primitives.length; },
-      get marker() { return marker ? { lat: markerTarget.lat, lng: markerTarget.lng, hasPin: !!marker.entity, settled: marker.settled, highlightedElementId: marker.bestId, highlightedCentroidDistanceM: marker.bestDist } : null; },
+      get marker() { return marker ? { lat: markerTarget.lat, lng: markerTarget.lng, hasPin: !!marker.pin, hasRing: !!marker.ring, settled: marker.settled, highlightedElementId: marker.bestId, highlightedCentroidDistanceM: marker.bestDist } : null; },
       get webgl() { const gl = viewer.scene.context._gl; return gl ? { lost: gl.isContextLost(), renderer: (gl.getExtension('WEBGL_debug_renderer_info') && gl.getParameter(gl.getExtension('WEBGL_debug_renderer_info').UNMASKED_RENDERER_WEBGL)) || gl.getParameter(gl.RENDERER) } : null; },
     };
     viewer.scene.renderError.addEventListener((scene, err) => {
@@ -731,11 +731,13 @@
     // point. Cyan on purpose: yellow/orange is the sun's language here.
     // Off with ?marker=0. Contract: docs/EMBED.md.
     // ------------------------------------------------------------------
-    const MARK_COLOR = Cesium.Color.fromCssColorString('#22d3ee');
-    const MARK_TINT  = Cesium.Color.fromCssColorString('#a5f3fc');
+    const MARK_COLOR = Cesium.Color.fromCssColorString('#22d3ee');   // pin + ring
+    const MARK_TINT  = Cesium.Color.fromCssColorString('#a5f3fc');   // resting building tint
+    const MARK_FLASH = Cesium.Color.fromCssColorString('#22d3ee');   // building at peak flash
     const MARK_MATCH_RADIUS_M = 40;
+    const MARK_BEATS = 3, MARK_BEAT_S = 0.9;
     let markerTarget = null;   // { lat, lng } — set synchronously so tile scans can start at once
-    let marker = null;         // { entity, born, settled, bestDist, bestId, bestFeature }
+    let marker = null;         // { pin, ring, born, settled, ringR, ringA, bestDist, bestId, bestFeature }
 
     function metresBetween(lat1, lng1, lat2, lng2) {
       const R = 6371000, toR = Math.PI / 180;
@@ -746,8 +748,25 @@
 
     async function addHouseMarker(lat, lng) {
       markerTarget = { lat, lng };
-      marker = { entity: null, born: 0, settled: false, bestDist: null, bestId: null, bestFeature: null };
-      // Roof height if the building tiles can tell us (times out → terrain only).
+      marker = { pin: null, ring: null, born: 0, settled: false, ringR: 6, ringA: 0, bestDist: null, bestId: null, bestFeature: null };
+
+      // The "flash" seen from above: a ring draped on the ground AND on the
+      // roof (classification BOTH) that pings outward three times, then fades.
+      marker.ring = viewer.entities.add({
+        name: 'house-ring',
+        position: Cesium.Cartesian3.fromDegrees(lng, lat),
+        ellipse: {
+          semiMajorAxis: new Cesium.CallbackProperty(() => marker ? marker.ringR : 0, false),
+          semiMinorAxis: new Cesium.CallbackProperty(() => marker ? marker.ringR : 0, false),
+          material: new Cesium.ColorMaterialProperty(new Cesium.CallbackProperty(() => MARK_COLOR.withAlpha(marker ? marker.ringA : 0), false)),
+          classificationType: Cesium.ClassificationType.BOTH,
+          shadows: Cesium.ShadowMode.DISABLED,
+        },
+      });
+      marker.born = performance.now();
+
+      // A small, static pin just above the roof so the house stays identifiable
+      // from any angle after the flash (roof height from the tiles, terrain fallback).
       const carto = Cesium.Cartographic.fromDegrees(lng, lat);
       let h = await groundHeight(lat, lng);
       try {
@@ -759,22 +778,20 @@
           if (res && res[0] && Number.isFinite(res[0].height) && res[0].height > h) h = res[0].height;
         }
       } catch (_) { /* terrain height is fine */ }
-      const base = Cesium.Cartesian3.fromDegrees(lng, lat, h + 0.5);
-      const top  = Cesium.Cartesian3.fromDegrees(lng, lat, h + 14);
-      marker.entity = viewer.entities.add({
+      if (!marker) return;
+      marker.pin = viewer.entities.add({
         name: 'house',
-        position: top,
+        position: Cesium.Cartesian3.fromDegrees(lng, lat, h + 12),
         point: {
-          pixelSize: 8, color: MARK_COLOR, outlineColor: Cesium.Color.WHITE, outlineWidth: 2,
+          pixelSize: 6, color: MARK_COLOR, outlineColor: Cesium.Color.WHITE, outlineWidth: 1.5,
           disableDepthTestDistance: Number.POSITIVE_INFINITY,   // always visible, even behind a roof
         },
         polyline: {
-          positions: [base, top], width: 2,
-          material: MARK_COLOR.withAlpha(0.9), depthFailMaterial: MARK_COLOR.withAlpha(0.3),
+          positions: [Cesium.Cartesian3.fromDegrees(lng, lat, h + 0.5), Cesium.Cartesian3.fromDegrees(lng, lat, h + 12)],
+          width: 1.5, material: MARK_COLOR.withAlpha(0.8), depthFailMaterial: MARK_COLOR.withAlpha(0.25),
           shadows: Cesium.ShadowMode.DISABLED,
         },
       });
-      marker.born = performance.now();
     }
 
     // Called for every loaded OSM-buildings tile: tint the feature whose
@@ -800,15 +817,22 @@
       tileset.tileLoad.addEventListener((tile) => scanTileForHouse(tile.content));
     }
 
-    // Pulse for ~2.7 s (three beats), then settle small and quiet.
+    // Three beats: the ring pings outward and the building flashes cyan;
+    // then the ring fades out and the building settles to its light tint.
     function markerTick() {
-      if (!marker || !marker.entity || marker.settled) return;
+      if (!marker || marker.settled || !marker.born) return;
       const t = (performance.now() - marker.born) / 1000;
-      if (t < 2.7) {
-        const s = 0.5 - 0.5 * Math.cos((t / 0.9) * 2 * Math.PI);
-        marker.entity.point.pixelSize = 8 + 12 * s;
+      if (t < MARK_BEATS * MARK_BEAT_S) {
+        const phase = (t % MARK_BEAT_S) / MARK_BEAT_S;              // 0 → 1 within a beat
+        marker.ringR = 6 + 26 * phase;                              // 6 m → 32 m
+        marker.ringA = 0.55 * (1 - phase);                          // fades as it grows
+        if (marker.bestFeature) {
+          const k = 0.5 + 0.5 * Math.cos(phase * 2 * Math.PI);       // 1 at beat start, 0 mid-beat, 1 at end
+          try { marker.bestFeature.color = Cesium.Color.lerp(MARK_TINT, MARK_FLASH, k, new Cesium.Color()); } catch (_) {}
+        }
       } else {
-        marker.entity.point.pixelSize = 7;
+        marker.ringA = 0;
+        if (marker.bestFeature) { try { marker.bestFeature.color = MARK_TINT; } catch (_) {} }
         marker.settled = true;
       }
     }

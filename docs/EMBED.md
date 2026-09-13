@@ -45,20 +45,22 @@ the same view in the full app.
 With `lat`/`lng` supplied (on `/` and `/embed/v1` alike) the target is marked so
 it can't be confused with the neighbours:
 
-- **A pin at the point:** a small cyan dot on a thin vertical line, placed just
-  above the roof (roof height sampled from the building tiles, terrain as
-  fallback). It is **screen-space** — constant pixel size at any zoom — is drawn
-  **on top** (never hidden behind a roof), and **casts no shadow**. It pulses
-  three beats (~2.7 s) on load, then settles to a quiet 7 px dot.
-- **A light cyan tint on the building itself:** the OSM Buildings feature whose
-  own centroid (`cesium#latitude/longitude`) is nearest the point, within 40 m.
-  Tint only (no fill/outline change), so the sun shading stays readable. It is
-  re-applied as tiles stream in and out. If no building centroid is within 40 m
-  (e.g. a very large building, or the point is on open ground) only the pin
-  shows.
+- **The flash (top-down):** on load, a cyan ring pings outward from the house
+  three times (6 → 32 m, ~0.9 s each) draped over the ground *and* the roof, and
+  the building itself flashes cyan in step. After ~2.7 s the ring is gone and
+  the building settles to a light cyan tint.
+- **The building tint:** the OSM Buildings feature whose own centroid
+  (`cesium#latitude/longitude`) is nearest the point, within 40 m. Tint only, so
+  the sun shading stays readable; re-applied as tiles stream in and out. If no
+  centroid is within 40 m (a very large building, or open ground) there is no
+  tint — the ring and pin still show.
+- **A small static pin:** a 6 px cyan dot on a thin line just above the roof
+  (roof height from the tiles, terrain as fallback), screen-space so it stays
+  the same size at any zoom, drawn on top so a roof never hides it, and it casts
+  no shadow. It does not pulse — the flash is the ring + building, not a cursor.
 - Cyan on purpose — yellow/orange is the sun's own colour in this app.
 - `marker=0` turns both off.
-- Diagnostics: `window.suncast.marker` → `{ lat, lng, hasPin, settled,
+- Diagnostics: `window.suncast.marker` → `{ lat, lng, hasPin, hasRing, settled,
   highlightedElementId, highlightedCentroidDistanceM }`.
 
 The marker stays on the house given in the URL even if the user then flies
