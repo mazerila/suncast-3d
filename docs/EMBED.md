@@ -34,8 +34,10 @@ the same view in the full app.
   would ship as `/embed/v2`.
 - The page sets no `X-Frame-Options` / `frame-ancestors`, so any origin may
   frame it. It never asks for geolocation in embed mode.
-- The badge link opens `https://suncast.web.app/?…` with the same params, so
-  the full app also honours `lat`/`lng`/`date`/`time`/`heading`/`pitch`/`range`.
+- The same deep-link params work on the full app too: `https://suncast.web.app/?lat=…&lng=…&date=…&time=…`
+  opens the normal UI (panel open) already aimed at that address — that's where
+  the badge in the embed points. A valid `lat`/`lng` in the URL takes precedence
+  over geolocation.
 
 ## What the 3D view actually shows — read this before promising overshadowing
 

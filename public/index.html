@@ -720,11 +720,12 @@
     }
 
     let flySeq = 0;   // ignore a stale fly if a newer one started while sampling terrain
+    let urlTzApplied = false;
     // view (optional): { heading, pitch, range } overrides for the arrival pose
     async function flyToLocation(lat, lng, view) {
       if (Number.isNaN(lat) || Number.isNaN(lng)) return;
       applyTzFromLocation(lat, lng, { force: true });
-      if (typeof EMBED !== 'undefined' && EMBED) applyEmbedTz();
+      if (!urlTzApplied && URLP.has('tzOffset')) { applyEmbedTz(); urlTzApplied = true; }   // ?tzOffset= applies to the first fly only
       updateSunPosition();
 
       const seq = ++flySeq;
@@ -1191,11 +1192,20 @@
           $('setup').open = true; // no token yet — show the (short) setup section
         }
       }
+      // Deep link: a valid ?lat=&lng= in the URL wins over geolocation on BOTH
+      // "/" and "/embed/v1" (same contract; the embed badge links to "/?lat=…").
+      // EMBED itself only means "hide the chrome / never ask for geolocation".
+      const urlLat = numParam('lat', -90, 90), urlLng = numParam('lng', -180, 180);
+      if (urlLat !== undefined && urlLng !== undefined) {
+        $('lat').value = urlLat; $('lng').value = urlLng;
+        applyEmbedParams();          // date / time / camera hints, if given
+        proceed();
+        return;
+      }
       if (EMBED) {
-        // Location comes from the URL, never from geolocation (an iframe can't ask anyway).
-        const lat = numParam('lat', -90, 90), lng = numParam('lng', -180, 180);
-        if (lat !== undefined && lng !== undefined) { $('lat').value = lat; $('lng').value = lng; }
-        else { $('lat').value = FALLBACK_LOCATION.lat; $('lng').value = FALLBACK_LOCATION.lng; $('embed-note').hidden = false; }
+        // No usable location in the URL and an iframe can't ask for geolocation.
+        $('lat').value = FALLBACK_LOCATION.lat; $('lng').value = FALLBACK_LOCATION.lng;
+        $('embed-note').hidden = false;
         applyEmbedParams();
         proceed();
         return;
