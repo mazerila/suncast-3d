@@ -501,6 +501,22 @@
     viewer.shadowMap.darkness = 0.35;
     viewer.shadowMap.maximumDistance = 25000;   // the opening view is ~10 km out; keep shadows visible there
 
+    // Diagnostics: expose the viewer for DevTools / embedders (top-level `const`
+    // in a classic script is not reachable as window.viewer), and surface render
+    // errors instead of swallowing them.
+    window.suncast = {
+      viewer,
+      get tilesLoaded() { return viewer.scene.globe.tilesLoaded; },
+      get imageryLayers() { return viewer.imageryLayers.length; },
+      get primitives() { return viewer.scene.primitives.length; },
+      get webgl() { const gl = viewer.scene.context._gl; return gl ? { lost: gl.isContextLost(), renderer: (gl.getExtension('WEBGL_debug_renderer_info') && gl.getParameter(gl.getExtension('WEBGL_debug_renderer_info').UNMASKED_RENDERER_WEBGL)) || gl.getParameter(gl.RENDERER) } : null; },
+    };
+    viewer.scene.renderError.addEventListener((scene, err) => {
+      console.error('[suncast] Cesium render error:', err);
+      const el = document.getElementById('src-status');
+      if (el) { el.hidden = false; el.style.color = '#b3261e'; el.textContent = 'Rendering stopped: ' + (err && err.message || err); }
+    });
+
     // Re-parent Cesium's fullscreen button into our control column so it lines
     // up with the compass and zoom buttons instead of floating on its own.
     if (viewer.fullscreenButton && viewer.fullscreenButton.container) {
