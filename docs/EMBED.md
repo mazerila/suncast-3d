@@ -47,7 +47,7 @@ shown by **tinting the building itself light cyan** — nothing else is drawn:
 no pin, no ring, no flash.
 
 - The tinted building is the OSM Buildings feature whose own centroid
-  (`cesium#latitude/longitude`) is nearest the point, within 40 m. Tint only, so
+  (`cesium#latitude/longitude`) is nearest the point, within 50 m. Tint only, so
   the sun shading on its faces stays readable; it is re-applied as tiles stream
   in and out. If no centroid is within 40 m (a very large building, or open
   ground) nothing is tinted.

@@ -765,9 +765,9 @@
     // Contract: docs/EMBED.md.
     // ------------------------------------------------------------------
     const MARK_TINT  = Cesium.Color.fromCssColorString('#a5f3fc');   // building tint
-    const MARK_MATCH_RADIUS_M = 40;
+    const MARK_MATCH_RADIUS_M = 50;   // typed coordinates / GPS fixes are not exact
     let markerTarget = null;   // { lat, lng } — set synchronously so tile scans can start at once
-    let marker = null;         // { bestDist, bestId, scanned }
+    let marker = null;         // { bestDist, bestId, cand: WeakMap(content → nearest), visible: [contents drawn this frame] }
 
     function metresBetween(lat1, lng1, lat2, lng2) {
       const R = 6371000, toR = Math.PI / 180;
@@ -811,33 +811,48 @@
 
     function addHouseMarker(lat, lng) {
       markerTarget = { lat, lng };
-      marker = { bestDist: null, bestId: null, scanned: new WeakSet() };
+      marker = { bestDist: null, bestId: null, cand: new WeakMap(), visible: [] };
     }
 
-    // Called for every loaded OSM-buildings tile: tint the feature whose
-    // centroid (the tileset's own cesium#latitude/longitude) is nearest the
-    // target within MARK_MATCH_RADIUS_M. Re-runs as tiles cycle in and out.
-    function scanTileForHouse(content) {
-      if (!markerTarget || !marker || !content || !content.featuresLength) return;
-      if (marker.scanned.has(content)) return;
-      marker.scanned.add(content);
+    // Nearest building (elementId + distance) to the target within a tile's
+    // content, computed once per content and cached on the marker.
+    function candidateIn(content) {
+      if (!content || !content.featuresLength) return null;
+      let c = marker.cand.get(content);
+      if (c !== undefined) return c;
+      c = null;
       for (let i = 0; i < content.featuresLength; i++) {
         const f = content.getFeature(i);
         const flat = f.getProperty('cesium#latitude'), flng = f.getProperty('cesium#longitude');
         if (typeof flat !== 'number' || typeof flng !== 'number') continue;
         const d = metresBetween(flat, flng, markerTarget.lat, markerTarget.lng);
-        if (d > MARK_MATCH_RADIUS_M) continue;
-        const id = f.getProperty('elementId');
-        if (marker.bestDist === null || d < marker.bestDist - 0.01) {
-          const changed = id !== marker.bestId;
-          marker.bestDist = d; marker.bestId = id;
-          if (changed) applyHouseStyle();
-        }
+        if (d <= MARK_MATCH_RADIUS_M && (!c || d < c.d)) c = { id: f.getProperty('elementId'), d };
       }
+      marker.cand.set(content, c);
+      return c;
     }
+    // Every frame Cesium tells us which tiles are drawn; we remember them and
+    // decide the highlight from THOSE (see houseTick). Deciding from "best seen
+    // so far" failed on the first fly: the coarse parent tile shown during the
+    // flight can match a feature that the detailed child tiles (which replace
+    // it) don't carry, leaving nothing tinted until the next search.
     function attachHouseHighlight(tileset) {
-      tileset.tileLoad.addEventListener((tile) => scanTileForHouse(tile.content));
-      tileset.tileVisible.addEventListener((tile) => scanTileForHouse(tile.content));   // catches tiles loaded before the marker existed
+      tileset.tileVisible.addEventListener((tile) => {
+        if (marker && tile.content && tile.content.featuresLength) marker.visible.push(tile.content);
+      });
+    }
+    function houseTick() {
+      if (!marker) return;
+      let best = null;
+      for (const content of marker.visible) {
+        const c = candidateIn(content);
+        if (c && (!best || c.d < best.d)) best = c;
+      }
+      marker.visible.length = 0;
+      if (best && best.id !== marker.bestId) {
+        marker.bestId = best.id; marker.bestDist = best.d;
+        applyHouseStyle();
+      }
     }
 
     // view (optional): { heading, pitch, range } overrides for the arrival pose
@@ -1245,6 +1260,7 @@
         applyOrbit();
       }
       dayTick(ts);       // "play the day" time-lapse
+      houseTick();       // highlight follows the tiles actually drawn
       updateCompass();   // follows every camera move: drag, search, orbit, spin
       requestAnimationFrame(frameTick);
     }

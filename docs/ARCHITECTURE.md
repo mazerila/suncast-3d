@@ -122,9 +122,14 @@ under `/embed/v1/`. Contract: [`EMBED.md`](EMBED.md).
 ### House marker (building tint)
 
 `setHouseMarker(lat, lng)` (deep link, address search, Go-to, My location)
-records the target; on every OSM-buildings `tileLoad`/`tileVisible` the tile's
-features are scanned once (per-marker `WeakSet`) for the centroid
-(`cesium#latitude/longitude`) nearest the target within 40 m. **The highlight
+records the target. Each frame, `tileVisible` collects the tile contents
+actually drawn; `houseTick()` (rAF loop) takes, among those, the feature whose
+centroid (`cesium#latitude/longitude`) is nearest the target within 50 m
+(`candidateIn()` caches the per-content nearest in a `WeakMap`). Deciding
+from what is *drawn* — rather than "best seen so far" — matters on the first
+fly: the coarse parent tile shown during the flight can match a feature the
+detailed child tiles don't carry, which left nothing tinted until a second
+search. **The highlight
 is expressed in the tileset's `Cesium3DTileStyle`**, not via `feature.color`:
 `applyHouseStyle()` rebuilds the style as
 `[["Number(${elementId}) === <id>", "color('#a5f3fc')"], <OSM default colour>,
