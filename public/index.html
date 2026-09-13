@@ -375,6 +375,7 @@
 
           <label class="field" for="range" style="margin-top:9px;">Camera distance <span id="range-val" class="spread">400 m</span></label>
           <input type="range" id="range" min="30" max="15000" step="10" value="400">
+          <button id="btn-cam-reset" class="btn-ghost" type="button" style="width:100%; margin-top:10px;" title="Back to the default view: north-up, tilt −40°, 400 m">↺ Reset camera (tilt, distance, north-up)</button>
         </div>
       </details>
 
@@ -832,7 +833,13 @@
       if (seq !== flySeq) return;
       orbitAnchor = Cesium.Cartesian3.fromDegrees(lng, lat, h);
       hasFlown = true;
-      const v = Object.assign({ heading: 0, pitch: DEFAULT_PITCH, range: DEFAULT_RANGE }, view || {});
+      // First fly (page load): the default framing. Any later navigation (address
+      // search, Go-to, My location) keeps the tilt, distance and heading the user
+      // has set, unless an explicit `view` says otherwise.
+      const base = hasFlown
+        ? { heading: orbit.heading, pitch: orbit.pitch, range: orbit.range }
+        : { heading: 0, pitch: DEFAULT_PITCH, range: DEFAULT_RANGE };
+      const v = Object.assign(base, view || {});
       orbit.heading = v.heading; orbit.pitch = v.pitch; orbit.range = v.range;
       lastCameraDrive = performance.now();
       viewer.camera.flyToBoundingSphere(new Cesium.BoundingSphere(orbitAnchor, 60), {
@@ -1115,11 +1122,24 @@
       const defaultDestinationFound = vm.destinationFound;
       vm.destinationFound = function (viewModel, destination) {
         try {
-          let c = null;
-          if (destination instanceof Cesium.Rectangle) c = Cesium.Rectangle.center(destination);
-          else if (destination instanceof Cesium.Cartesian3) c = Cesium.Cartographic.fromCartesian(destination);
-          if (c) setHouseMarker(Cesium.Math.toDegrees(c.latitude), Cesium.Math.toDegrees(c.longitude));
-        } catch (_) { /* marker is best-effort */ }
+          let c = null, view;
+          if (destination instanceof Cesium.Rectangle) {
+            c = Cesium.Rectangle.center(destination);
+            // An area result (a town, a district): widen the distance if needed
+            // so the whole area fits, but never zoom in on the user.
+            const bs = Cesium.BoundingSphere.fromRectangle3D(destination);
+            if (bs && bs.radius > 0) view = { range: Math.max(orbit.range, Math.min(15000, bs.radius * 2.2)) };
+          } else if (destination instanceof Cesium.Cartesian3) {
+            c = Cesium.Cartographic.fromCartesian(destination);
+          }
+          if (c) {
+            const lat = Cesium.Math.toDegrees(c.latitude), lng = Cesium.Math.toDegrees(c.longitude);
+            $('lat').value = lat.toFixed(5); $('lng').value = lng.toFixed(5);
+            setHouseMarker(lat, lng);
+            flyToLocation(lat, lng, view);   // our camera: keeps tilt / distance / heading
+            return;
+          }
+        } catch (_) { /* fall back to Cesium's own flight */ }
         return defaultDestinationFound.call(this, viewModel, destination);
       };
     }
@@ -1159,6 +1179,12 @@
     });
     $('btn-rot-left').addEventListener('click',  () => nudgeHeading(-45));
     $('btn-rot-right').addEventListener('click', () => nudgeHeading(45));
+    $('btn-cam-reset').addEventListener('click', () => {
+      if (spinning) setSpinning(false);
+      orbit.heading = 0; orbit.pitch = DEFAULT_PITCH; orbit.range = DEFAULT_RANGE;
+      syncOrbitUI();
+      applyOrbit();
+    });
 
     // ---- Zoom buttons (mouse wheel / two-finger pinch also work natively) ----
     function zoomStep(dir) {

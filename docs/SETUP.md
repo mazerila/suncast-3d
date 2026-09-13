@@ -146,6 +146,11 @@ Shadows are always on; at night the sun readout says so and nothing casts one.
 5. **Camera & orbit** (folded panel section):
    - **Orbit around location** slider / **⟲ 45°** / **45° ⟳** / **▶ Spin**.
    - **Camera tilt** and **Camera distance** sliders.
+   - **↺ Reset camera** — back to north-up, tilt −40°, 400 m.
+   - Going somewhere new (address search, Go to coordinates, My location)
+     keeps whatever tilt, distance and heading you have set; only the target
+     moves. Searching for an *area* (a town) widens the distance just enough to
+     fit it.
    - Arrow keys: **◀ ▶** rotate, **▲ ▼** tilt (when the map, not a field, has
      focus).
 
