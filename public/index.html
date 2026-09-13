@@ -349,7 +349,6 @@
         </label>
         <input type="range" id="tz" min="-12" max="14" step="0.5" value="0">
         <div class="hint"><span id="tz-zone"></span></div>
-        <div class="hint">Set automatically from the map location (time zone + daylight saving for the chosen date). Drag it to override; your value then stays put until you go to a new place.</div>
       </div>
 
       <!-- SUN READOUT -->
@@ -375,7 +374,7 @@
 
           <label class="field" for="range" style="margin-top:9px;">Camera distance <span id="range-val" class="spread">400 m</span></label>
           <input type="range" id="range" min="30" max="15000" step="10" value="400">
-          <button id="btn-cam-reset" class="btn-ghost" type="button" style="width:100%; margin-top:10px;" title="Back to the default view: north-up, tilt −40°, 400 m">↺ Reset camera (tilt, distance, north-up)</button>
+          <button id="btn-cam-reset" class="btn-ghost" type="button" style="margin-top:10px; padding:7px 12px; font-size:12px;" title="Back to the default view: north-up, tilt −40°, 400 m">↺ Reset camera</button>
         </div>
       </details>
 
@@ -756,6 +755,7 @@
 
     let flySeq = 0;   // ignore a stale fly if a newer one started while sampling terrain
     let urlTzApplied = false;
+    let skipNextAdopt = false;   // set when OUR fly lands: don't re-derive range/fields from a pick
 
     // ------------------------------------------------------------------
     // House marker — the chosen house (deep link, address search, Go-to,
@@ -845,7 +845,7 @@
       viewer.camera.flyToBoundingSphere(new Cesium.BoundingSphere(orbitAnchor, 60), {
         offset: new Cesium.HeadingPitchRange(Cesium.Math.toRadians(v.heading), Cesium.Math.toRadians(v.pitch), v.range),
         duration: 2,
-        complete: () => { applyOrbit(); syncOrbitUI(); lastCameraDrive = performance.now(); }
+        complete: () => { applyOrbit(); syncOrbitUI(); lastCameraDrive = performance.now(); skipNextAdopt = true; }
       });
     }
 
@@ -1112,7 +1112,8 @@
     // (mouse drag, "Go to coordinates").
     viewer.scene.camera.moveEnd.addEventListener(() => {
       if (spinning || !hasFlown) return;
-      if (performance.now() - lastCameraDrive < 500) return; // our own lookAt / flyTo
+      if (skipNextAdopt) { skipNextAdopt = false; return; }     // the settle after our own fly
+      if (performance.now() - lastCameraDrive < 500) return;    // our own lookAt / flyTo
       adoptView();
     });
 
@@ -1122,21 +1123,17 @@
       const defaultDestinationFound = vm.destinationFound;
       vm.destinationFound = function (viewModel, destination) {
         try {
-          let c = null, view;
-          if (destination instanceof Cesium.Rectangle) {
-            c = Cesium.Rectangle.center(destination);
-            // An area result (a town, a district): widen the distance if needed
-            // so the whole area fits, but never zoom in on the user.
-            const bs = Cesium.BoundingSphere.fromRectangle3D(destination);
-            if (bs && bs.radius > 0) view = { range: Math.max(orbit.range, Math.min(15000, bs.radius * 2.2)) };
-          } else if (destination instanceof Cesium.Cartesian3) {
-            c = Cesium.Cartographic.fromCartesian(destination);
-          }
+          // The geocoder returns a bounding box even for a single address, so
+          // never derive a distance from it: use its centre and keep the
+          // user's current tilt / distance / heading exactly.
+          let c = null;
+          if (destination instanceof Cesium.Rectangle) c = Cesium.Rectangle.center(destination);
+          else if (destination instanceof Cesium.Cartesian3) c = Cesium.Cartographic.fromCartesian(destination);
           if (c) {
             const lat = Cesium.Math.toDegrees(c.latitude), lng = Cesium.Math.toDegrees(c.longitude);
             $('lat').value = lat.toFixed(5); $('lng').value = lng.toFixed(5);
             setHouseMarker(lat, lng);
-            flyToLocation(lat, lng, view);   // our camera: keeps tilt / distance / heading
+            flyToLocation(lat, lng, { heading: orbit.heading, pitch: orbit.pitch, range: orbit.range });
             return;
           }
         } catch (_) { /* fall back to Cesium's own flight */ }
