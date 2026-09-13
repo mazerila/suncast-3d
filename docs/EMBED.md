@@ -45,26 +45,23 @@ the same view in the full app.
 With `lat`/`lng` supplied (on `/` and `/embed/v1` alike) the target is marked so
 it can't be confused with the neighbours:
 
-- **The flash (top-down):** on load, a cyan ring pings outward from the house
-  three times (6 → 32 m, ~0.9 s each) draped over the ground *and* the roof, and
-  the building itself flashes cyan in step. After ~2.7 s the ring is gone and
-  the building settles to a light cyan tint.
 - **The building tint:** the OSM Buildings feature whose own centroid
   (`cesium#latitude/longitude`) is nearest the point, within 40 m. Tint only, so
   the sun shading stays readable; re-applied as tiles stream in and out. If no
   centroid is within 40 m (a very large building, or open ground) there is no
-  tint — the ring and pin still show.
+  tint — the pin still shows.
 - **A small static pin:** a 6 px cyan dot on a thin line just above the roof
   (roof height from the tiles, terrain as fallback), screen-space so it stays
   the same size at any zoom, drawn on top so a roof never hides it, and it casts
-  no shadow. It does not pulse — the flash is the ring + building, not a cursor.
+  no shadow. Nothing flashes or pulses — the tinted building is the marker.
 - Cyan on purpose — yellow/orange is the sun's own colour in this app.
 - `marker=0` turns both off.
-- Diagnostics: `window.suncast.marker` → `{ lat, lng, hasPin, hasRing, settled,
+- Diagnostics: `window.suncast.marker` → `{ lat, lng, hasPin,
   highlightedElementId, highlightedCentroidDistanceM }`.
 
-The marker stays on the house given in the URL even if the user then flies
-elsewhere; it is not moved by the search box or "Go to coordinates".
+The marker follows the house being examined: it moves to the result of the
+address search box, to "➜ Go to coordinates", and to "📍 My location" (the
+previous building is un-tinted). It is not moved by dragging the map.
 
 ## What the 3D view actually shows — read this before promising overshadowing
 

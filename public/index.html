@@ -509,7 +509,7 @@
       get tilesLoaded() { return viewer.scene.globe.tilesLoaded; },
       get imageryLayers() { return viewer.imageryLayers.length; },
       get primitives() { return viewer.scene.primitives.length; },
-      get marker() { return marker ? { lat: markerTarget.lat, lng: markerTarget.lng, hasPin: !!marker.pin, hasRing: !!marker.ring, settled: marker.settled, highlightedElementId: marker.bestId, highlightedCentroidDistanceM: marker.bestDist } : null; },
+      get marker() { return marker ? { lat: markerTarget.lat, lng: markerTarget.lng, hasPin: !!marker.pin, highlightedElementId: marker.bestId, highlightedCentroidDistanceM: marker.bestDist } : null; },
       get webgl() { const gl = viewer.scene.context._gl; return gl ? { lost: gl.isContextLost(), renderer: (gl.getExtension('WEBGL_debug_renderer_info') && gl.getParameter(gl.getExtension('WEBGL_debug_renderer_info').UNMASKED_RENDERER_WEBGL)) || gl.getParameter(gl.RENDERER) } : null; },
     };
     viewer.scene.renderError.addEventListener((scene, err) => {
@@ -725,19 +725,17 @@
 
     // ------------------------------------------------------------------
     // House marker — when the URL supplies lat/lng (deep link or /embed/v1),
-    // mark THAT house: a screen-space cyan pin (constant pixel size, casts no
-    // shadow, never hidden behind roofs; pulses 3 beats on load, then settles)
-    // plus a light cyan tint on the OSM building whose centroid is nearest the
-    // point. Cyan on purpose: yellow/orange is the sun's language here.
+    // mark THAT house: a light cyan tint on the OSM building whose centroid is
+    // nearest the point, plus a small static screen-space pin above the roof
+    // (constant pixel size, casts no shadow, never hidden behind roofs). No
+    // flash/animation. Cyan on purpose: yellow/orange is the sun's language.
     // Off with ?marker=0. Contract: docs/EMBED.md.
     // ------------------------------------------------------------------
-    const MARK_COLOR = Cesium.Color.fromCssColorString('#22d3ee');   // pin + ring
-    const MARK_TINT  = Cesium.Color.fromCssColorString('#a5f3fc');   // resting building tint
-    const MARK_FLASH = Cesium.Color.fromCssColorString('#22d3ee');   // building at peak flash
+    const MARK_COLOR = Cesium.Color.fromCssColorString('#22d3ee');   // pin
+    const MARK_TINT  = Cesium.Color.fromCssColorString('#a5f3fc');   // building tint
     const MARK_MATCH_RADIUS_M = 40;
-    const MARK_BEATS = 3, MARK_BEAT_S = 0.9;
     let markerTarget = null;   // { lat, lng } — set synchronously so tile scans can start at once
-    let marker = null;         // { pin, ring, born, settled, ringR, ringA, bestDist, bestId, bestFeature }
+    let marker = null;         // { pin, bestDist, bestId, bestFeature }
 
     function metresBetween(lat1, lng1, lat2, lng2) {
       const R = 6371000, toR = Math.PI / 180;
@@ -746,24 +744,24 @@
       return 2 * R * Math.asin(Math.sqrt(a));
     }
 
+    function clearHouseMarker() {
+      if (!marker) return;
+      if (marker.bestFeature) { try { marker.bestFeature.color = Cesium.Color.WHITE; } catch (_) {} }
+      if (marker.pin) viewer.entities.remove(marker.pin);
+      marker = null; markerTarget = null;
+    }
+    // Mark a newly chosen house (address search, Go-to-coordinates, deep link),
+    // replacing any previous one. Already-loaded tiles are rescanned on their
+    // next visible frame (fresh `scanned` set), so the tint appears at once.
+    function setHouseMarker(lat, lng) {
+      if (Number.isNaN(lat) || Number.isNaN(lng)) return;
+      clearHouseMarker();
+      addHouseMarker(lat, lng);
+    }
+
     async function addHouseMarker(lat, lng) {
       markerTarget = { lat, lng };
-      marker = { pin: null, ring: null, born: 0, settled: false, ringR: 6, ringA: 0, bestDist: null, bestId: null, bestFeature: null };
-
-      // The "flash" seen from above: a ring draped on the ground AND on the
-      // roof (classification BOTH) that pings outward three times, then fades.
-      marker.ring = viewer.entities.add({
-        name: 'house-ring',
-        position: Cesium.Cartesian3.fromDegrees(lng, lat),
-        ellipse: {
-          semiMajorAxis: new Cesium.CallbackProperty(() => marker ? marker.ringR : 0, false),
-          semiMinorAxis: new Cesium.CallbackProperty(() => marker ? marker.ringR : 0, false),
-          material: new Cesium.ColorMaterialProperty(new Cesium.CallbackProperty(() => MARK_COLOR.withAlpha(marker ? marker.ringA : 0), false)),
-          classificationType: Cesium.ClassificationType.BOTH,
-          shadows: Cesium.ShadowMode.DISABLED,
-        },
-      });
-      marker.born = performance.now();
+      marker = { pin: null, bestDist: null, bestId: null, bestFeature: null, scanned: new WeakSet() };
 
       // A small, static pin just above the roof so the house stays identifiable
       // from any angle after the flash (roof height from the tiles, terrain fallback).
@@ -799,6 +797,8 @@
     // target within MARK_MATCH_RADIUS_M. Re-runs as tiles cycle in and out.
     function scanTileForHouse(content) {
       if (!markerTarget || !marker || !content || !content.featuresLength) return;
+      if (marker.scanned.has(content)) return;
+      marker.scanned.add(content);
       for (let i = 0; i < content.featuresLength; i++) {
         const f = content.getFeature(i);
         const flat = f.getProperty('cesium#latitude'), flng = f.getProperty('cesium#longitude');
@@ -815,27 +815,9 @@
     }
     function attachHouseHighlight(tileset) {
       tileset.tileLoad.addEventListener((tile) => scanTileForHouse(tile.content));
+      tileset.tileVisible.addEventListener((tile) => scanTileForHouse(tile.content));   // catches tiles loaded before the marker existed
     }
 
-    // Three beats: the ring pings outward and the building flashes cyan;
-    // then the ring fades out and the building settles to its light tint.
-    function markerTick() {
-      if (!marker || marker.settled || !marker.born) return;
-      const t = (performance.now() - marker.born) / 1000;
-      if (t < MARK_BEATS * MARK_BEAT_S) {
-        const phase = (t % MARK_BEAT_S) / MARK_BEAT_S;              // 0 → 1 within a beat
-        marker.ringR = 6 + 26 * phase;                              // 6 m → 32 m
-        marker.ringA = 0.55 * (1 - phase);                          // fades as it grows
-        if (marker.bestFeature) {
-          const k = 0.5 + 0.5 * Math.cos(phase * 2 * Math.PI);       // 1 at beat start, 0 mid-beat, 1 at end
-          try { marker.bestFeature.color = Cesium.Color.lerp(MARK_TINT, MARK_FLASH, k, new Cesium.Color()); } catch (_) {}
-        }
-      } else {
-        marker.ringA = 0;
-        if (marker.bestFeature) { try { marker.bestFeature.color = MARK_TINT; } catch (_) {} }
-        marker.settled = true;
-      }
-    }
     // view (optional): { heading, pitch, range } overrides for the arrival pose
     async function flyToLocation(lat, lng, view) {
       if (Number.isNaN(lat) || Number.isNaN(lng)) return;
@@ -1044,7 +1026,9 @@
     $('btn-load-google').addEventListener('click', loadGoogleTiles);
 
     $('btn-fly').addEventListener('click', () => {
-      flyToLocation(parseFloat($('lat').value), parseFloat($('lng').value));
+      const lat = parseFloat($('lat').value), lng = parseFloat($('lng').value);
+      setHouseMarker(lat, lng);
+      flyToLocation(lat, lng);
     });
 
     function showLocStatus(msg, tone) {
@@ -1068,6 +1052,7 @@
           showLocStatus('');
           $('lat').value = pos.coords.latitude.toFixed(5);
           $('lng').value = pos.coords.longitude.toFixed(5);
+          setHouseMarker(pos.coords.latitude, pos.coords.longitude);
           flyToLocation(pos.coords.latitude, pos.coords.longitude);
         },
         (err) => {
@@ -1121,6 +1106,21 @@
       if (performance.now() - lastCameraDrive < 500) return; // our own lookAt / flyTo
       adoptView();
     });
+
+    // Address search: mark the geocoded point as the house, then let Cesium fly.
+    if (viewer.geocoder && viewer.geocoder.viewModel) {
+      const vm = viewer.geocoder.viewModel;
+      const defaultDestinationFound = vm.destinationFound;
+      vm.destinationFound = function (viewModel, destination) {
+        try {
+          let c = null;
+          if (destination instanceof Cesium.Rectangle) c = Cesium.Rectangle.center(destination);
+          else if (destination instanceof Cesium.Cartesian3) c = Cesium.Cartographic.fromCartesian(destination);
+          if (c) setHouseMarker(Cesium.Math.toDegrees(c.latitude), Cesium.Math.toDegrees(c.longitude));
+        } catch (_) { /* marker is best-effort */ }
+        return defaultDestinationFound.call(this, viewModel, destination);
+      };
+    }
 
     // The address-search box flies the camera itself — adopt the result too.
     if (viewer.geocoder && viewer.geocoder.viewModel && viewer.geocoder.viewModel.complete) {
@@ -1200,7 +1200,6 @@
         applyOrbit();
       }
       dayTick(ts);       // "play the day" time-lapse
-      markerTick();      // house-marker pulse
       updateCompass();   // follows every camera move: drag, search, orbit, spin
       requestAnimationFrame(frameTick);
     }
