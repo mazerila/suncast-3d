@@ -80,7 +80,8 @@ HTTPS/geolocation caveats.
   #ui-panel             control panel (top-left): sticky header + .panel-body
     ├─ Location         #geocoder-slot (Cesium's geocoder, re-parented) + lat/lng + Go · Locate · Link buttons (SVG icons) + #loc-status
     ├─ Date & zone      <input type=date> + preset chips + UTC-offset slider
-    ├─ #sun-readout     altitude / bearing, or "Night"
+    ├─ #sun-readout     altitude / bearing / shadow length / sunrise-sunset, or "Night"
+    │   #sun-hours       hours of direct sun at the spot + shaded intervals; "Show sun path" checkbox
     ├─ <details> Camera & orbit     heading / tilt / distance / spin  (folded)
     └─ <details> #setup Map data & keys   ion token, Google key, how-to guides (folded;
                                           opens itself when no token is present)
@@ -347,13 +348,18 @@ function applyOrbit() {
 | Element | Handler |
 |---------|---------|
 | `#btn-load-osm` / `#btn-load-google` | `loadOsmBuildings` / `loadGoogleTiles` |
-| `#btn-fly` | `flyToLocation(lat, lng)` |
-| `#btn-geo` | secure-context check → `getCurrentPosition` (high-accuracy, 15 s) → fill fields → `flyToLocation`; `#loc-status` shows progress / errors |
+| `#btn-fly` (Go) | validate → `setHouseMarker` → `flyToLocation(lat, lng)`; Enter in a coordinate field does the same |
+| `#btn-geo` (Locate) | secure-context check → `getCurrentPosition` (high-accuracy, 15 s) → fill fields → `setHouseMarker` → `flyToLocation`; `#loc-status` shows progress / errors |
+| `#btn-share` (Link) | build `/?lat&lng&date&time&heading&pitch&range[&tzOffset]` → clipboard → "Link copied" in `#loc-status` |
+| canvas `LEFT_CLICK` | pick ground → fill fields, `orbitAnchor`, `setHouseMarker`, tz, sun — camera untouched |
+| `#sun-path` | toggle `entity.show` on the sun-path entities; persisted in `localStorage` |
 | `#zoom-in` / `#zoom-out` | `camera.zoomIn/Out` by a fraction of the camera-to-anchor distance → `adoptView` |
 | `#timebar-menu` (mobile ☰) | toggle the panel |
-| `#time` / `#date` | `updateSunPosition` |
-| `#tz` | set `tzUserSet = true` (manual offset now sticks) → `updateSunPosition` |
-| `.chip[data-date]` | set `#date` to today / an equinox / a solstice → `updateSunPosition` |
+| `#time` | `updateSunPosition` (pauses ▶ play) |
+| `#date` | `refreshTzFromZone` → `updateSunPosition` → `scheduleSunHours` + `scheduleSunPath` |
+| `#tz` | set `tzUserSet = true` (manual offset now sticks) → `updateSunPosition` → `scheduleSunHours` + `scheduleSunPath` |
+| `.chip[data-date]` | set `#date` to today / an equinox / a solstice → same as `#date` |
+| `#time-play` | `setDayPlaying` — rAF sweep at 1 h/s, wraps at 24 h |
 | `#heading` / `#pitch` / `#range` | update `orbit.*` → `applyOrbit` |
 | `#btn-rot-left` / `#btn-rot-right` | `nudgeHeading(∓45)` |
 | `#btn-spin` | toggle `spinning`, relabel button |
@@ -365,10 +371,11 @@ Shadows are always on (`viewer.shadows = true`, no toggle).
 
 ## Extension ideas
 
-- Click a building → "hours of direct sun today" on its roof
-  (`viewer.clock` sweep + sampled shadow tests).
-- Play button: animate the day with `viewer.clock.shouldAnimate = true` and a
-  multiplier, record a shadow time-lapse.
-- Compass rose / sun-path arc overlay tied to `orbit.heading` and the SunCalc
-  azimuth.
+- Real building heights (overshadowing v2): OSM `height`/`building:levels`
+  are mostly missing in French suburbs; a cadastre/IGN height source would
+  make shadow *lengths* trustworthy.
+- Record a shadow time-lapse (▶ play already sweeps the day; capture the
+  canvas to a GIF/WebM).
+- Year view: direct-sun hours per month for the spot in one chart (reuse
+  `computeSunHours` over 12 dates).
 - Persist the last location + settings in `localStorage`.

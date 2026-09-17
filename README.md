@@ -16,7 +16,10 @@ suntrace3d.com/viewer.
   the screen so it works with the panel closed (handy on a phone).
 - Lets you **orbit the camera around a building** to inspect it from every side
   (heading slider, 45° step buttons, continuous spin, tilt, distance, arrow
-  keys), plus ＋/− zoom buttons.
+  keys), plus ＋/− zoom buttons and a compass that always shows north.
+- Finds places by **address search**, coordinates, your **location**, or a
+  **click on the map**; tints the chosen house; **▶ plays the day**; and copies
+  a **link** that reopens the exact place, date, time and camera.
 - Shows a live **sun altitude / azimuth** readout and tells you when it is
   night; computes the **hours of direct sun** at the spot (shadows from the
   3D buildings included) and draws the day's **sun path** over the house with
@@ -104,7 +107,7 @@ public/config.local.example.js   Key template — copy to config.local.js
 public/config.local.js           Your real keys, machine-only (git-ignored, never deployed)
 public/config.public.js          Generated: publishable keys only (git-ignored)
 scripts/build-public-config.js   Generates config.public.js from config.local.js (predeploy hook)
-firebase.json / .firebaserc      Firebase Hosting config (+ /api rewrite to Cloud Run)
+firebase.json / .firebaserc      Firebase Hosting config (the /api rewrite is added once Cloud Run exists — DEPLOY.md §8)
 Dockerfile / .dockerignore       Cloud Run image for the API
 .github/workflows/               Auto-deploy Hosting to suncast.web.app on merge to main
 docs/                            SETUP, DEPLOY, EMBED, API, ARCHITECTURE
