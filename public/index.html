@@ -141,6 +141,10 @@
     #sun-readout.night { background: #eef1f6; border-color: #dce0e8; color: #3b4252; }
     #sun-readout b { font-weight: 700; }
     #sun-readout .rs { display: inline-block; margin-left: 6px; opacity: .8; white-space: nowrap; }
+    #sun-hours { font-size: 12px; line-height: 1.45; border-radius: 9px; padding: 9px 11px; margin-top: 8px; background: #ecfeff; border: 1px solid #a5f3fc; color: #155e75; }
+    #sun-hours[hidden] { display: none; }
+    #sun-hours b { font-weight: 700; }
+    #sun-hours .muted { opacity: .75; }
 
     /* ---- Foldable sections (Camera, Map data) ---- */
     details.fold { border-top: 1px solid var(--line); padding-top: 13px; margin-top: 4px; }
@@ -377,6 +381,7 @@
       <!-- SUN READOUT -->
       <div class="block">
         <div id="sun-readout">Sun: —</div>
+        <div id="sun-hours" hidden></div>
       </div>
 
       <!-- CAMERA (folded) -->
@@ -833,6 +838,7 @@
       if (Number.isNaN(lat) || Number.isNaN(lng)) return;
       clearHouseMarker();
       addHouseMarker(lat, lng);
+      scheduleSunHours();
     }
 
     function addHouseMarker(lat, lng) {
@@ -1071,6 +1077,7 @@
         toast('');
 
         flyToLocation(parseFloat($('lat').value), parseFloat($('lng').value), embedView);
+        scheduleSunHours();
       } catch (e) {
         showSrcStatus('Could not load OSM 3D buildings: ' + describeLoadError(e) + ' (check the Cesium ion token).', 'error');
         toast('Could not load 3D buildings — see Map data in the panel', 'error', 6000);
@@ -1199,8 +1206,8 @@
       }
       dayLastTs = ts;
     }
-    $('date').addEventListener('change', () => { refreshTzFromZone(parseFloat($('lng').value)); updateSunPosition(); });
-    $('tz').addEventListener('input', () => { tzUserSet = true; $('tz-zone').textContent = 'manual — go to a new place to reset'; updateSunPosition(); });
+    $('date').addEventListener('change', () => { refreshTzFromZone(parseFloat($('lng').value)); updateSunPosition(); scheduleSunHours(); });
+    $('tz').addEventListener('input', () => { tzUserSet = true; $('tz-zone').textContent = 'manual — go to a new place to reset'; updateSunPosition(); scheduleSunHours(); });
 
     // Re-adopt the location whenever the camera settles after a non-orbit move
     // (mouse drag, "Go to coordinates").
@@ -1210,6 +1217,79 @@
       if (performance.now() - lastCameraDrive < 500) return;    // our own lookAt / flyTo
       adoptView();
     });
+
+    // ------------------------------------------------------------------
+    // Hours of direct sun at the chosen spot, WITH occlusion: every 15 min of
+    // the day a ray is cast from just above the spot toward the sun against
+    // the loaded 3D buildings and terrain (pickFromRayMostDetailed loads the
+    // detailed tiles it needs). Shaded samples are merged into intervals.
+    // Limits: OSM building heights are defaults; no trees/hedges.
+    // ------------------------------------------------------------------
+    let sunHoursSeq = 0, sunHoursTimer = null;
+    const SUN_STEP_MIN = 15;
+    function scheduleSunHours() { clearTimeout(sunHoursTimer); sunHoursTimer = setTimeout(computeSunHours, 800); }
+    const wait = (ms, v) => new Promise((r) => setTimeout(() => r(v), ms));
+    async function computeSunHours() {
+      const el = $('sun-hours');
+      const seq = ++sunHoursSeq;
+      const lat = parseFloat($('lat').value), lng = parseFloat($('lng').value);
+      if (!osmBuildings || Number.isNaN(lat) || Number.isNaN(lng)) { el.hidden = true; return; }
+      el.hidden = false;
+      el.innerHTML = '☀ Direct sun at this spot: <span class="muted">computing…</span>';
+      try {
+        // Start the rays just above whatever is at the spot (roof or ground).
+        const carto = Cesium.Cartographic.fromDegrees(lng, lat);
+        let h = await groundHeight(lat, lng);
+        try {
+          if (viewer.scene.sampleHeightSupported) {
+            const r = await Promise.race([viewer.scene.sampleHeightMostDetailed([carto]), wait(4000, null)]);
+            if (r && r[0] && Number.isFinite(r[0].height) && r[0].height > h) h = r[0].height;
+          }
+        } catch (_) {}
+        if (seq !== sunHoursSeq) return;
+        const origin = Cesium.Cartesian3.fromDegrees(lng, lat, h + 1.2);
+        const enu = Cesium.Transforms.eastNorthUpToFixedFrame(origin);
+        const { year, month, day } = dateParts();
+        const tzOffset = parseFloat($('tz').value);
+        const dayStartUtc = Date.UTC(year, month, day, 0, 0, 0) - tzOffset * 3600000;
+        const samples = [];
+        for (let m = 0; m < 1440; m += SUN_STEP_MIN) {
+          const when = new Date(dayStartUtc + m * 60000);
+          const pos = SunCalc.getPosition(when, lat, lng);
+          if (pos.altitude <= Cesium.Math.toRadians(0.5)) continue;         // sun (nearly) below the horizon
+          const bearing = pos.azimuth + Math.PI;                             // SunCalc: 0 = S → compass 0 = N
+          const d = new Cesium.Cartesian3(Math.sin(bearing) * Math.cos(pos.altitude), Math.cos(bearing) * Math.cos(pos.altitude), Math.sin(pos.altitude));
+          const dir = Cesium.Matrix4.multiplyByPointAsVector(enu, d, new Cesium.Cartesian3());
+          samples.push({ m, ray: new Cesium.Ray(origin, Cesium.Cartesian3.normalize(dir, dir)) });
+        }
+        if (!samples.length) { el.innerHTML = '☀ Direct sun at this spot: <b>none</b> — the sun does not rise on this date.'; return; }
+        const results = await Promise.race([
+          Promise.all(samples.map((smp) => viewer.scene.pickFromRayMostDetailed(smp.ray, [], 0.2)
+            .then((hit) => ({ m: smp.m, shaded: !!(hit && hit.position && Cesium.Cartesian3.distance(hit.position, origin) < 3000) }))
+            .catch(() => ({ m: smp.m, shaded: false })))),
+          wait(30000, null),
+        ]);
+        if (seq !== sunHoursSeq) return;
+        if (!results) { el.innerHTML = '☀ Direct sun at this spot: <span class="muted">not available yet (3D data still loading) — try again in a moment.</span>'; return; }
+        const daylightMin = results.length * SUN_STEP_MIN;
+        const sunMin = results.filter((r) => !r.shaded).length * SUN_STEP_MIN;
+        const fmtH = (min) => `${Math.floor(min / 60)} h ${String(min % 60).padStart(2, '0')}`;
+        const hhmm = (m) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+        const spans = [];
+        for (const r of results) {
+          if (!r.shaded) continue;
+          const last = spans[spans.length - 1];
+          if (last && last.end === r.m) last.end = r.m + SUN_STEP_MIN; else spans.push({ start: r.m, end: r.m + SUN_STEP_MIN });
+        }
+        const shadedTxt = spans.length ? spans.slice(0, 4).map((x) => `${hhmm(x.start)}–${hhmm(x.end)}`).join(', ') + (spans.length > 4 ? ', …' : '') : 'never';
+        const dateLabel = new Date(year, month, day).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+        el.innerHTML = `☀ Direct sun at this spot on ${dateLabel}: <b>${fmtH(sunMin)}</b> <span class="muted">of ${fmtH(daylightMin)} daylight</span> · in shadow: <b>${shadedTxt}</b>` +
+          `<div class="muted" style="margin-top:3px;font-size:11px;">Buildings from OpenStreetMap at default heights; trees and hedges are not modelled.</div>`;
+        window.suncast.sunHours = { date: $('date').value, lat, lng, sunMinutes: sunMin, daylightMinutes: daylightMin, shaded: spans.map((x) => [hhmm(x.start), hhmm(x.end)]) };
+      } catch (e) {
+        if (seq === sunHoursSeq) el.innerHTML = '☀ Direct sun at this spot: <span class="muted">not available (' + (e && e.message || e) + ')</span>';
+      }
+    }
 
     // Colour the time slider's track by night / twilight / day for this date
     // and place, so the bar reads at a glance (like SunCalc's slider).
@@ -1303,6 +1383,7 @@
         $('date').value = (v === 'today') ? todayISO() : `${new Date().getFullYear()}-${v}`;
         refreshTzFromZone(parseFloat($('lng').value));
         updateSunPosition();
+        scheduleSunHours();
       });
     });
 

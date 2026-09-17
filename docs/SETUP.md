@@ -161,7 +161,15 @@ The **Sun** readout shows the sun's altitude, its bearing (degrees + compass
 point, e.g. `144° SE`), how long a shadow a 10 m house casts right now, and
 that day's **sunrise ↑ / sunset ↓** at the place — or "Night" when the sun is
 below the horizon. The time slider's track is coloured night / twilight / day
-for that date and place. Press **Enter** in a coordinate
+for that date and place.
+
+Below it, **Direct sun at this spot** is computed for the chosen place and
+date: every 15 minutes of daylight a ray is cast from just above the spot
+toward the sun against the loaded 3D buildings and terrain, giving the hours
+of direct sun and the intervals when the spot is in shadow (e.g. `in shadow:
+07:45–10:00`). It recomputes when you pick a new spot or change the date. It
+is an estimate: OpenStreetMap buildings have default heights and there are no
+trees or hedges in the model. Press **Enter** in a coordinate
 field to go there; invalid coordinates are flagged under the buttons. A short
 message at the top of the map says when 3D buildings are loading or failed.
 

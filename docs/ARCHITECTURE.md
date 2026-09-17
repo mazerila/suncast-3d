@@ -140,6 +140,18 @@ colour set from the load event (the tint only appeared on a second search,
 once tiles were already styled). A style condition is applied by the engine to
 loaded and future tiles alike, so it also survives tile reloads for free.
 
+### Direct-sun hours (occlusion by ray casting)
+
+`computeSunHours()` (debounced by `scheduleSunHours()`; triggered by a new
+target, a date/tz change, and the first OSM load) casts one ray per 15 minutes
+of daylight from 1.2 m above the spot (roof or ground height via
+`sampleHeightMostDetailed`, terrain fallback) toward the sun — direction built
+in the local ENU frame from SunCalc's azimuth/altitude — using
+`scene.pickFromRayMostDetailed(ray, [], 0.2)`, which loads the detailed 3D
+tiles it needs. A hit within 3 km = shaded. Results are summed and merged into
+shaded intervals; a 30 s overall timeout shows "not available yet". The
+result is exposed as `window.suncast.sunHours`.
+
 ### Config merge — and the publish boundary
 
 Two optional, git-ignored key files load in `<head>` (`onerror` tolerated),
