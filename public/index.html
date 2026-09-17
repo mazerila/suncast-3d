@@ -182,7 +182,11 @@
       box-shadow: 0 -3px 22px rgba(15,23,42,.20);
       backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
     }
-    #timebar #time { flex: 1; margin: 0; }
+    #timebar #time { flex: 1; margin: 0; -webkit-appearance: none; appearance: none; height: 24px; background: transparent; cursor: pointer; }
+    #timebar #time::-webkit-slider-runnable-track { height: 8px; border-radius: 4px; background: var(--time-track, #d9dde3); }
+    #timebar #time::-moz-range-track           { height: 8px; border-radius: 4px; background: var(--time-track, #d9dde3); }
+    #timebar #time::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; margin-top: -6px; border-radius: 50%; background: var(--accent); border: 2px solid #fff; box-shadow: 0 1px 5px rgba(15,23,42,.35); }
+    #timebar #time::-moz-range-thumb           { width: 20px; height: 20px; border-radius: 50%; background: var(--accent); border: 2px solid #fff; box-shadow: 0 1px 5px rgba(15,23,42,.35); }
     #timebar .time-big { min-width: 58px; text-align: right; }
     #timebar .time-date { font-size: 11.5px; color: var(--muted); white-space: nowrap; line-height: 1.1; }
     #toast {
@@ -345,6 +349,8 @@
           <button id="btn-fly" class="btn-ghost" title="Fly to the coordinates above">➜ Go to coordinates</button>
           <button id="btn-geo" class="btn-ghost" title="Use my current location">📍 My location</button>
         </div>
+        <button id="btn-share" class="btn-ghost" type="button" style="margin-top:8px; padding:7px 12px; font-size:12px;" title="Copy a link to this exact place, date, time and camera">🔗 Copy link</button>
+        <div class="hint" style="margin-top:6px;">Or click anywhere on the map to pick a spot.</div>
         <div id="loc-status" class="hint" role="status" hidden></div>
       </div>
 
@@ -955,13 +961,16 @@
         const times = SunCalc.getTimes(when, lat, lng);
         const hhmm = (d) => { if (!d || Number.isNaN(d.getTime())) return '—'; const t = new Date(d.getTime() + tzOffset * 3600000); return String(t.getUTCHours()).padStart(2,'0') + ':' + String(t.getUTCMinutes()).padStart(2,'0'); };
         const riseSet = `<span class="rs" title="Sunrise · sunset">↑ ${hhmm(times.sunrise)} &nbsp; ↓ ${hhmm(times.sunset)}</span>`;
+        paintTimeTrack(times, tzOffset);
         if (altDeg <= 0) {
           el.className = 'night';
           el.innerHTML = `<b>Night</b> — the sun is ${Math.abs(altDeg).toFixed(1)}° below the horizon, so nothing casts a shadow. ${riseSet}`;
           sunDot.hidden = true;
         } else {
           el.className = '';
-          el.innerHTML = `☀️ Sun <b>${altDeg.toFixed(1)}°</b> above the horizon · bearing <b>${aziDeg.toFixed(0)}° ${dir}</b> ${riseSet}`;
+          const shadowOf10m = 10 / Math.tan(altDeg * Math.PI / 180);
+          const shadowHint = shadowOf10m < 1000 ? ` · a 10 m house casts a <b>${shadowOf10m.toFixed(0)} m</b> shadow` : '';
+          el.innerHTML = `☀️ Sun <b>${altDeg.toFixed(1)}°</b> above the horizon · bearing <b>${aziDeg.toFixed(0)}° ${dir}</b>${shadowHint} ${riseSet}`;
           // Sun dot on the compass rose: rotate around the centre by the bearing
           sunDot.setAttribute('transform', `rotate(${aziDeg.toFixed(1)} 50 50)`);
           sunDot.hidden = false;
@@ -1200,6 +1209,60 @@
       if (skipNextAdopt) { skipNextAdopt = false; return; }     // the settle after our own fly
       if (performance.now() - lastCameraDrive < 500) return;    // our own lookAt / flyTo
       adoptView();
+    });
+
+    // Colour the time slider's track by night / twilight / day for this date
+    // and place, so the bar reads at a glance (like SunCalc's slider).
+    function paintTimeTrack(times, tzOffset) {
+      const slider = $('time');
+      const pct = (d) => { if (!d || Number.isNaN(d.getTime())) return null; const t = new Date(d.getTime() + tzOffset * 3600000); return ((t.getUTCHours() + t.getUTCMinutes() / 60) / 24 * 100); };
+      const NIGHT = '#3f4d6e', DUSK = '#f2a15c', DAY = '#ffd98a';
+      const dawn = pct(times.dawn), rise = pct(times.sunrise), set = pct(times.sunset), dusk = pct(times.dusk);
+      let g;
+      if (rise === null || set === null) {
+        // polar day / night: is the sun up at local noon?
+        g = (times.solarNoon && SunCalc.getPosition(times.solarNoon, parseFloat($('lat').value), parseFloat($('lng').value)).altitude > 0) ? DAY : NIGHT;
+      } else {
+        const a = (dawn ?? rise).toFixed(1), b = rise.toFixed(1), c = set.toFixed(1), d = (dusk ?? set).toFixed(1);
+        g = `linear-gradient(to right, ${NIGHT} 0%, ${NIGHT} ${a}%, ${DUSK} ${b}%, ${DAY} ${b}%, ${DAY} ${c}%, ${DUSK} ${c}%, ${NIGHT} ${d}%, ${NIGHT} 100%)`;
+      }
+      slider.style.setProperty('--time-track', g);
+    }
+
+    // Click anywhere on the map to pick a spot: it becomes the target (house
+    // tinted, orbit centre, readout) WITHOUT moving the camera.
+    const clickHandler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+    clickHandler.setInputAction((e) => {
+      const ray = viewer.camera.getPickRay(e.position);
+      let p = ray ? viewer.scene.globe.pick(ray, viewer.scene) : undefined;
+      if (!p && viewer.scene.pickPositionSupported) { const pp = viewer.scene.pickPosition(e.position); if (Cesium.defined(pp)) p = pp; }
+      if (!p) p = viewer.camera.pickEllipsoid(e.position, viewer.scene.globe.ellipsoid);
+      if (!p) return;                                                   // clicked the sky
+      const c = Cesium.Cartographic.fromCartesian(p);
+      const lat = Cesium.Math.toDegrees(c.latitude), lng = Cesium.Math.toDegrees(c.longitude);
+      $('lat').value = lat.toFixed(5); $('lng').value = lng.toFixed(5);
+      orbitAnchor = p;                                                  // orbit around the clicked spot
+      const d = Cesium.Cartesian3.distance(viewer.camera.positionWC, p);
+      if (d >= 30) orbit.range = Math.min(15000, d);
+      syncOrbitUI();
+      setHouseMarker(lat, lng);
+      applyTzFromLocation(lat, lng);
+      updateSunPosition();
+      showLocStatus('');
+    }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+    // Copy a deep link to the current place / date / time / camera.
+    $('btn-share').addEventListener('click', async () => {
+      const q = new URLSearchParams({
+        lat: (+$('lat').value).toFixed(5), lng: (+$('lng').value).toFixed(5),
+        date: $('date').value, time: $('time-val').textContent,
+        heading: Math.round(orbit.heading), pitch: Math.round(orbit.pitch), range: Math.round(orbit.range),
+      });
+      if (tzUserSet) q.set('tzOffset', $('tz').value);
+      const url = location.origin + '/?' + q.toString();
+      try { await navigator.clipboard.writeText(url); showLocStatus('Link copied — it opens this exact view.', 'ok'); }
+      catch (_) { prompt('Copy this link:', url); }
+      setTimeout(() => showLocStatus(''), 2500);
     });
 
     // Address search: mark the geocoded point as the house, then let Cesium fly.

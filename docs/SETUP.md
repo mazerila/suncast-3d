@@ -122,9 +122,12 @@ geolocation is denied) and, if a Cesium token is available, loads OSM 3D
 buildings automatically.
 
 1. **Location** — search an **address** (the field at the top of the panel;
-   suggestions appear as you type), or type **Lat / Lng** and **Go to
-   coordinates**, or hit **📍 My location** (needs HTTPS or localhost — see §5).
-   Whichever you use, the chosen house is tinted cyan and gets a small pin.
+   suggestions appear as you type), type **Lat / Lng** and **Go to
+   coordinates**, hit **📍 My location** (needs HTTPS or localhost — see §5),
+   or simply **click anywhere on the map** to pick a spot without moving the
+   camera. Whichever you use, the chosen building is tinted cyan.
+   **🔗 Copy link** copies a URL that reopens this exact place, date, time and
+   camera (see [`EMBED.md`](EMBED.md) for the parameters).
 2. **Time of day** — the slider fixed along the **bottom of the screen**, always
    visible over the map, with **▶** to play the whole day (1 h per second) and
    the selected date shown next to the time. 00:00–23:45 in 15-min steps. On a
@@ -155,8 +158,10 @@ Shadows are always on; at night the sun readout says so and nothing casts one.
      focus).
 
 The **Sun** readout shows the sun's altitude, its bearing (degrees + compass
-point, e.g. `144° SE`), and that day's **sunrise ↑ / sunset ↓** at the place —
-or "Night" when the sun is below the horizon. Press **Enter** in a coordinate
+point, e.g. `144° SE`), how long a shadow a 10 m house casts right now, and
+that day's **sunrise ↑ / sunset ↓** at the place — or "Night" when the sun is
+below the horizon. The time slider's track is coloured night / twilight / day
+for that date and place. Press **Enter** in a coordinate
 field to go there; invalid coordinates are flagged under the buttons. A short
 message at the top of the map says when 3D buildings are loading or failed.
 
