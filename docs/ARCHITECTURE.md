@@ -152,6 +152,23 @@ tiles it needs. A hit within 3 km = shaded. Results are summed and merged into
 shaded intervals; a 30 s overall timeout shows "not available yet". The
 result is exposed as `window.suncast.sunHours`.
 
+### Sun path (entities)
+
+`buildSunPath()` (debounced by `scheduleSunPath()`; same triggers as the
+direct-sun hours, plus every `flyToLocation`) samples SunCalc every 10 minutes
+of the local day while the sun is up, adds the exact sunrise/sunset instants
+pinned to altitude 0, sorts by minute and splits where the sun is down in
+between (a manual UTC offset can put sunset after local midnight). Each run
+is a `viewer.entities` polyline in the local ENU frame at `PATH_RADIUS_M =
+150` from the spot, `arcType: NONE`, `shadows: DISABLED`, with a faint
+`depthFailMaterial` so the part behind buildings stays visible. Sunrise and
+sunset direction lines are ground-clamped polylines (`clampToGround` when
+`GroundPolylinePrimitive.isSupported`) with a small label at the tip. The
+sun dot is a `point` whose `position` and `show` are `CallbackProperty`s fed
+by `updateSunPosition()` (`sunPath.dotPos/dotShown`), so ▶ play moves it for
+free. `?path=0` (embed) and the **Show sun path** checkbox (persisted in
+`localStorage`) toggle `entity.show`. Diagnostics: `window.suncast.sunPath`.
+
 ### Config merge — and the publish boundary
 
 Two optional, git-ignored key files load in `<head>` (`onerror` tolerated),

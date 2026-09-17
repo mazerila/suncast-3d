@@ -18,7 +18,9 @@ suntrace3d.com/viewer.
   (heading slider, 45° step buttons, continuous spin, tilt, distance, arrow
   keys), plus ＋/− zoom buttons.
 - Shows a live **sun altitude / azimuth** readout and tells you when it is
-  night.
+  night; computes the **hours of direct sun** at the spot (shadows from the
+  3D buildings included) and draws the day's **sun path** over the house with
+  sunrise / sunset directions.
 - Exposes a keyless **JSON API** (`/api/sun`, `/api/daylight`) so other apps can
   pull sun position and daily daylight metrics for any coordinate — see
   [`docs/API.md`](docs/API.md).

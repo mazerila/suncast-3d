@@ -27,6 +27,7 @@ the same view in the full app.
 | `pitch` | no | −89 … −5 | `−40` | Camera tilt; −89 = top-down. |
 | `range` | no | 30 … 15000 (m) | `400` | Camera distance from the target point. |
 | `marker` | no | `0` to disable | on | When `lat`/`lng` are given, the house is marked (see below). |
+| `path` | no | `0` to disable | on | The day's sun path: a gold arc over the spot from sunrise to sunset with the sun at the chosen time on it, plus sunrise ↑ / sunset ↓ direction lines on the ground with their times. Added 2026-09-17; leaving it out keeps the arc (additive, still v1). |
 
 - Unknown params are ignored; out-of-range values fall back to the default for
   that param only.

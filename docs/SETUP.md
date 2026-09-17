@@ -169,8 +169,15 @@ toward the sun against the loaded 3D buildings and terrain, giving the hours
 of direct sun and the intervals when the spot is in shadow (e.g. `in shadow:
 07:45–10:00`). It recomputes when you pick a new spot or change the date. It
 is an estimate: OpenStreetMap buildings have default heights and there are no
-trees or hedges in the model. Press **Enter** in a coordinate
-field to go there; invalid coordinates are flagged under the buttons. A short
+trees or hedges in the model.
+
+**Show sun path** draws the day's sun path in 3D over the spot: a gold arc
+from sunrise to sunset (at a fixed 150 m radius — it is a diagram, not a
+physical object, and casts no shadow), the sun at the chosen time as a dot on
+it (it moves as you drag the time slider or press ▶), and two short lines on
+the ground pointing to where the sun rises (↑ with the time) and sets (↓).
+Untick the box to hide it; the choice is remembered in this browser. Press
+**Enter** in a coordinate field to go there; invalid coordinates are flagged under the buttons. A short
 message at the top of the map says when 3D buildings are loading or failed.
 
 ## 5. Access from other devices on your network (LAN)

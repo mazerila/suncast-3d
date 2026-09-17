@@ -145,6 +145,7 @@
     #sun-hours[hidden] { display: none; }
     #sun-hours b { font-weight: 700; }
     #sun-hours .muted { opacity: .75; }
+    #sun-path-row { margin-top: 8px; font-size: 12px; font-weight: 500; color: #4b5563; }
 
     /* ---- Foldable sections (Camera, Map data) ---- */
     details.fold { border-top: 1px solid var(--line); padding-top: 13px; margin-top: 4px; }
@@ -382,6 +383,7 @@
       <div class="block">
         <div id="sun-readout">Sun: —</div>
         <div id="sun-hours" hidden></div>
+        <label class="check" id="sun-path-row"><input type="checkbox" id="sun-path" checked> Show sun path</label>
       </div>
 
       <!-- CAMERA (folded) -->
@@ -839,6 +841,7 @@
       clearHouseMarker();
       addHouseMarker(lat, lng);
       scheduleSunHours();
+      scheduleSunPath();
     }
 
     function addHouseMarker(lat, lng) {
@@ -899,6 +902,7 @@
       if (seq !== flySeq) return;
       orbitAnchor = Cesium.Cartesian3.fromDegrees(lng, lat, h);
       hasFlown = true;
+      scheduleSunPath();
       // First fly (page load): the default framing. Any later navigation (address
       // search, Go-to, My location) keeps the tilt, distance and heading the user
       // has set, unless an explicit `view` says otherwise.
@@ -957,6 +961,7 @@
 
       if (window.SunCalc && !Number.isNaN(lat) && !Number.isNaN(lng)) {
         const p = SunCalc.getPosition(when, lat, lng);
+        if (sunPath.enu) { sunPath.dotShown = p.altitude > 0; sunPath.dotPos = sunPoint(p); }   // the sun on its arc
         const altDeg = p.altitude * 180 / Math.PI;
         const aziDeg = (p.azimuth * 180 / Math.PI + 180 + 360) % 360; // 0 = N, 90 = E
         const el = $('sun-readout');
@@ -1206,8 +1211,8 @@
       }
       dayLastTs = ts;
     }
-    $('date').addEventListener('change', () => { refreshTzFromZone(parseFloat($('lng').value)); updateSunPosition(); scheduleSunHours(); });
-    $('tz').addEventListener('input', () => { tzUserSet = true; $('tz-zone').textContent = 'manual — go to a new place to reset'; updateSunPosition(); scheduleSunHours(); });
+    $('date').addEventListener('change', () => { refreshTzFromZone(parseFloat($('lng').value)); updateSunPosition(); scheduleSunHours(); scheduleSunPath(); });
+    $('tz').addEventListener('input', () => { tzUserSet = true; $('tz-zone').textContent = 'manual — go to a new place to reset'; updateSunPosition(); scheduleSunHours(); scheduleSunPath(); });
 
     // Re-adopt the location whenever the camera settles after a non-orbit move
     // (mouse drag, "Go to coordinates").
@@ -1289,6 +1294,110 @@
       } catch (e) {
         if (seq === sunHoursSeq) el.innerHTML = '☀ Direct sun at this spot: <span class="muted">not available (' + (e && e.message || e) + ')</span>';
       }
+    }
+
+    // ------------------------------------------------------------------
+    // Sun path: the day's arc (sunrise → sunset) drawn in 3D over the spot
+    // with the sun at the chosen time on it, plus sunrise / sunset direction
+    // lines on the ground. Pure SunCalc geometry, no occlusion. The arc is
+    // drawn at a fixed radius around the spot so it reads at the default
+    // camera distance; it is not a physical object and casts no shadow.
+    // ------------------------------------------------------------------
+    const PATH_RADIUS_M = 150, PATH_STEP_MIN = 10;
+    const sunPath = { origin: null, enu: null, dotPos: null, dotShown: false, entities: [], seq: 0, timer: null };
+    let sunPathOn = new URLSearchParams(location.search).get('path') !== '0';      // ?path=0 hides it (embed)
+    try { if (!/embed/.test(location.pathname + location.search) && localStorage.getItem('suncast.sunPath') === '0') sunPathOn = false; } catch (_) {}
+    $('sun-path').checked = sunPathOn;
+    $('sun-path').addEventListener('change', (e) => {
+      sunPathOn = e.target.checked;
+      try { localStorage.setItem('suncast.sunPath', sunPathOn ? '1' : '0'); } catch (_) {}
+      sunPath.entities.forEach((en) => { en.show = sunPathOn; });
+    });
+    // Point at PATH_RADIUS_M from the spot in the direction of a SunCalc position
+    function sunPoint(pos, radius = PATH_RADIUS_M) {
+      const b = pos.azimuth + Math.PI;                                    // SunCalc: 0 = S → compass 0 = N
+      const local = new Cesium.Cartesian3(radius * Math.sin(b) * Math.cos(pos.altitude), radius * Math.cos(b) * Math.cos(pos.altitude), radius * Math.sin(pos.altitude));
+      return Cesium.Matrix4.multiplyByPoint(sunPath.enu, local, new Cesium.Cartesian3());
+    }
+    function scheduleSunPath() { clearTimeout(sunPath.timer); sunPath.timer = setTimeout(buildSunPath, 300); }
+    function clearSunPath() { sunPath.entities.forEach((en) => viewer.entities.remove(en)); sunPath.entities = []; sunPath.dotShown = false; }
+    async function buildSunPath() {
+      const seq = ++sunPath.seq;
+      const lat = parseFloat($('lat').value), lng = parseFloat($('lng').value);
+      if (Number.isNaN(lat) || Number.isNaN(lng)) { clearSunPath(); return; }
+      const h = await groundHeight(lat, lng);
+      if (seq !== sunPath.seq) return;
+      clearSunPath();
+      sunPath.origin = Cesium.Cartesian3.fromDegrees(lng, lat, h + 1);
+      sunPath.enu = Cesium.Transforms.eastNorthUpToFixedFrame(sunPath.origin);
+
+      const { year, month, day } = dateParts();
+      const tzOffset = parseFloat($('tz').value);
+      const dayStartUtc = Date.UTC(year, month, day, 0, 0, 0) - tzOffset * 3600000;
+      const localMin = (d) => (d.getTime() - dayStartUtc) / 60000;
+      // Samples through the local day while the sun is up, plus the exact
+      // sunrise / sunset instants pinned to the horizon.
+      const pts = [];
+      for (let m = 0; m <= 1440; m += PATH_STEP_MIN) {
+        const pos = SunCalc.getPosition(new Date(dayStartUtc + m * 60000), lat, lng);
+        if (pos.altitude > 0) pts.push({ m, p: sunPoint(pos) });
+      }
+      const times = SunCalc.getTimes(new Date(dayStartUtc + 12 * 3600000), lat, lng);
+      const ends = {};
+      for (const k of ['sunrise', 'sunset']) {
+        const d = times[k];
+        if (!d || Number.isNaN(d.getTime())) continue;
+        const m = localMin(d);
+        if (m < 0 || m > 1440) continue;
+        const pos = SunCalc.getPosition(d, lat, lng);
+        ends[k] = { m, azimuth: pos.azimuth };
+        pts.push({ m, p: sunPoint({ azimuth: pos.azimuth, altitude: 0 }) });
+      }
+      pts.sort((a, b) => a.m - b.m);
+      // Split where the sun is down in between (e.g. a manual UTC offset that
+      // puts sunset after local midnight) so no chord is drawn through the ground.
+      const segments = [];
+      let cur = [];
+      for (let i = 0; i < pts.length; i++) {
+        if (i && pts[i].m - pts[i - 1].m > PATH_STEP_MIN * 1.5) { if (cur.length > 1) segments.push(cur); cur = []; }
+        cur.push(pts[i].p);
+      }
+      if (cur.length > 1) segments.push(cur);
+
+      const arcColor = Cesium.Color.fromCssColorString('#ffc94a');
+      for (const positions of segments) {
+        sunPath.entities.push(viewer.entities.add({ show: sunPathOn, polyline: {
+          positions, width: 2.5, arcType: Cesium.ArcType.NONE, shadows: Cesium.ShadowMode.DISABLED,
+          material: arcColor, depthFailMaterial: arcColor.withAlpha(0.22),
+        } }));
+      }
+      // Sunrise / sunset direction lines on the ground, with the time at the tip.
+      const hhmm = (m) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(Math.floor(m % 60)).padStart(2, '0')}`;   // floor, like the readout
+      const clamp = Cesium.GroundPolylinePrimitive.isSupported(viewer.scene);
+      const lineFor = (k, css, arrow) => {
+        const e = ends[k]; if (!e) return;
+        const tip = sunPoint({ azimuth: e.azimuth, altitude: 0 }, PATH_RADIUS_M * 0.8);
+        const color = Cesium.Color.fromCssColorString(css);
+        sunPath.entities.push(viewer.entities.add({ show: sunPathOn, polyline: {
+          positions: [sunPath.origin, tip], width: 2, clampToGround: clamp, arcType: clamp ? Cesium.ArcType.GEODESIC : Cesium.ArcType.NONE,
+          shadows: Cesium.ShadowMode.DISABLED, material: color, depthFailMaterial: clamp ? undefined : color.withAlpha(0.3),
+        } }));
+        sunPath.entities.push(viewer.entities.add({ show: sunPathOn, position: tip, label: {
+          text: `${arrow} ${hhmm(e.m)}`, font: '600 12px system-ui, sans-serif', fillColor: Cesium.Color.WHITE,
+          outlineColor: Cesium.Color.fromCssColorString('#1f2937').withAlpha(0.9), outlineWidth: 3, style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+          pixelOffset: new Cesium.Cartesian2(0, -12), disableDepthTestDistance: Number.POSITIVE_INFINITY, scaleByDistance: new Cesium.NearFarScalar(200, 1.0, 4000, 0.6),
+        } }));
+      };
+      lineFor('sunrise', '#f6ad55', '↑');
+      lineFor('sunset',  '#e8734a', '↓');
+      // The sun at the chosen time, on the arc (updated by updateSunPosition)
+      sunPath.entities.push(viewer.entities.add({ show: sunPathOn,
+        position: new Cesium.CallbackProperty(() => sunPath.dotPos, false),
+        point: { pixelSize: 12, color: Cesium.Color.fromCssColorString('#ffd166'), outlineColor: Cesium.Color.WHITE, outlineWidth: 2,
+                 disableDepthTestDistance: Number.POSITIVE_INFINITY, show: new Cesium.CallbackProperty(() => sunPath.dotShown, false) },
+      }));
+      window.suncast.sunPath = { radiusM: PATH_RADIUS_M, segments: segments.map((x) => x.length), sunrise: ends.sunrise ? hhmm(ends.sunrise.m) : null, sunset: ends.sunset ? hhmm(ends.sunset.m) : null, entities: sunPath.entities.length };
+      updateSunPosition();
     }
 
     // Colour the time slider's track by night / twilight / day for this date
@@ -1384,6 +1493,7 @@
         refreshTzFromZone(parseFloat($('lng').value));
         updateSunPosition();
         scheduleSunHours();
+        scheduleSunPath();
       });
     });
 
