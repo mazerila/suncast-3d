@@ -78,7 +78,7 @@ HTTPS/geolocation caveats.
   #cesiumContainer      full-viewport Cesium canvas
   #panel-toggle         floating "☰ Controls" button (shown when the panel is hidden)
   #ui-panel             control panel (top-left): sticky header + .panel-body
-    ├─ Location         #geocoder-slot (Cesium's geocoder, re-parented) + lat/lng + "Go to coordinates" + "📍 My location" + #loc-status
+    ├─ Location         #geocoder-slot (Cesium's geocoder, re-parented) + lat/lng + Go · Locate · Link buttons (SVG icons) + #loc-status
     ├─ Date & zone      <input type=date> + preset chips + UTC-offset slider
     ├─ #sun-readout     altitude / bearing, or "Night"
     ├─ <details> Camera & orbit     heading / tilt / distance / spin  (folded)

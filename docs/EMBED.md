@@ -58,7 +58,7 @@ no pin, no ring, no flash.
   highlightedCentroidDistanceM }`.
 
 In the full app the tint follows the house being examined: it moves to the
-result of the address search, to "➜ Go to coordinates", and to "📍 My location"
+result of the address search, to "Go" (coordinates), and to "Locate"
 (the previous building is un-tinted). Dragging the map does not move it.
 
 ## What the 3D view actually shows — read this before promising overshadowing

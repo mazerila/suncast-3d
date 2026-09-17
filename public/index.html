@@ -89,7 +89,8 @@
     .btn-accent:hover { background: var(--accent-ink); }
     .row { display: flex; gap: 8px; }
     .row > * { flex: 1; }
-    .row-tight > button { white-space: nowrap; padding: 9px 6px; font-size: 12.5px; }
+    .row-tight > button { white-space: nowrap; padding: 9px 6px; font-size: 12.5px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; }
+    .ico { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 
     #panel-toggle {
       position: fixed; top: 14px; left: 14px; z-index: 1001;
@@ -351,10 +352,10 @@
           <input type="number" id="lng" value="2.1204" step="0.0001" aria-label="Longitude" placeholder="Longitude">
         </div>
         <div class="row row-tight">
-          <button id="btn-fly" class="btn-ghost" title="Fly to the coordinates above">➜ Go to coordinates</button>
-          <button id="btn-geo" class="btn-ghost" title="Use my current location">📍 My location</button>
+          <button id="btn-fly" class="btn-ghost" type="button" title="Go to the coordinates above"><svg class="ico" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>Go</button>
+          <button id="btn-geo" class="btn-ghost" type="button" title="Use my current location"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>Locate</button>
+          <button id="btn-share" class="btn-ghost" type="button" title="Copy a link to this exact place, date, time and camera"><svg class="ico" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Link</button>
         </div>
-        <button id="btn-share" class="btn-ghost" type="button" style="margin-top:8px; padding:7px 12px; font-size:12px;" title="Copy a link to this exact place, date, time and camera">🔗 Copy link</button>
         <div class="hint" style="margin-top:6px;">Or click anywhere on the map to pick a spot.</div>
         <div id="loc-status" class="hint" role="status" hidden></div>
       </div>

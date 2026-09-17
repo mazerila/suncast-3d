@@ -190,7 +190,7 @@ Now that you know the URL, restrict the keys so they only work there:
 Open `https://<your-site>.web.app`:
 
 - 3D buildings load, shadows render, the sun readout updates.
-- **📍 My location** works (the site is HTTPS).
+- **Locate** (my location) works (the site is HTTPS).
 - If you deployed the API:
   `https://<your-site>.web.app/api/daylight?lat=48.85&lng=2.35&date=2026-06-21`
   returns JSON.

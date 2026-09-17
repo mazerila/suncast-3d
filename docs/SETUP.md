@@ -122,11 +122,11 @@ geolocation is denied) and, if a Cesium token is available, loads OSM 3D
 buildings automatically.
 
 1. **Location** — search an **address** (the field at the top of the panel;
-   suggestions appear as you type), type **Lat / Lng** and **Go to
-   coordinates**, hit **📍 My location** (needs HTTPS or localhost — see §5),
+   suggestions appear as you type), type **Lat / Lng** and **Go**,
+   hit **Locate** (my location; needs HTTPS or localhost — see §5),
    or simply **click anywhere on the map** to pick a spot without moving the
    camera. Whichever you use, the chosen building is tinted cyan.
-   **🔗 Copy link** copies a URL that reopens this exact place, date, time and
+   **Link** copies a URL that reopens this exact place, date, time and
    camera (see [`EMBED.md`](EMBED.md) for the parameters).
 2. **Time of day** — the slider fixed along the **bottom of the screen**, always
    visible over the map, with **▶** to play the whole day (1 h per second) and
@@ -151,7 +151,7 @@ Shadows are always on; at night the sun readout says so and nothing casts one.
    - **Orbit around location** slider / **⟲ 45°** / **45° ⟳** / **▶ Spin**.
    - **Camera tilt** and **Camera distance** sliders.
    - **↺ Reset camera** — back to north-up, tilt −40°, 400 m.
-   - Going somewhere new (address search, Go to coordinates, My location)
+   - Going somewhere new (address search, Go, Locate)
      keeps whatever tilt, distance and heading you have set; only the target
      moves.
    - Arrow keys: **◀ ▶** rotate, **▲ ▼** tilt (when the map, not a field, has
@@ -212,7 +212,7 @@ Open the `on your LAN` URL from a phone or another computer on the same network.
   do this on public / untrusted Wi-Fi.
 - Add the LAN origin (e.g. `http://192.168.1.40:3003/*`) to each key's referrer
   allow-list or the map tiles will 403.
-- **Browser geolocation ("📍 My location") only works on `localhost` or HTTPS**,
+- **Browser geolocation ("Locate") only works on `localhost` or HTTPS**,
   never on a plain `http://192.168.x.x` (or Tailscale IP) address — the browser
   blocks it. So **on a phone over LAN, 📍 will not work**; the panel now shows
   "Location needs a secure page…" and the app opens at the **Château de
