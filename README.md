@@ -18,7 +18,7 @@ suntrace3d.com/viewer.
   (heading slider, 45° step buttons, continuous spin, tilt, distance, arrow
   keys), plus ＋/− zoom buttons and a compass that always shows north.
 - Finds places by **address search**, coordinates, your **location**, or a
-  **click on the map**; tints the chosen house; **▶ plays the day**; and copies
+  **click on the map**; tints the chosen house and shows its street address; **▶ plays the day**; and copies
   a **link** that reopens the exact place, date, time and camera.
 - Shows a live **sun altitude / azimuth** readout and tells you when it is
   night; computes the **hours of direct sun** at the spot (shadows from the

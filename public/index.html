@@ -150,6 +150,8 @@
     .check { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
     .check input { width: 16px; height: 16px; accent-color: var(--accent); }
 
+    #addr { font-size: 12.5px; color: var(--fg); margin: 2px 0 8px; line-height: 1.35; }
+    #addr[hidden] { display: none; }
     #sun-readout {
       font-size: 12px; line-height: 1.45; border-radius: 9px; padding: 10px 11px;
       background: #fff7ec; border: 1px solid #f6e0bf; color: #7a4d05;
@@ -370,6 +372,7 @@
           <input type="number" id="lat" value="48.8049" step="0.0001" aria-label="Latitude" placeholder="Latitude" data-i18n-aria="latitude" data-i18n-placeholder="latitude">
           <input type="number" id="lng" value="2.1204" step="0.0001" aria-label="Longitude" placeholder="Longitude" data-i18n-aria="longitude" data-i18n-placeholder="longitude">
         </div>
+        <div id="addr" title="Address from OpenStreetMap (Nominatim)" data-i18n-title="addrSource" hidden></div>
         <div class="row row-tight">
           <button id="btn-fly" class="btn-ghost" type="button" title="Go to the coordinates above" data-i18n-title="goTitle"><svg class="ico" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg><span data-i18n="go">Go</span></button>
           <button id="btn-geo" class="btn-ghost" type="button" title="Use my current location" data-i18n-title="locateTitle"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg><span data-i18n="locate">Locate</span></button>
@@ -964,6 +967,37 @@
       addHouseMarker(lat, lng);
       scheduleSunHours();
       scheduleSunPath();
+      scheduleReverseGeocode(lat, lng);
+    }
+
+    // The address of the chosen spot, from OpenStreetMap's Nominatim (free;
+    // its policy asks for ≤1 request/s and attribution — the line's tooltip).
+    // Debounced, previous request aborted, results cached per rounded point.
+    let addrTimer = null, addrAbort = null;
+    const addrCache = new Map();
+    function scheduleReverseGeocode(lat, lng) { clearTimeout(addrTimer); addrTimer = setTimeout(() => reverseGeocode(lat, lng), 600); }
+    async function reverseGeocode(lat, lng) {
+      const el = $('addr');
+      const key = lat.toFixed(5) + ',' + lng.toFixed(5) + ',' + LANG;
+      if (addrCache.has(key)) { el.textContent = addrCache.get(key); el.hidden = false; return; }
+      if (addrAbort) addrAbort.abort();
+      addrAbort = new AbortController();
+      el.textContent = t('addrLookup'); el.hidden = false;
+      try {
+        const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&lat=${lat.toFixed(6)}&lon=${lng.toFixed(6)}&accept-language=${LANG}`;
+        const r = await fetch(url, { signal: addrAbort.signal, headers: { Accept: 'application/json' } });
+        const j = await r.json();
+        const a = j.address || {};
+        const street = [a.house_number, a.road || a.pedestrian || a.footway || a.path].filter(Boolean).join(' ');
+        const town = a.city || a.town || a.village || a.municipality || a.hamlet || a.suburb || '';
+        const line = [street, [a.postcode, town].filter(Boolean).join(' ')].filter(Boolean).join(', ') || j.display_name || '';
+        const text = line || t('addrNone');
+        addrCache.set(key, text);
+        el.textContent = text;
+      } catch (e) {
+        if (e && e.name === 'AbortError') return;
+        el.textContent = t('addrNone');
+      }
     }
 
     function addHouseMarker(lat, lng) {
@@ -1025,6 +1059,7 @@
       orbitAnchor = Cesium.Cartesian3.fromDegrees(lng, lat, h);
       hasFlown = true;
       scheduleSunPath();
+      scheduleReverseGeocode(lat, lng);
       // First fly (page load): the default framing. Any later navigation (address
       // search, Go-to, My location) keeps the tilt, distance and heading the user
       // has set, unless an explicit `view` says otherwise.

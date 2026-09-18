@@ -134,7 +134,9 @@ choice is remembered in this browser. Dates follow the language (e.g. "sam. 19 s
    suggestions appear as you type), type **Lat / Lng** and **Go**,
    hit **Locate** (my location; needs HTTPS or localhost — see §5),
    or simply **click anywhere on the map** to pick a spot without moving the
-   camera. Whichever you use, the chosen building is tinted cyan.
+   camera. Whichever you use, the chosen building is tinted cyan and its
+   **street address** appears under the coordinates (looked up from
+   OpenStreetMap's Nominatim, in the interface language).
    **Link** copies a URL that reopens this exact place, date, time and
    camera (see [`EMBED.md`](EMBED.md) for the parameters).
 2. **Time of day** — the slider fixed along the **bottom of the screen**, always

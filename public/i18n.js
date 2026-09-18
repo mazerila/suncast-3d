@@ -65,6 +65,7 @@ window.SUNCAST_I18N = {
     sunHoursCaveat: 'Buildings from OpenStreetMap at default heights; trees and hedges are not modelled.',
     sunHoursNever: 'never',
     sunHoursErrHtml: '☀ Direct sun at this spot: <span class="muted">not available ({err})</span>',
+    addrLookup: 'Looking up the address…', addrNone: 'No address found nearby', addrSource: 'Address from OpenStreetMap (Nominatim)',
     linkCopied: 'Link copied — it opens this exact view.', copyPrompt: 'Copy this link:',
   },
 
@@ -130,6 +131,7 @@ window.SUNCAST_I18N = {
     sunHoursCaveat: 'Bâtiments OpenStreetMap à hauteur par défaut ; arbres et haies non modélisés.',
     sunHoursNever: 'jamais',
     sunHoursErrHtml: '☀ Soleil direct à cet endroit : <span class="muted">indisponible ({err})</span>',
+    addrLookup: 'Recherche de l\'adresse…', addrNone: 'Aucune adresse trouvée à proximité', addrSource: 'Adresse fournie par OpenStreetMap (Nominatim)',
     linkCopied: 'Lien copié — il ouvre exactement cette vue.', copyPrompt: 'Copiez ce lien :',
   },
 
@@ -195,6 +197,7 @@ window.SUNCAST_I18N = {
     sunHoursCaveat: 'Edificios de OpenStreetMap con altura por defecto; árboles y setos no modelados.',
     sunHoursNever: 'nunca',
     sunHoursErrHtml: '☀ Sol directo en este punto: <span class="muted">no disponible ({err})</span>',
+    addrLookup: 'Buscando la dirección…', addrNone: 'No se encontró ninguna dirección cerca', addrSource: 'Dirección de OpenStreetMap (Nominatim)',
     linkCopied: 'Enlace copiado — abre exactamente esta vista.', copyPrompt: 'Copia este enlace:',
   },
 
@@ -260,6 +263,7 @@ window.SUNCAST_I18N = {
     sunHoursCaveat: 'Gebäude aus OpenStreetMap mit Standardhöhen; Bäume und Hecken sind nicht modelliert.',
     sunHoursNever: 'nie',
     sunHoursErrHtml: '☀ Direkte Sonne an diesem Punkt: <span class="muted">nicht verfügbar ({err})</span>',
+    addrLookup: 'Adresse wird gesucht…', addrNone: 'Keine Adresse in der Nähe gefunden', addrSource: 'Adresse von OpenStreetMap (Nominatim)',
     linkCopied: 'Link kopiert — er öffnet genau diese Ansicht.', copyPrompt: 'Diesen Link kopieren:',
   },
 
@@ -325,6 +329,7 @@ window.SUNCAST_I18N = {
     sunHoursCaveat: 'Edifici da OpenStreetMap ad altezza predefinita; alberi e siepi non modellati.',
     sunHoursNever: 'mai',
     sunHoursErrHtml: '☀ Sole diretto in questo punto: <span class="muted">non disponibile ({err})</span>',
+    addrLookup: 'Ricerca dell\'indirizzo…', addrNone: 'Nessun indirizzo trovato nelle vicinanze', addrSource: 'Indirizzo da OpenStreetMap (Nominatim)',
     linkCopied: 'Link copiato — apre esattamente questa vista.', copyPrompt: 'Copia questo link:',
   },
 };

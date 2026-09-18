@@ -78,7 +78,7 @@ HTTPS/geolocation caveats.
   #cesiumContainer      full-viewport Cesium canvas
   #panel-toggle         floating "☰ Controls" button (shown when the panel is hidden)
   #ui-panel             control panel (top-left): sticky header + .panel-body
-    ├─ Location         #geocoder-slot (Cesium's geocoder, re-parented) + lat/lng + Go · Locate · Link buttons (SVG icons) + #loc-status
+    ├─ Location         #geocoder-slot (Cesium's geocoder, re-parented) + lat/lng + #addr (reverse-geocoded street address) + Go · Locate · Link buttons (SVG icons) + #loc-status
     ├─ Date & zone      <input type=date> + preset chips + UTC-offset slider
     ├─ #sun-readout     altitude / bearing / shadow length / sunrise-sunset, or "Night"
     │   #sun-hours       hours of direct sun at the spot + shaded intervals; "Show sun path" checkbox
@@ -161,6 +161,17 @@ style to each newly loaded tile one frame *after* `tileLoad`, which overwrote a
 colour set from the load event (the tint only appeared on a second search,
 once tiles were already styled). A style condition is applied by the engine to
 loaded and future tiles alike, so it also survives tile reloads for free.
+
+### Address of the spot (reverse geocoding)
+
+`scheduleReverseGeocode(lat, lng)` (600 ms debounce; called from
+`setHouseMarker` and `flyToLocation`) fetches
+`https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&accept-language=<LANG>`
+and shows `house_number road, postcode town` in `#addr` (tooltip credits
+OpenStreetMap, as Nominatim's usage policy requires). Previous requests are
+aborted; results are cached per rounded point + language. No key needed;
+Nominatim asks for at most one request per second, which the debounce and the
+click-driven use respect. Failures fall back to "No address found nearby".
 
 ### Direct-sun hours (occlusion by ray casting)
 
