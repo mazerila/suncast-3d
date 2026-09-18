@@ -89,9 +89,29 @@ HTTPS/geolocation caveats.
   #toast               fixed top-centre transient message (loading / errors), toast(msg, tone, ms)
   #timebar             fixed full-width bottom: ☰ (mobile) + ▶ + HH:MM + #time-date + the #time slider
   #embed-badge         embed mode only: "Suncast 3D ↗" link + "no location" note
-  <script>              config merge → viewer → functions → event wiring
+  <script>              language → config merge → viewer → functions → event wiring
 </body>
 ```
+
+### Languages (`public/i18n.js`)
+
+`window.SUNCAST_I18N = { en, fr, es, de, it }` — one flat object per language,
+English being the source of truth (a missing key falls back to English; a
+check for parity is easy: same keys in every language). Static markup carries
+`data-i18n` (textContent), `data-i18n-html` (trusted HTML: the how-to guides),
+`data-i18n-title`, `data-i18n-aria`, `data-i18n-placeholder`, and the compass
+letters `data-compass="0..3"`; `applyLang()` walks them. Script-built text goes
+through `t(key, vars)` with `{name}` placeholders (`dirs` and `compass` are
+arrays). `onLangChanged()` re-renders what script produced: title, source
+label, spin/play labels, the tz line, the last direct-sun result (kept in
+`sunHoursState` so no recomputation is needed) and the sun readout. Dates use
+`toLocaleDateString(LANG, …)`.
+
+Precedence (`pickLang()`, then `applyTzFromLocation`): `?lang=` → saved choice
+(`localStorage suncast.lang`) → `navigator.languages` → country of the map
+via `ZONE_LANG[iana zone]` (only when `langSource === 'fallback'`, applied
+once, not saved) → `en`. The `<select id="lang">` in the panel head calls
+`setLang(code)` which saves. `window.suncast.lang` → `{ lang, source }`.
 
 - The time-of-day slider lives in `#timebar`, **fixed over the map**, so the sun
   can be moved even while the panel is closed (the key mobile fix). `#time` /
@@ -347,6 +367,7 @@ function applyOrbit() {
 
 | Element | Handler |
 |---------|---------|
+| `#lang` | `setLang(code)` — save to `localStorage`, `applyLang()`, `onLangChanged()` |
 | `#btn-load-osm` / `#btn-load-google` | `loadOsmBuildings` / `loadGoogleTiles` |
 | `#btn-fly` (Go) | validate → `setHouseMarker` → `flyToLocation(lat, lng)`; Enter in a coordinate field does the same |
 | `#btn-geo` (Locate) | secure-context check → `getCurrentPosition` (high-accuracy, 15 s) → fill fields → `setHouseMarker` → `flyToLocation`; `#loc-status` shows progress / errors |

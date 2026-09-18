@@ -31,6 +31,8 @@
          config.local.js   – your machine only; may also hold the Google Maps
                              key. Never uploaded by `firebase deploy`. -->
   <!-- Absolute paths: the page is also served at /embed/v1, where relative URLs would break. -->
+  <!-- UI strings (en/fr/es/de/it); the page picks the language in the script below. -->
+  <script src="/i18n.js"></script>
   <script src="/config.public.js" onerror="window.__noPublicConfig = true"></script>
   <script src="/config.local.js"  onerror="window.__noLocalConfig  = true"></script>
 
@@ -104,6 +106,13 @@
       background: #eef0f3; color: #46505f; border-radius: 7px;
     }
     #panel-close:hover { background: #e2e5ea; }
+    #lang {
+      margin-left: auto; height: 28px; padding: 0 22px 0 8px; font: inherit; font-size: 12px; font-weight: 600;
+      color: #46505f; background: #eef0f3 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%2346505f' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right 7px center / 10px 6px;
+      border: 0; border-radius: 7px; appearance: none; -webkit-appearance: none; cursor: pointer;
+    }
+    #lang:hover { background-color: #e2e5ea; }
+    #lang + #panel-close { margin-left: 0; }
 
     /* ---- Blocks / sections ---- */
     .block { margin-bottom: 17px; }
@@ -317,6 +326,7 @@
       input[type="text"], input[type="number"], input[type="date"],
       .cesium-geocoder-input { font-size: 16px !important; }
       .cesium-geocoder-input { height: 40px !important; }
+      #lang { font-size: 16px; font-weight: 500; height: 32px; }   /* same iOS zoom rule applies to <select> */
     }
     @media (min-width: 641px) {
       #timebar-menu { display: none; }   /* desktop panel is always open */
@@ -327,54 +337,55 @@
 
   <div id="cesiumContainer"></div>
 
-  <button id="panel-toggle" type="button" aria-label="Show controls" aria-expanded="true" aria-controls="ui-panel" hidden>☰ Controls</button>
+  <button id="panel-toggle" type="button" aria-label="Show controls" aria-expanded="true" aria-controls="ui-panel" hidden data-i18n="controls" data-i18n-aria="showControls">☰ Controls</button>
 
   <div id="ui-panel">
     <div class="panel-head">
       <span class="mark">☀️</span>
       <div>
         <h1>Suncast&nbsp;3D</h1>
-        <div class="sub">Daylight &amp; shadow simulator</div>
+        <div class="sub" data-i18n="sub">Daylight &amp; shadow simulator</div>
       </div>
-      <button id="panel-close" type="button" aria-label="Hide controls" title="Hide panel">✕</button>
+      <select id="lang" aria-label="Language" data-i18n-aria="language"></select>
+      <button id="panel-close" type="button" aria-label="Hide controls" title="Hide panel" data-i18n-aria="hideControls" data-i18n-title="hidePanel">✕</button>
     </div>
 
     <div class="panel-body">
 
       <!-- LOCATION -->
       <div class="block">
-        <h2>Location</h2>
-        <label class="field" for="geocoder-slot">Address</label>
+        <h2 data-i18n="location">Location</h2>
+        <label class="field" for="geocoder-slot" data-i18n="address">Address</label>
         <div id="geocoder-slot"></div>
-        <label class="field" style="margin-top:9px;">Coordinates</label>
+        <label class="field" style="margin-top:9px;" data-i18n="coordinates">Coordinates</label>
         <div class="row" style="margin-bottom:7px;">
-          <input type="number" id="lat" value="48.8049" step="0.0001" aria-label="Latitude" placeholder="Latitude">
-          <input type="number" id="lng" value="2.1204" step="0.0001" aria-label="Longitude" placeholder="Longitude">
+          <input type="number" id="lat" value="48.8049" step="0.0001" aria-label="Latitude" placeholder="Latitude" data-i18n-aria="latitude" data-i18n-placeholder="latitude">
+          <input type="number" id="lng" value="2.1204" step="0.0001" aria-label="Longitude" placeholder="Longitude" data-i18n-aria="longitude" data-i18n-placeholder="longitude">
         </div>
         <div class="row row-tight">
-          <button id="btn-fly" class="btn-ghost" type="button" title="Go to the coordinates above"><svg class="ico" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>Go</button>
-          <button id="btn-geo" class="btn-ghost" type="button" title="Use my current location"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>Locate</button>
-          <button id="btn-share" class="btn-ghost" type="button" title="Copy a link to this exact place, date, time and camera"><svg class="ico" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Link</button>
+          <button id="btn-fly" class="btn-ghost" type="button" title="Go to the coordinates above" data-i18n-title="goTitle"><svg class="ico" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg><span data-i18n="go">Go</span></button>
+          <button id="btn-geo" class="btn-ghost" type="button" title="Use my current location" data-i18n-title="locateTitle"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg><span data-i18n="locate">Locate</span></button>
+          <button id="btn-share" class="btn-ghost" type="button" title="Copy a link to this exact place, date, time and camera" data-i18n-title="linkTitle"><svg class="ico" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><span data-i18n="link">Link</span></button>
         </div>
-        <div class="hint" style="margin-top:6px;">Or click anywhere on the map to pick a spot.</div>
+        <div class="hint" style="margin-top:6px;" data-i18n="clickHint">Or click anywhere on the map to pick a spot.</div>
         <div id="loc-status" class="hint" role="status" hidden></div>
       </div>
 
       <!-- DATE -->
       <div class="block">
-        <h2>Date &amp; zone</h2>
-        <label class="field" for="date">Date</label>
+        <h2 data-i18n="dateZone">Date &amp; zone</h2>
+        <label class="field" for="date" data-i18n="date">Date</label>
         <input type="date" id="date">
         <div class="chips">
-          <button class="chip" type="button" data-date="today">Today</button>
-          <button class="chip" type="button" data-date="03-20">Mar equinox</button>
-          <button class="chip" type="button" data-date="06-21">Jun solstice</button>
-          <button class="chip" type="button" data-date="09-22">Sep equinox</button>
-          <button class="chip" type="button" data-date="12-21">Dec solstice</button>
+          <button class="chip" type="button" data-date="today" data-i18n="today">Today</button>
+          <button class="chip" type="button" data-date="03-20" data-i18n="marEq">Mar equinox</button>
+          <button class="chip" type="button" data-date="06-21" data-i18n="junSol">Jun solstice</button>
+          <button class="chip" type="button" data-date="09-22" data-i18n="sepEq">Sep equinox</button>
+          <button class="chip" type="button" data-date="12-21" data-i18n="decSol">Dec solstice</button>
         </div>
 
         <label class="field" for="tz" style="margin-top:13px;">
-          UTC offset <span id="tz-val" class="spread">+0</span>
+          <span data-i18n="utcOffset">UTC offset</span> <span id="tz-val" class="spread">+0</span>
         </label>
         <input type="range" id="tz" min="-12" max="14" step="0.5" value="0">
         <div class="hint"><span id="tz-zone"></span></div>
@@ -382,38 +393,38 @@
 
       <!-- SUN READOUT -->
       <div class="block">
-        <div id="sun-readout">Sun: —</div>
+        <div id="sun-readout" data-i18n="sunDefault">Sun: —</div>
         <div id="sun-hours" hidden></div>
-        <label class="check" id="sun-path-row"><input type="checkbox" id="sun-path" checked> Show sun path</label>
+        <label class="check" id="sun-path-row"><input type="checkbox" id="sun-path" checked> <span data-i18n="showSunPath">Show sun path</span></label>
       </div>
 
       <!-- CAMERA (folded) -->
       <details class="fold" id="fold-camera">
-        <summary>Camera &amp; orbit</summary>
+        <summary data-i18n="camera">Camera &amp; orbit</summary>
         <div class="fold-body">
-          <label class="field" for="heading">Orbit around location <span id="heading-val" class="spread">0°</span></label>
+          <label class="field" for="heading"><span data-i18n="orbitAround">Orbit around location</span> <span id="heading-val" class="spread">0°</span></label>
           <input type="range" id="heading" min="0" max="359" step="1" value="0">
           <div class="row" style="margin-top:6px;">
             <button id="btn-rot-left" class="btn-ghost">⟲ 45°</button>
             <button id="btn-rot-right" class="btn-ghost">45° ⟳</button>
-            <button id="btn-spin" class="btn-accent">▶ Spin</button>
+            <button id="btn-spin" class="btn-accent" data-i18n="spin">▶ Spin</button>
           </div>
-          <div class="hint">See the building from every side. Arrow keys ◀ ▶ rotate, ▲ ▼ tilt when the map has focus; mouse drag still works (Ctrl/middle-drag tilts).</div>
+          <div class="hint" data-i18n="cameraHint">See the building from every side. Arrow keys ◀ ▶ rotate, ▲ ▼ tilt when the map has focus; mouse drag still works (Ctrl/middle-drag tilts).</div>
 
-          <label class="field" for="pitch" style="margin-top:11px;">Camera tilt <span id="pitch-val" class="spread">-40°</span></label>
+          <label class="field" for="pitch" style="margin-top:11px;"><span data-i18n="tilt">Camera tilt</span> <span id="pitch-val" class="spread">-40°</span></label>
           <input type="range" id="pitch" min="-89" max="-5" step="1" value="-40">
 
-          <label class="field" for="range" style="margin-top:9px;">Camera distance <span id="range-val" class="spread">400 m</span></label>
+          <label class="field" for="range" style="margin-top:9px;"><span data-i18n="distance">Camera distance</span> <span id="range-val" class="spread">400 m</span></label>
           <input type="range" id="range" min="30" max="15000" step="10" value="400">
-          <button id="btn-cam-reset" class="btn-ghost" type="button" style="margin-top:10px; padding:7px 12px; font-size:12px;" title="Back to the default view: north-up, tilt −40°, 400 m">↺ Reset camera</button>
+          <button id="btn-cam-reset" class="btn-ghost" type="button" style="margin-top:10px; padding:7px 12px; font-size:12px;" title="Back to the default view: north-up, tilt −40°, 400 m" data-i18n="resetCam" data-i18n-title="resetCamTitle">↺ Reset camera</button>
         </div>
       </details>
 
       <!-- MAP DATA / KEYS (folded, opens itself if no token) -->
       <details class="fold" id="setup">
-        <summary>Map data <span class="src-now" id="src-name">OSM buildings</span></summary>
+        <summary><span data-i18n="mapData">Map data</span> <span class="src-now" id="src-name">OSM buildings</span></summary>
         <div class="fold-body">
-          <p class="hint" style="margin-top:0;">
+          <p class="hint" style="margin-top:0;" data-i18n-html="mapDataIntroHtml">
             <b>OSM 3D buildings</b> is the default and only needs a free Cesium token.
             <b>Google Photorealistic</b> is optional, loads on demand, and needs
             <b>your own</b> paid Google Cloud key. Keys stay in your browser and are
@@ -421,11 +432,12 @@
           </p>
           <div id="src-status" class="hint" role="status" hidden></div>
 
-          <div class="mini-label">Cesium ion token <span class="tag free">free · no card</span></div>
+          <div class="mini-label"><span data-i18n="ionToken">Cesium ion token</span> <span class="tag free" data-i18n="tagFree">free · no card</span></div>
           <input type="text" id="ion-token" placeholder="eyJhbGciOi…">
-          <button id="btn-load-osm" class="btn-primary setup-btn">Use OSM 3D buildings</button>
+          <button id="btn-load-osm" class="btn-primary setup-btn" data-i18n="useOsm">Use OSM 3D buildings</button>
           <details class="how-to" id="cs-howto">
-            <summary>How to get a free Cesium ion token (about 2 minutes)</summary>
+            <summary data-i18n="csHowtoSummary">How to get a free Cesium ion token (about 2 minutes)</summary>
+            <div data-i18n-html="csHowtoHtml">
             <ol>
               <li>Open <a href="https://ion.cesium.com/signup" target="_blank" rel="noopener">ion.cesium.com/signup</a>
                 and create a free account (email + password, or "Sign up with Google / GitHub").
@@ -440,13 +452,15 @@
             </ol>
             <p class="aside">The free tier is fine for personal use. The same token also
               turns on the address search box and the satellite base map.</p>
+            </div>
           </details>
 
-          <div class="mini-label">Google Maps API key <span class="tag paid">needs a card</span></div>
+          <div class="mini-label"><span data-i18n="googleKey">Google Maps API key</span> <span class="tag paid" data-i18n="tagPaid">needs a card</span></div>
           <input type="text" id="api-key" placeholder="AIza…">
-          <button id="btn-load-google" class="btn-ghost setup-btn">Load Google Photorealistic</button>
+          <button id="btn-load-google" class="btn-ghost setup-btn" data-i18n="loadGoogle">Load Google Photorealistic</button>
           <details class="how-to" id="gg-howto">
-            <summary>How to get a Google Maps API key (credit card needed)</summary>
+            <summary data-i18n="ggHowtoSummary">How to get a Google Maps API key (credit card needed)</summary>
+            <div data-i18n-html="ggHowtoHtml">
             <ol>
               <li>Open the <a href="https://console.cloud.google.com/" target="_blank" rel="noopener">Google Cloud Console</a> and sign in with a Google account.</li>
               <li>Create a project: top bar → project dropdown → <b>New Project</b> → give it a name → <b>Create</b>.</li>
@@ -470,6 +484,7 @@
               <i>"3D tiles are not available for your account and region"</i>). OSM 3D buildings
               work everywhere.
               <a href="https://developers.google.com/maps/comms/eea/map-tiles" target="_blank" rel="noopener">Google's notice</a>.</p>
+            </div>
           </details>
         </div>
       </details>
@@ -479,8 +494,8 @@
 
   <!-- Embed mode only: small badge linking to the full app, and a note if no location was given -->
   <div id="embed-badge">
-    <a id="embed-open" href="/" target="_blank" rel="noopener" title="Open this view in the full Suncast 3D app">☀️ Suncast 3D ↗</a>
-    <span id="embed-note" hidden>No location given — showing the Château de Versailles</span>
+    <a id="embed-open" href="/" target="_blank" rel="noopener" title="Open this view in the full Suncast 3D app" data-i18n-title="embedOpenTitle">☀️ Suncast 3D ↗</a>
+    <span id="embed-note" hidden data-i18n="embedNote">No location given — showing the Château de Versailles</span>
   </div>
 
   <!-- Map controls column (right side): compass, zoom, and Cesium's fullscreen
@@ -489,37 +504,98 @@
        the ☀ dot sits at the sun's bearing. Click = face north.
        Pinch / wheel zoom still work too. -->
   <div id="mapctl">
-    <button id="compass" type="button" title="North is where the red N points. Click to face north." aria-label="Compass — click to face north">
+    <button id="compass" type="button" title="North is where the red N points. Click to face north." aria-label="Compass — click to face north" data-i18n-title="compassTitle" data-i18n-aria="compassAria">
       <svg viewBox="0 0 100 100" aria-hidden="true">
         <g class="rose" id="compass-rose">
           <polygon points="50,12 44,50 56,50" class="needle-n"/>
           <polygon points="50,88 44,50 56,50" class="needle-s"/>
-          <text x="50" y="21" class="lbl n">N</text>
-          <text x="79" y="51" class="lbl">E</text>
-          <text x="50" y="80" class="lbl">S</text>
-          <text x="21" y="51" class="lbl">W</text>
+          <text x="50" y="21" class="lbl n" data-compass="0">N</text>
+          <text x="79" y="51" class="lbl" data-compass="1">E</text>
+          <text x="50" y="80" class="lbl" data-compass="2">S</text>
+          <text x="21" y="51" class="lbl" data-compass="3">W</text>
           <g id="compass-sun" hidden>
             <circle cx="50" cy="8" r="7" class="sun"/>
           </g>
         </g>
       </svg>
     </button>
-    <button id="zoom-in" type="button" aria-label="Zoom in">+</button>
-    <button id="zoom-out" type="button" aria-label="Zoom out">&minus;</button>
+    <button id="zoom-in" type="button" aria-label="Zoom in" data-i18n-aria="zoomIn">+</button>
+    <button id="zoom-out" type="button" aria-label="Zoom out" data-i18n-aria="zoomOut">&minus;</button>
   </div>
 
   <div id="toast" role="status" hidden></div>
 
   <!-- Persistent time-of-day bar, fixed over the map so the sun can always be moved -->
   <div id="timebar">
-    <button id="timebar-menu" type="button" aria-label="Open controls" title="Controls">☰</button>
-    <button id="time-play" type="button" aria-label="Play the day" title="Play / pause the day (1 hour per second)">▶</button>
+    <button id="timebar-menu" type="button" aria-label="Open controls" title="Controls" data-i18n-aria="openControls" data-i18n-title="controls">☰</button>
+    <button id="time-play" type="button" aria-label="Play the day" title="Play / pause the day (1 hour per second)" data-i18n-aria="playDay" data-i18n-title="playTitle">▶</button>
     <span id="time-val" class="time-big">12:00</span>
-    <span id="time-date" class="time-date" title="Selected date (change it in the panel)"></span>
-    <input type="range" id="time" min="0" max="23.75" value="12" step="0.25" aria-label="Time of day">
+    <span id="time-date" class="time-date" title="Selected date (change it in the panel)" data-i18n-title="timeDateTitle"></span>
+    <input type="range" id="time" min="0" max="23.75" value="12" step="0.25" aria-label="Time of day" data-i18n-aria="timeOfDay">
   </div>
 
   <script>
+    // ------------------------------------------------------------------
+    // Language. Order of precedence: ?lang= → the user's saved choice →
+    // the browser's languages → (later, once we know where the map is)
+    // the country's language via its time zone → English.
+    // Static text carries data-i18n / -html / -title / -aria / -placeholder;
+    // dynamic text goes through t(key, vars).
+    // ------------------------------------------------------------------
+    const I18N = window.SUNCAST_I18N || { en: {} };
+    const LANGS = Object.keys(I18N);
+    let LANG = 'en', langSource = 'fallback';   // langSource: 'url' | 'saved' | 'browser' | 'region' | 'fallback'
+    (function pickLang() {
+      const q = new URLSearchParams(location.search).get('lang');
+      if (LANGS.includes(q)) { LANG = q; langSource = 'url'; return; }
+      try { const sv = localStorage.getItem('suncast.lang'); if (LANGS.includes(sv)) { LANG = sv; langSource = 'saved'; return; } } catch (_) {}
+      for (const l of (navigator.languages || [navigator.language || ''])) {
+        const c = String(l).slice(0, 2).toLowerCase();
+        if (LANGS.includes(c)) { LANG = c; langSource = 'browser'; return; }
+      }
+    })();
+    function t(key, vars) {
+      let str = (I18N[LANG] && I18N[LANG][key]);
+      if (str === undefined) str = I18N.en[key];
+      if (str === undefined) return key;
+      if (Array.isArray(str)) return str;
+      return vars ? String(str).replace(/\{(\w+)\}/g, (m, k) => (k in vars ? vars[k] : m)) : str;
+    }
+    const $ = (id) => document.getElementById(id);
+    // Country → language, keyed by the IANA zone tz-lookup gives for a point.
+    // Only used when neither the URL, a saved choice nor the browser decided.
+    const ZONE_LANG = {
+      'Europe/Paris': 'fr', 'Europe/Monaco': 'fr', 'Europe/Luxembourg': 'fr', 'Europe/Brussels': 'fr', 'Africa/Algiers': 'fr', 'Africa/Tunis': 'fr', 'Africa/Casablanca': 'fr', 'Africa/Dakar': 'fr', 'Africa/Abidjan': 'fr', 'America/Martinique': 'fr', 'America/Guadeloupe': 'fr', 'America/Cayenne': 'fr', 'Indian/Reunion': 'fr', 'Pacific/Noumea': 'fr', 'Pacific/Tahiti': 'fr',
+      'Europe/Madrid': 'es', 'Atlantic/Canary': 'es', 'America/Mexico_City': 'es', 'America/Cancun': 'es', 'America/Monterrey': 'es', 'America/Tijuana': 'es', 'America/Bogota': 'es', 'America/Lima': 'es', 'America/Santiago': 'es', 'America/Argentina/Buenos_Aires': 'es', 'America/Caracas': 'es', 'America/Montevideo': 'es', 'America/Guayaquil': 'es', 'America/La_Paz': 'es', 'America/Asuncion': 'es', 'America/Havana': 'es', 'America/Santo_Domingo': 'es', 'America/Guatemala': 'es', 'America/El_Salvador': 'es', 'America/Tegucigalpa': 'es', 'America/Managua': 'es', 'America/Costa_Rica': 'es', 'America/Panama': 'es', 'America/Puerto_Rico': 'es',
+      'Europe/Berlin': 'de', 'Europe/Vienna': 'de', 'Europe/Zurich': 'de', 'Europe/Vaduz': 'de', 'Europe/Busingen': 'de',
+      'Europe/Rome': 'it', 'Europe/Vatican': 'it', 'Europe/San_Marino': 'it',
+    };
+    function applyLang() {
+      document.documentElement.lang = LANG;
+      document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = t(el.dataset.i18n); });
+      document.querySelectorAll('[data-i18n-html]').forEach((el) => { el.innerHTML = t(el.dataset.i18nHtml); });
+      document.querySelectorAll('[data-i18n-title]').forEach((el) => { el.title = t(el.dataset.i18nTitle); });
+      document.querySelectorAll('[data-i18n-aria]').forEach((el) => { el.setAttribute('aria-label', t(el.dataset.i18nAria)); });
+      document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => { el.placeholder = t(el.dataset.i18nPlaceholder); });
+      document.querySelectorAll('[data-compass]').forEach((el) => { el.textContent = t('compass')[+el.dataset.compass]; });
+      const sel = $('lang');
+      if (sel && sel.options.length !== LANGS.length) {
+        sel.innerHTML = LANGS.map((c) => `<option value="${c}">${I18N[c].name || c}</option>`).join('');
+      }
+      if (sel) sel.value = LANG;
+      const gi = document.querySelector('.cesium-geocoder-input');
+      if (gi) gi.placeholder = t('geocoderPlaceholder');
+    }
+    function setLang(code, { save = true } = {}) {
+      if (!LANGS.includes(code) || code === LANG) return;
+      LANG = code; langSource = save ? 'saved' : langSource;
+      if (save) { try { localStorage.setItem('suncast.lang', code); } catch (_) {} }
+      applyLang();
+      if (typeof onLangChanged === 'function') onLangChanged();   // dynamic text (defined below)
+    }
+    applyLang();
+    $('lang').addEventListener('change', (e) => setLang(e.target.value));
+
     // ==================================================================
     // Keys come from public/config.local.js (git-ignored) if present.
     // Cesium / OSM buildings load by default. Google Photorealistic only
@@ -530,7 +606,6 @@
       googleMapsKey:  "",    // Google Cloud key with the Map Tiles API enabled
     }, window.CONFIG || {});
 
-    const $ = (id) => document.getElementById(id);
 
     // Assign the ion token BEFORE creating the Viewer so Cesium never shows its
     // "default access token" warning. loadOsmBuildings() re-assigns if the user
@@ -566,6 +641,7 @@
     // errors instead of swallowing them.
     window.suncast = {
       viewer,
+      get lang() { return { lang: LANG, source: langSource }; },
       get tilesLoaded() { return viewer.scene.globe.tilesLoaded; },
       get imageryLayers() { return viewer.imageryLayers.length; },
       get primitives() { return viewer.scene.primitives.length; },
@@ -575,7 +651,7 @@
     viewer.scene.renderError.addEventListener((scene, err) => {
       console.error('[suncast] Cesium render error:', err);
       const el = document.getElementById('src-status');
-      if (el) { el.hidden = false; el.style.color = '#b3261e'; el.textContent = 'Rendering stopped: ' + (err && err.message || err); }
+      if (el) { el.hidden = false; el.style.color = '#b3261e'; el.textContent = t('renderStopped', { err: (err && err.message || err) }); }
     });
 
     // Re-parent Cesium's fullscreen button into our control column so it lines
@@ -588,7 +664,7 @@
     if (viewer.geocoder && viewer.geocoder.container) {
       $('geocoder-slot').appendChild(viewer.geocoder.container);
       const inp = viewer.geocoder.container.querySelector('.cesium-geocoder-input');
-      if (inp) { inp.placeholder = 'Search an address or place…'; inp.id = 'geocoder-input'; }
+      if (inp) { inp.placeholder = t('geocoderPlaceholder'); inp.id = 'geocoder-input'; }
     }
 
     let osmBuildings = null;
@@ -648,6 +724,8 @@
       if (force) tzUserSet = false;         // a deliberate new place → fresh value
       currentZone = Number.isNaN(lat) ? null : zoneFor(lat, lng);
       refreshTzFromZone(lng);
+      // Country/region → language, only if nothing more specific decided it.
+      if (langSource === 'fallback' && currentZone && ZONE_LANG[currentZone]) { langSource = 'region'; setLang(ZONE_LANG[currentZone], { save: false }); }
     }
     // Recompute the offset from currentZone for the selected date (DST changes
     // with the date), or fall back to the longitude estimate.
@@ -658,7 +736,7 @@
         const noon = new Date(Date.UTC(year, month, day, 12));
         setTzValue(zoneOffsetHours(currentZone, noon), currentZone + ' · ' + zoneAbbrev(currentZone, noon));
       } else if (!Number.isNaN(lng)) {
-        setTzValue(estimateTzFromLng(lng), 'estimated from longitude');
+        setTzValue(estimateTzFromLng(lng), t('tzEstimated'));
       }
     }
 
@@ -953,7 +1031,7 @@
       $('tz-val').innerText = fmtOffset(tzOffset);
 
       const { year, month, day } = dateParts();
-      $('time-date').textContent = new Date(year, month, day).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' });
+      $('time-date').textContent = new Date(year, month, day).toLocaleDateString(LANG, { weekday: 'short', day: 'numeric', month: 'short' });
 
       // Local wall-clock time -> UTC instant
       const utcMs = Date.UTC(year, month, day, hours, minutes, 0) - tzOffset * 3600 * 1000;
@@ -967,22 +1045,21 @@
         const aziDeg = (p.azimuth * 180 / Math.PI + 180 + 360) % 360; // 0 = N, 90 = E
         const el = $('sun-readout');
         const sunDot = $('compass-sun');
-        const DIRS = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
-        const dir = DIRS[Math.round(aziDeg / 22.5) % 16];
+        const dir = t('dirs')[Math.round(aziDeg / 22.5) % 16];
         // sunrise / sunset for this date at this place, shown in the chosen UTC offset
         const times = SunCalc.getTimes(when, lat, lng);
         const hhmm = (d) => { if (!d || Number.isNaN(d.getTime())) return '—'; const t = new Date(d.getTime() + tzOffset * 3600000); return String(t.getUTCHours()).padStart(2,'0') + ':' + String(t.getUTCMinutes()).padStart(2,'0'); };
-        const riseSet = `<span class="rs" title="Sunrise · sunset">↑ ${hhmm(times.sunrise)} &nbsp; ↓ ${hhmm(times.sunset)}</span>`;
+        const riseSet = `<span class="rs" title="${t('riseSet')}">↑ ${hhmm(times.sunrise)} &nbsp; ↓ ${hhmm(times.sunset)}</span>`;
         paintTimeTrack(times, tzOffset);
         if (altDeg <= 0) {
           el.className = 'night';
-          el.innerHTML = `<b>Night</b> — the sun is ${Math.abs(altDeg).toFixed(1)}° below the horizon, so nothing casts a shadow. ${riseSet}`;
+          el.innerHTML = t('nightHtml', { alt: Math.abs(altDeg).toFixed(1) }) + ' ' + riseSet;
           sunDot.hidden = true;
         } else {
           el.className = '';
           const shadowOf10m = 10 / Math.tan(altDeg * Math.PI / 180);
-          const shadowHint = shadowOf10m < 1000 ? ` · a 10 m house casts a <b>${shadowOf10m.toFixed(0)} m</b> shadow` : '';
-          el.innerHTML = `☀️ Sun <b>${altDeg.toFixed(1)}°</b> above the horizon · bearing <b>${aziDeg.toFixed(0)}° ${dir}</b>${shadowHint} ${riseSet}`;
+          const shadowHint = shadowOf10m < 1000 ? t('shadowHintHtml', { m: shadowOf10m.toFixed(0) }) : '';
+          el.innerHTML = t('sunHtml', { alt: altDeg.toFixed(1), azi: aziDeg.toFixed(0), dir, shadow: shadowHint }) + ' ' + riseSet;
           // Sun dot on the compass rose: rotate around the centre by the bearing
           sunDot.setAttribute('transform', `rotate(${aziDeg.toFixed(1)} 50 50)`);
           sunDot.hidden = false;
@@ -1011,8 +1088,10 @@
     // ------------------------------------------------------------------
     // Data sources
     // ------------------------------------------------------------------
-    function setSourceLabel(name) {
-      $('src-name').textContent = name;
+    let sourceKey = 'srcOsmShort';
+    function setSourceLabel(key) {
+      sourceKey = key;
+      $('src-name').textContent = t(key);
     }
 
     // Small transient message at the top of the map (loading, errors).
@@ -1054,12 +1133,12 @@
         $('setup').open = true;
         $('cs-howto').open = true;
         $('ion-token').focus();
-        showSrcStatus('Paste a Cesium ion token first.', 'error');
+        showSrcStatus(t('pasteIon'), 'error');
         return;
       }
       Cesium.Ion.defaultAccessToken = token;
-      showSrcStatus('Loading OSM 3D buildings…');
-      toast('Loading 3D buildings…');
+      showSrcStatus(t('loadingOsm'));
+      toast(t('loadingBuildings'));
 
       try {
         // Build everything first; only swap the scene once it all succeeded.
@@ -1078,15 +1157,15 @@
         attachHouseHighlight(osmBuildings);
         applyHouseStyle();
         viewer.scene.primitives.add(osmBuildings);
-        setSourceLabel('OSM 3D buildings');
+        setSourceLabel('srcOsm');
         showSrcStatus('');
         toast('');
 
         flyToLocation(parseFloat($('lat').value), parseFloat($('lng').value), embedView);
         scheduleSunHours();
       } catch (e) {
-        showSrcStatus('Could not load OSM 3D buildings: ' + describeLoadError(e) + ' (check the Cesium ion token).', 'error');
-        toast('Could not load 3D buildings — see Map data in the panel', 'error', 6000);
+        showSrcStatus(t('osmFailed', { err: describeLoadError(e) }), 'error');
+        toast(t('buildingsFailedToast'), 'error', 6000);
       }
     }
 
@@ -1096,12 +1175,12 @@
         $('setup').open = true;
         $('gg-howto').open = true;
         $('api-key').focus();
-        showSrcStatus('Paste your own Google Maps API key first (it stays in your browser).', 'error');
+        showSrcStatus(t('pasteGoogle'), 'error');
         return;
       }
       Cesium.GoogleMaps.defaultApiKey = key;
-      showSrcStatus('Loading Google Photorealistic 3D Tiles…');
-      toast('Loading Google Photorealistic 3D Tiles…');
+      showSrcStatus(t('loadingGoogle'));
+      toast(t('loadingGoogle'));
 
       try {
         // Create the tileset first; the current scene stays intact if it fails.
@@ -1113,18 +1192,16 @@
         googleTileset = tileset;
         viewer.scene.primitives.add(googleTileset);
         viewer.scene.globe.show = false; // photorealistic mesh contains the ground
-        setSourceLabel('Google Photorealistic');
+        setSourceLabel('srcGoogle');
         showSrcStatus('');
         toast('');
 
         flyToLocation(parseFloat($('lat').value), parseFloat($('lng').value), embedView);
       } catch (e) {
-        let msg = 'Could not load Google Photorealistic 3D Tiles: ' + describeLoadError(e);
-        if (/not available for your account and region/i.test(msg)) {
-          msg += ' — Google does not serve 3D Tiles to Google Cloud accounts based in the EEA (EU/EEA countries). This is a Google restriction, not a key problem. OSM 3D buildings are still loaded.';
-        }
+        let msg = t('googleFailed', { err: describeLoadError(e) });
+        if (/not available for your account and region/i.test(msg)) msg += t('eeaNote');
         showSrcStatus(msg, 'error');
-        toast('Google Photorealistic not available — see Map data in the panel', 'error', 6000);
+        toast(t('googleFailedToast'), 'error', 6000);
       }
     }
 
@@ -1137,7 +1214,7 @@
     $('btn-fly').addEventListener('click', () => {
       const lat = parseFloat($('lat').value), lng = parseFloat($('lng').value);
       if (!(lat >= -90 && lat <= 90) || !(lng >= -180 && lng <= 180)) {
-        showLocStatus('Enter a latitude between −90 and 90 and a longitude between −180 and 180.', 'error');
+        showLocStatus(t('badCoords'), 'error');
         return;
       }
       showLocStatus('');
@@ -1155,14 +1232,11 @@
     }
     // navigator.geolocation only works in a secure context: HTTPS, or localhost.
     // On a phone opening http://<lan-ip>:3003 it is silently blocked.
-    const GEO_INSECURE_MSG =
-      'Location needs a secure page — it works on localhost or HTTPS, but a phone ' +
-      'opening http://<ip> has it blocked. Type coordinates or use the address search instead.';
 
     $('btn-geo').addEventListener('click', () => {
-      if (!('geolocation' in navigator)) { showLocStatus('This browser has no geolocation.', 'error'); return; }
-      if (!window.isSecureContext)       { showLocStatus(GEO_INSECURE_MSG, 'error'); return; }
-      showLocStatus('Locating…');
+      if (!('geolocation' in navigator)) { showLocStatus(t('noGeo'), 'error'); return; }
+      if (!window.isSecureContext)       { showLocStatus(t('geoInsecure'), 'error'); return; }
+      showLocStatus(t('locating'));
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           showLocStatus('');
@@ -1172,11 +1246,7 @@
           flyToLocation(pos.coords.latitude, pos.coords.longitude);
         },
         (err) => {
-          const msg = {
-            1: 'Permission denied — allow location for this site in your browser/OS settings, then tap again.',
-            2: 'Position unavailable — no GPS or network fix right now.',
-            3: 'Timed out — try again with a clearer view of the sky.'
-          }[err.code] || ('Location failed: ' + err.message);
+          const msg = { 1: t('geoDenied'), 2: t('geoUnavailable'), 3: t('geoTimeout') }[err.code] || t('geoFailed', { msg: err.message });
           showLocStatus(msg, 'error');
         },
         { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }
@@ -1197,7 +1267,7 @@
       dayT = parseFloat($('time').value);
       btnPlay.textContent = on ? '⏸' : '▶';
       btnPlay.classList.toggle('playing', on);
-      btnPlay.setAttribute('aria-label', on ? 'Pause the day' : 'Play the day');
+      btnPlay.setAttribute('aria-label', t(on ? 'pauseDay' : 'playDay'));
     }
     btnPlay.addEventListener('click', () => setDayPlaying(!dayPlaying));
     function dayTick(ts) {
@@ -1213,7 +1283,7 @@
       dayLastTs = ts;
     }
     $('date').addEventListener('change', () => { refreshTzFromZone(parseFloat($('lng').value)); updateSunPosition(); scheduleSunHours(); scheduleSunPath(); });
-    $('tz').addEventListener('input', () => { tzUserSet = true; $('tz-zone').textContent = 'manual — go to a new place to reset'; updateSunPosition(); scheduleSunHours(); scheduleSunPath(); });
+    $('tz').addEventListener('input', () => { tzUserSet = true; $('tz-zone').textContent = t('tzManual'); updateSunPosition(); scheduleSunHours(); scheduleSunPath(); });
 
     // Re-adopt the location whenever the camera settles after a non-orbit move
     // (mouse drag, "Go to coordinates").
@@ -1231,8 +1301,12 @@
     // detailed tiles it needs). Shaded samples are merged into intervals.
     // Limits: OSM building heights are defaults; no trees/hedges.
     // ------------------------------------------------------------------
-    let sunHoursSeq = 0, sunHoursTimer = null;
+    let sunHoursSeq = 0, sunHoursTimer = null, sunHoursState = null;   // state: { key, vars } of the last render
     const SUN_STEP_MIN = 15;
+    function renderSunHours(key, vars) {
+      sunHoursState = { key, vars };
+      $('sun-hours').innerHTML = t(key, vars) + (key === 'sunHoursResultHtml' ? `<div class="muted" style="margin-top:3px;font-size:11px;">${t('sunHoursCaveat')}</div>` : '');
+    }
     function scheduleSunHours() { clearTimeout(sunHoursTimer); sunHoursTimer = setTimeout(computeSunHours, 800); }
     const wait = (ms, v) => new Promise((r) => setTimeout(() => r(v), ms));
     async function computeSunHours() {
@@ -1241,7 +1315,7 @@
       const lat = parseFloat($('lat').value), lng = parseFloat($('lng').value);
       if (!osmBuildings || Number.isNaN(lat) || Number.isNaN(lng)) { el.hidden = true; return; }
       el.hidden = false;
-      el.innerHTML = '☀ Direct sun at this spot: <span class="muted">computing…</span>';
+      renderSunHours('sunHoursComputingHtml');
       try {
         // Start the rays just above whatever is at the spot (roof or ground).
         const carto = Cesium.Cartographic.fromDegrees(lng, lat);
@@ -1268,7 +1342,7 @@
           const dir = Cesium.Matrix4.multiplyByPointAsVector(enu, d, new Cesium.Cartesian3());
           samples.push({ m, ray: new Cesium.Ray(origin, Cesium.Cartesian3.normalize(dir, dir)) });
         }
-        if (!samples.length) { el.innerHTML = '☀ Direct sun at this spot: <b>none</b> — the sun does not rise on this date.'; return; }
+        if (!samples.length) { renderSunHours('sunHoursNoneHtml'); return; }
         const results = await Promise.race([
           Promise.all(samples.map((smp) => viewer.scene.pickFromRayMostDetailed(smp.ray, [], 0.2)
             .then((hit) => ({ m: smp.m, shaded: !!(hit && hit.position && Cesium.Cartesian3.distance(hit.position, origin) < 3000) }))
@@ -1276,7 +1350,7 @@
           wait(30000, null),
         ]);
         if (seq !== sunHoursSeq) return;
-        if (!results) { el.innerHTML = '☀ Direct sun at this spot: <span class="muted">not available yet (3D data still loading) — try again in a moment.</span>'; return; }
+        if (!results) { renderSunHours('sunHoursNotYetHtml'); return; }
         const daylightMin = results.length * SUN_STEP_MIN;
         const sunMin = results.filter((r) => !r.shaded).length * SUN_STEP_MIN;
         const fmtH = (min) => `${Math.floor(min / 60)} h ${String(min % 60).padStart(2, '0')}`;
@@ -1287,13 +1361,12 @@
           const last = spans[spans.length - 1];
           if (last && last.end === r.m) last.end = r.m + SUN_STEP_MIN; else spans.push({ start: r.m, end: r.m + SUN_STEP_MIN });
         }
-        const shadedTxt = spans.length ? spans.slice(0, 4).map((x) => `${hhmm(x.start)}–${hhmm(x.end)}`).join(', ') + (spans.length > 4 ? ', …' : '') : 'never';
-        const dateLabel = new Date(year, month, day).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
-        el.innerHTML = `☀ Direct sun at this spot on ${dateLabel}: <b>${fmtH(sunMin)}</b> <span class="muted">of ${fmtH(daylightMin)} daylight</span> · in shadow: <b>${shadedTxt}</b>` +
-          `<div class="muted" style="margin-top:3px;font-size:11px;">Buildings from OpenStreetMap at default heights; trees and hedges are not modelled.</div>`;
+        const shadedTxt = spans.length ? spans.slice(0, 4).map((x) => `${hhmm(x.start)}–${hhmm(x.end)}`).join(', ') + (spans.length > 4 ? ', …' : '') : t('sunHoursNever');
+        const dateLabel = new Date(year, month, day).toLocaleDateString(LANG, { day: 'numeric', month: 'short' });
+        renderSunHours('sunHoursResultHtml', { date: dateLabel, sun: fmtH(sunMin), day: fmtH(daylightMin), shaded: shadedTxt });
         window.suncast.sunHours = { date: $('date').value, lat, lng, sunMinutes: sunMin, daylightMinutes: daylightMin, shaded: spans.map((x) => [hhmm(x.start), hhmm(x.end)]) };
       } catch (e) {
-        if (seq === sunHoursSeq) el.innerHTML = '☀ Direct sun at this spot: <span class="muted">not available (' + (e && e.message || e) + ')</span>';
+        if (seq === sunHoursSeq) renderSunHours('sunHoursErrHtml', { err: (e && e.message || e) });
       }
     }
 
@@ -1450,8 +1523,8 @@
       });
       if (tzUserSet) q.set('tzOffset', $('tz').value);
       const url = location.origin + '/?' + q.toString();
-      try { await navigator.clipboard.writeText(url); showLocStatus('Link copied — it opens this exact view.', 'ok'); }
-      catch (_) { prompt('Copy this link:', url); }
+      try { await navigator.clipboard.writeText(url); showLocStatus(t('linkCopied'), 'ok'); }
+      catch (_) { prompt(t('copyPrompt'), url); }
       setTimeout(() => showLocStatus(''), 2500);
     });
 
@@ -1540,7 +1613,7 @@
     const btnSpin = $('btn-spin');
     function setSpinning(on) {
       spinning = on;
-      btnSpin.innerText = on ? '⏸ Stop' : '▶ Spin';
+      btnSpin.textContent = t(on ? 'stop' : 'spin');
       btnSpin.style.background = on ? '#c0392b' : '';
       if (!on) {
         // Hand the camera back cleanly: no leftover look-at frame, and reset
@@ -1660,7 +1733,7 @@
     }
     if (EMBED) {
       document.body.classList.add('embed');
-      document.title = 'Suncast 3D — embedded view';
+      document.title = t('embedTitle');
       setPanelOpen(false);
       const full = '/?' + URLP.toString();
       $('embed-open').href = full;
@@ -1697,7 +1770,7 @@
         $('lat').value = FALLBACK_LOCATION.lat;
         $('lng').value = FALLBACK_LOCATION.lng;
         if (why) console.info('Geolocation unavailable (' + why + '); starting at ' + FALLBACK_LOCATION.label);
-        if (why === 'insecure context') showLocStatus(GEO_INSECURE_MSG, 'error');
+        if (why === 'insecure context') showLocStatus(t('geoInsecure'), 'error');
         proceed();
       }
       if (!('geolocation' in navigator)) { fallback('not supported'); return; }
@@ -1712,6 +1785,18 @@
         { enableHighAccuracy: false, timeout: 8000, maximumAge: 600000 }
       );
     }
+
+    // Everything that was rendered by script rather than by data-i18n.
+    function onLangChanged() {
+      document.title = EMBED ? t('embedTitle') : t('docTitle');
+      setSourceLabel(sourceKey);
+      $('btn-spin').textContent = t(spinning ? 'stop' : 'spin');
+      $('time-play').setAttribute('aria-label', t(dayPlaying ? 'pauseDay' : 'playDay'));
+      if (tzUserSet) $('tz-zone').textContent = t('tzManual'); else refreshTzFromZone(parseFloat($('lng').value));
+      if (sunHoursState) renderSunHours(sunHoursState.key, sunHoursState.vars);
+      updateSunPosition();
+    }
+    document.title = EMBED ? t('embedTitle') : t('docTitle');
 
     startAtBestLocation();
     updateSunPosition();

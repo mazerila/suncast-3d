@@ -30,6 +30,9 @@ suntrace3d.com/viewer.
 - **Embeddable**: `https://suncast.web.app/embed/v1?lat=…&lng=…&date=…&time=…`
   gives a chrome-less view (time slider kept) for an `<iframe>` — see
   [`docs/EMBED.md`](docs/EMBED.md).
+- **Five languages** — English, French, Spanish, German, Italian — picked from
+  the browser or the country on the map, switchable in the panel (`?lang=fr`
+  forces one).
 
 On load it flies to your **current location** (browser geolocation); if that is
 denied or unavailable it falls back to the **Château de Versailles**.
@@ -103,6 +106,7 @@ Commit `config.local.example.js` (the template); never `config.local.js` or
 server.js                        Express server: static viewer + /api JSON routes
 lib/sun.js                       Server-side sun math (SunCalc) behind the API
 public/index.html                Entire frontend (Cesium viewer + controls)
+public/i18n.js                   UI strings — English, French, Spanish, German, Italian
 public/config.local.example.js   Key template — copy to config.local.js
 public/config.local.js           Your real keys, machine-only (git-ignored, never deployed)
 public/config.public.js          Generated: publishable keys only (git-ignored)
