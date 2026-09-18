@@ -91,7 +91,7 @@
     .btn-accent:hover { background: var(--accent-ink); }
     .row { display: flex; gap: 8px; }
     .row > * { flex: 1; }
-    .row-tight > button { white-space: nowrap; padding: 9px 6px; font-size: 12.5px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; }
+    .row-tight > button { white-space: nowrap; padding: 9px 6px; font-size: 12.5px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-width: 0; overflow: hidden; }
     .ico { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 
     #panel-toggle {
@@ -413,7 +413,7 @@
         <div class="fold-body">
           <label class="field" for="heading"><span data-i18n="orbitAround">Orbit around location</span> <span id="heading-val" class="spread">0°</span></label>
           <input type="range" id="heading" min="0" max="359" step="1" value="0">
-          <div class="row" style="margin-top:6px;">
+          <div class="row row-tight" style="margin-top:6px;">
             <button id="btn-rot-left" class="btn-ghost">⟲ 45°</button>
             <button id="btn-rot-right" class="btn-ghost">45° ⟳</button>
             <button id="btn-spin" class="btn-accent" data-i18n="spin">▶ Spin</button>
@@ -608,12 +608,24 @@
       const gi = document.querySelector('.cesium-geocoder-input');
       if (gi) gi.placeholder = t('geocoderPlaceholder');
     }
+    // Buttons in a .row-tight keep one line: if a translated label is wider than
+    // its button, shrink the font (down to 10px) instead of wrapping.
+    function fitButtons() {
+      document.querySelectorAll('.row-tight > button').forEach((b) => {
+        b.style.fontSize = '';
+        let size = parseFloat(getComputedStyle(b).fontSize);
+        while (b.scrollWidth > b.clientWidth && size > 10) { size -= 0.5; b.style.fontSize = size + 'px'; }
+      });
+    }
+    window.addEventListener('resize', fitButtons);
+    document.querySelectorAll('details').forEach((d) => d.addEventListener('toggle', fitButtons));   // folded sections have no width until opened
     function setLang(code, { save = true } = {}) {
       if (!LANGS.includes(code) || code === LANG) return;
       LANG = code; langSource = save ? 'saved' : langSource;
       if (save) { try { localStorage.setItem('suncast.lang', code); } catch (_) {} }
       applyLang();
       if (typeof onLangChanged === 'function') onLangChanged();   // dynamic text (defined below)
+      fitButtons();
     }
     applyLang();
     function toggleLangMenu(open) {
@@ -621,6 +633,7 @@
       menu.hidden = !want; $('lang-btn').setAttribute('aria-expanded', String(want));
     }
     $('lang-btn').addEventListener('click', () => toggleLangMenu());
+    fitButtons();
     $('lang-menu').addEventListener('click', (e) => { const b = e.target.closest('[data-lang]'); if (b) { setLang(b.dataset.lang); toggleLangMenu(false); } });
     document.addEventListener('pointerdown', (e) => { if (!$('lang-menu').hidden && !e.target.closest('#lang')) toggleLangMenu(false); });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('lang-menu').hidden) toggleLangMenu(false); });
@@ -1643,6 +1656,7 @@
     function setSpinning(on) {
       spinning = on;
       btnSpin.textContent = t(on ? 'stop' : 'spin');
+      fitButtons();
       btnSpin.style.background = on ? '#c0392b' : '';
       if (!on) {
         // Hand the camera back cleanly: no leftover look-at frame, and reset
