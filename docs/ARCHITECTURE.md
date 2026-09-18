@@ -83,11 +83,12 @@ HTTPS/geolocation caveats.
     ├─ #sun-readout     altitude / bearing / shadow length / sunrise-sunset, or "Night"
     │   #sun-hours       hours of direct sun at the spot + shaded intervals; "Show sun path" checkbox
     ├─ <details> Camera & orbit     heading / tilt / distance / spin  (folded)
-    └─ <details> #setup Map data & keys   ion token, Google key, how-to guides (folded;
-                                          opens itself when no token is present)
+    ├─ <details> #setup Map data & keys   ion token, Google key, how-to guides (folded;
+    │                                     opens itself when no token is present)
+    └─ #lang            current-language flag; click opens the language list (upwards, inside the panel)
   #mapctl              fixed right column above the time bar: #compass · ＋ · − · fullscreen (Cesium's, re-parented)
   #toast               fixed top-centre transient message (loading / errors), toast(msg, tone, ms)
-  #timebar             fixed full-width bottom: ☰ (mobile) + ▶ + HH:MM + #time-date + the #time slider + #lang (flag → language menu, opens upward)
+  #timebar             fixed full-width bottom: ☰ (mobile) + ▶ + HH:MM + #time-date + the #time slider
   #embed-badge         embed mode only: "Suncast 3D ↗" link + "no location" note
   <script>              language → config merge → viewer → functions → event wiring
 </body>

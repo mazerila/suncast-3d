@@ -107,12 +107,12 @@
     }
     #panel-close:hover { background: #e2e5ea; }
     /* Language: one flag per language (inline SVG, so they also show on Windows). */
-    #lang { position: relative; flex: none; }
+    #lang { position: relative; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); display: flex; }
     #lang .flag svg { width: 20px; height: 14px; border-radius: 2px; box-shadow: 0 0 0 1px rgba(0,0,0,.14); display: block; flex: none; }
-    #lang-btn { width: 34px; height: 34px; padding: 0; border-radius: 8px; background: #eceef1; display: grid; place-items: center; }
+    #lang-btn { width: 34px; height: 30px; padding: 0; border-radius: 7px; background: #eef0f3; display: grid; place-items: center; }
     #lang-btn:hover { background: #e2e5ea; }
     #lang-menu {
-      position: absolute; right: 0; bottom: 40px; z-index: 5; margin: 0; padding: 4px; list-style: none;
+      position: absolute; left: 0; bottom: 36px; z-index: 5; margin: 0; padding: 4px; list-style: none;
       background: #fff; border: 1px solid var(--line); border-radius: 9px; box-shadow: 0 8px 24px rgba(20,30,50,.14); min-width: 140px;
     }
     #lang-menu[hidden] { display: none; }
@@ -332,10 +332,9 @@
       input[type="text"], input[type="number"], input[type="date"],
       .cesium-geocoder-input { font-size: 16px !important; }
       .cesium-geocoder-input { height: 40px !important; }
-      /* Tighter time bar so the slider keeps room next to ☰ ▶ time date and the flag */
+      /* Tighter time bar so the slider keeps room next to ☰ ▶ time and date */
       #timebar { gap: 8px; padding-left: 10px; padding-right: 10px; }
       #timebar .time-big { min-width: 52px; font-size: 21px; }
-      #lang-btn { width: 30px; height: 30px; }
     }
     @media (max-width: 360px) { #time-date { display: none; } }
     @media (min-width: 641px) {
@@ -498,6 +497,9 @@
         </div>
       </details>
 
+      <!-- Language: current flag; click opens the list (upwards, inside the panel) -->
+      <div id="lang" role="group" aria-label="Language" data-i18n-aria="language"></div>
+
     </div>
   </div>
 
@@ -541,7 +543,6 @@
     <span id="time-val" class="time-big">12:00</span>
     <span id="time-date" class="time-date" title="Selected date (change it in the panel)" data-i18n-title="timeDateTitle"></span>
     <input type="range" id="time" min="0" max="23.75" value="12" step="0.25" aria-label="Time of day" data-i18n-aria="timeOfDay">
-    <div id="lang" role="group" aria-label="Language" data-i18n-aria="language"></div>
   </div>
 
   <script>
