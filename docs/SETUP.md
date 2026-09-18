@@ -127,8 +127,8 @@ present, otherwise your last choice, otherwise the browser's language, and
 if none of those is one of the five, from the country the map is showing
 (France → French, Spain and Latin America → Spanish, Germany/Austria/
 Switzerland → German, Italy → Italian) — falling back to English. The
-flags at the top of the panel change it at any time and remember the choice
-in this browser. Dates follow the language (e.g. "sam. 19 sept.").
+flag at the top of the panel opens the list of languages; the choice is
+remembered in this browser. Dates follow the language (e.g. "sam. 19 sept.").
 
 1. **Location** — search an **address** (the field at the top of the panel;
    suggestions appear as you type), type **Lat / Lng** and **Go**,

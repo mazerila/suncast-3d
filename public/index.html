@@ -107,11 +107,18 @@
     }
     #panel-close:hover { background: #e2e5ea; }
     /* Language: one flag per language (inline SVG, so they also show on Windows). */
-    #lang { margin-left: auto; display: flex; gap: 3px; }
-    #lang .flag { width: 26px; height: 22px; padding: 0; border-radius: 5px; background: transparent; display: grid; place-items: center; opacity: .45; transition: opacity .15s, background .15s; }
-    #lang .flag svg { width: 20px; height: 14px; border-radius: 2px; box-shadow: 0 0 0 1px rgba(0,0,0,.12); display: block; }
-    #lang .flag:hover { opacity: .85; background: #eef0f3; }
-    #lang .flag[aria-pressed="true"] { opacity: 1; background: #e2e5ea; }
+    #lang { margin-left: auto; position: relative; }
+    #lang .flag svg { width: 20px; height: 14px; border-radius: 2px; box-shadow: 0 0 0 1px rgba(0,0,0,.14); display: block; flex: none; }
+    #lang-btn { width: 28px; height: 28px; padding: 0; border-radius: 7px; background: #eef0f3; display: grid; place-items: center; }
+    #lang-btn:hover { background: #e2e5ea; }
+    #lang-menu {
+      position: absolute; right: 0; top: 32px; z-index: 5; margin: 0; padding: 4px; list-style: none;
+      background: #fff; border: 1px solid var(--line); border-radius: 9px; box-shadow: 0 8px 24px rgba(20,30,50,.14); min-width: 140px;
+    }
+    #lang-menu[hidden] { display: none; }
+    #lang-menu .flag { width: 100%; display: flex; align-items: center; gap: 9px; padding: 6px 8px; border-radius: 6px; background: transparent; font-size: 13px; font-weight: 500; color: #1e2530; text-align: left; }
+    #lang-menu .flag:hover { background: #f1f2f4; }
+    #lang-menu .flag[aria-current="true"] { font-weight: 700; }
     #lang + #panel-close { margin-left: 4px; }
 
     /* ---- Blocks / sections ---- */
@@ -585,11 +592,15 @@
       document.querySelectorAll('[data-i18n-aria]').forEach((el) => { el.setAttribute('aria-label', t(el.dataset.i18nAria)); });
       document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => { el.placeholder = t(el.dataset.i18nPlaceholder); });
       document.querySelectorAll('[data-compass]').forEach((el) => { el.textContent = t('compass')[+el.dataset.compass]; });
+      // One flag (the current language); click opens the list of the others.
       const box = $('lang');
-      if (box.childElementCount !== LANGS.length) {
-        box.innerHTML = LANGS.map((c) => `<button type="button" class="flag" data-lang="${c}" title="${I18N[c].name || c}" aria-label="${I18N[c].name || c}">${FLAGS[c] || c}</button>`).join('');
+      if (!box.childElementCount) {
+        box.innerHTML = `<button type="button" id="lang-btn" class="flag" aria-haspopup="menu" aria-expanded="false"></button>` +
+          `<ul id="lang-menu" role="menu" hidden>${LANGS.map((c) => `<li role="none"><button type="button" role="menuitem" class="flag" data-lang="${c}">${FLAGS[c] || ''}<span>${I18N[c].name || c}</span></button></li>`).join('')}</ul>`;
       }
-      box.querySelectorAll('.flag').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.lang === LANG)));
+      $('lang-btn').innerHTML = FLAGS[LANG] || LANG;
+      $('lang-btn').title = $('lang-btn').ariaLabel = `${t('language')}: ${I18N[LANG].name || LANG}`;
+      box.querySelectorAll('#lang-menu .flag').forEach((b) => b.setAttribute('aria-current', String(b.dataset.lang === LANG)));
       const gi = document.querySelector('.cesium-geocoder-input');
       if (gi) gi.placeholder = t('geocoderPlaceholder');
     }
@@ -601,7 +612,14 @@
       if (typeof onLangChanged === 'function') onLangChanged();   // dynamic text (defined below)
     }
     applyLang();
-    $('lang').addEventListener('click', (e) => { const b = e.target.closest('.flag'); if (b) setLang(b.dataset.lang); });
+    function toggleLangMenu(open) {
+      const menu = $('lang-menu'), want = open === undefined ? menu.hidden : open;
+      menu.hidden = !want; $('lang-btn').setAttribute('aria-expanded', String(want));
+    }
+    $('lang-btn').addEventListener('click', () => toggleLangMenu());
+    $('lang-menu').addEventListener('click', (e) => { const b = e.target.closest('[data-lang]'); if (b) { setLang(b.dataset.lang); toggleLangMenu(false); } });
+    document.addEventListener('pointerdown', (e) => { if (!$('lang-menu').hidden && !e.target.closest('#lang')) toggleLangMenu(false); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('lang-menu').hidden) toggleLangMenu(false); });
 
     // ==================================================================
     // Keys come from public/config.local.js (git-ignored) if present.

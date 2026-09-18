@@ -110,7 +110,7 @@ label, spin/play labels, the tz line, the last direct-sun result (kept in
 Precedence (`pickLang()`, then `applyTzFromLocation`): `?lang=` → saved choice
 (`localStorage suncast.lang`) → `navigator.languages` → country of the map
 via `ZONE_LANG[iana zone]` (only when `langSource === 'fallback'`, applied
-once, not saved) → `en`. The flag buttons in `#lang` (inline-SVG flags, one per language) call
+once, not saved) → `en`. The the flag button `#lang-btn` (current language) opens `#lang-menu`, whose items call
 `setLang(code)` which saves. `window.suncast.lang` → `{ lang, source }`.
 
 - The time-of-day slider lives in `#timebar`, **fixed over the map**, so the sun
@@ -367,7 +367,7 @@ function applyOrbit() {
 
 | Element | Handler |
 |---------|---------|
-| `#lang .flag` (click) | `setLang(code)` — save to `localStorage`, `applyLang()`, `onLangChanged()` |
+| `#lang-menu` item (click) | `setLang(code)` — save to `localStorage`, `applyLang()`, `onLangChanged()` |
 | `#btn-load-osm` / `#btn-load-google` | `loadOsmBuildings` / `loadGoogleTiles` |
 | `#btn-fly` (Go) | validate → `setHouseMarker` → `flyToLocation(lat, lng)`; Enter in a coordinate field does the same |
 | `#btn-geo` (Locate) | secure-context check → `getCurrentPosition` (high-accuracy, 15 s) → fill fields → `setHouseMarker` → `flyToLocation`; `#loc-status` shows progress / errors |
