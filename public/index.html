@@ -106,13 +106,13 @@
       background: #eef0f3; color: #46505f; border-radius: 7px;
     }
     #panel-close:hover { background: #e2e5ea; }
-    #lang {
-      margin-left: auto; height: 28px; padding: 0 22px 0 8px; font: inherit; font-size: 12px; font-weight: 600;
-      color: #46505f; background: #eef0f3 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%2346505f' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right 7px center / 10px 6px;
-      border: 0; border-radius: 7px; appearance: none; -webkit-appearance: none; cursor: pointer;
-    }
-    #lang:hover { background-color: #e2e5ea; }
-    #lang + #panel-close { margin-left: 0; }
+    /* Language: one flag per language (inline SVG, so they also show on Windows). */
+    #lang { margin-left: auto; display: flex; gap: 3px; }
+    #lang .flag { width: 26px; height: 22px; padding: 0; border-radius: 5px; background: transparent; display: grid; place-items: center; opacity: .45; transition: opacity .15s, background .15s; }
+    #lang .flag svg { width: 20px; height: 14px; border-radius: 2px; box-shadow: 0 0 0 1px rgba(0,0,0,.12); display: block; }
+    #lang .flag:hover { opacity: .85; background: #eef0f3; }
+    #lang .flag[aria-pressed="true"] { opacity: 1; background: #e2e5ea; }
+    #lang + #panel-close { margin-left: 4px; }
 
     /* ---- Blocks / sections ---- */
     .block { margin-bottom: 17px; }
@@ -326,7 +326,6 @@
       input[type="text"], input[type="number"], input[type="date"],
       .cesium-geocoder-input { font-size: 16px !important; }
       .cesium-geocoder-input { height: 40px !important; }
-      #lang { font-size: 16px; font-weight: 500; height: 32px; }   /* same iOS zoom rule applies to <select> */
     }
     @media (min-width: 641px) {
       #timebar-menu { display: none; }   /* desktop panel is always open */
@@ -346,7 +345,7 @@
         <h1>Suncast&nbsp;3D</h1>
         <div class="sub" data-i18n="sub">Daylight &amp; shadow simulator</div>
       </div>
-      <select id="lang" aria-label="Language" data-i18n-aria="language"></select>
+      <div id="lang" role="group" aria-label="Language" data-i18n-aria="language"></div>
       <button id="panel-close" type="button" aria-label="Hide controls" title="Hide panel" data-i18n-aria="hideControls" data-i18n-title="hidePanel">✕</button>
     </div>
 
@@ -570,6 +569,14 @@
       'Europe/Berlin': 'de', 'Europe/Vienna': 'de', 'Europe/Zurich': 'de', 'Europe/Vaduz': 'de', 'Europe/Busingen': 'de',
       'Europe/Rome': 'it', 'Europe/Vatican': 'it', 'Europe/San_Marino': 'it',
     };
+    // Simplified flags (viewBox 60×40); country flags stand in for languages.
+    const FLAGS = {
+      en: '<svg viewBox="0 0 60 40" aria-hidden="true"><rect width="60" height="40" fill="#012169"/><path d="M0 0L60 40M60 0L0 40" stroke="#fff" stroke-width="8"/><path d="M0 0L60 40M60 0L0 40" stroke="#C8102E" stroke-width="3"/><path d="M30 0v40M0 20h60" stroke="#fff" stroke-width="13"/><path d="M30 0v40M0 20h60" stroke="#C8102E" stroke-width="8"/></svg>',
+      fr: '<svg viewBox="0 0 60 40" aria-hidden="true"><rect width="20" height="40" fill="#002395"/><rect x="20" width="20" height="40" fill="#fff"/><rect x="40" width="20" height="40" fill="#ED2939"/></svg>',
+      es: '<svg viewBox="0 0 60 40" aria-hidden="true"><rect width="60" height="40" fill="#AA151B"/><rect y="10" width="60" height="20" fill="#F1BF00"/></svg>',
+      de: '<svg viewBox="0 0 60 40" aria-hidden="true"><rect width="60" height="40" fill="#000"/><rect y="13.3" width="60" height="13.4" fill="#DD0000"/><rect y="26.7" width="60" height="13.3" fill="#FFCE00"/></svg>',
+      it: '<svg viewBox="0 0 60 40" aria-hidden="true"><rect width="20" height="40" fill="#009246"/><rect x="20" width="20" height="40" fill="#fff"/><rect x="40" width="20" height="40" fill="#CE2B37"/></svg>',
+    };
     function applyLang() {
       document.documentElement.lang = LANG;
       document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = t(el.dataset.i18n); });
@@ -578,11 +585,11 @@
       document.querySelectorAll('[data-i18n-aria]').forEach((el) => { el.setAttribute('aria-label', t(el.dataset.i18nAria)); });
       document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => { el.placeholder = t(el.dataset.i18nPlaceholder); });
       document.querySelectorAll('[data-compass]').forEach((el) => { el.textContent = t('compass')[+el.dataset.compass]; });
-      const sel = $('lang');
-      if (sel && sel.options.length !== LANGS.length) {
-        sel.innerHTML = LANGS.map((c) => `<option value="${c}">${I18N[c].name || c}</option>`).join('');
+      const box = $('lang');
+      if (box.childElementCount !== LANGS.length) {
+        box.innerHTML = LANGS.map((c) => `<button type="button" class="flag" data-lang="${c}" title="${I18N[c].name || c}" aria-label="${I18N[c].name || c}">${FLAGS[c] || c}</button>`).join('');
       }
-      if (sel) sel.value = LANG;
+      box.querySelectorAll('.flag').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.lang === LANG)));
       const gi = document.querySelector('.cesium-geocoder-input');
       if (gi) gi.placeholder = t('geocoderPlaceholder');
     }
@@ -594,7 +601,7 @@
       if (typeof onLangChanged === 'function') onLangChanged();   // dynamic text (defined below)
     }
     applyLang();
-    $('lang').addEventListener('change', (e) => setLang(e.target.value));
+    $('lang').addEventListener('click', (e) => { const b = e.target.closest('.flag'); if (b) setLang(b.dataset.lang); });
 
     // ==================================================================
     // Keys come from public/config.local.js (git-ignored) if present.
