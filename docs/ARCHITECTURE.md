@@ -92,6 +92,7 @@ HTTPS/geolocation caveats.
   #timebar             fixed full-width bottom: ☰ (mobile) + ▶ + HH:MM + #time-date + the #time slider
   #embed-badge         embed mode only: "Suncast 3D ↗" link + "no location" note
   <script>              language → config merge → viewer → functions → event wiring
+                        (analytics.js loads first and defines window.track — see ANALYTICS.md)
 </body>
 ```
 

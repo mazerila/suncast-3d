@@ -83,6 +83,15 @@ result of the address search, to "Go" (coordinates), and to "Locate"
 Honest framing for a listing: *"3D view of the sun and building shadows at this
 address (building heights approximate; vegetation not modelled)."*
 
+## Analytics inside the embed
+
+The embed reports usage to the same PostHog project as the full app, with
+`app_mode = embed` and `embed_host` = the embedding page's hostname (from the
+referrer), so the site owner can see how much use comes from each integrator.
+Visitors are anonymous; session replay is not recorded on embedding sites.
+`lat`/`lng` from the embed URL do appear in the pageview's `$current_url` —
+see [`ANALYTICS.md`](ANALYTICS.md) § Privacy notes.
+
 ## Cost / quota
 
 The embed uses the site owner's **free Cesium ion token**, published in

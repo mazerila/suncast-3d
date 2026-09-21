@@ -37,6 +37,25 @@ suntrace3d.com/viewer.
 On load it flies to your **current location** (browser geolocation); if that is
 denied or unavailable it falls back to the **Château de Versailles**.
 
+## Analytics
+
+Product analytics run on PostHog (EU cloud) via `public/analytics.js`, which is
+loaded first in `index.html` and exposes `track(event, props)` — a no-op on
+localhost / LAN, so local testing sends nothing (`?analytics=1` forces it on;
+those events are flagged `is_test`). Every event carries `product = suncast`
+and `app_mode` (`full` | `embed`, plus the embedding hostname). Visitors stay
+anonymous (no `identify`, inputs masked); the custom events never contain
+coordinates, addresses or keys. The public write-only project token lives in
+the repo on purpose.
+
+Custom events: `app_started`, `location_changed`, `buildings_loaded`,
+`buildings_load_failed`, `sun_hours_computed`, `day_played`, `time_changed`,
+`date_changed`, `timezone_changed`, `link_copied`, `camera_action`,
+`language_changed`, `panel_toggled`, `geolocation_failed`, `embed_open_full_app`.
+Their properties, the dashboard link, how to add an event and the privacy
+notes (what the pageview URL reveals, cookies) are in
+[`docs/ANALYTICS.md`](docs/ANALYTICS.md).
+
 ## Quick start
 
 ```bash
@@ -97,6 +116,7 @@ Commit `config.local.example.js` (the template); never `config.local.js` or
   GitHub Actions CI/CD (auto-deploy on merge to `main`).
 - [`docs/EMBED.md`](docs/EMBED.md) — iframe embed URL contract (`/embed/v1`) and what the 3D view can and can't show.
 - [`docs/API.md`](docs/API.md) — HTTP API reference.
+- [`docs/ANALYTICS.md`](docs/ANALYTICS.md) — PostHog events, properties, dashboard, privacy notes.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — how the viewer, sun math, and
   orbit camera work.
 
@@ -107,6 +127,7 @@ server.js                        Express server: static viewer + /api JSON route
 lib/sun.js                       Server-side sun math (SunCalc) behind the API
 public/index.html                Entire frontend (Cesium viewer + controls)
 public/i18n.js                   UI strings — English, French, Spanish, German, Italian
+public/analytics.js              PostHog loader; defines track() (silent on localhost)
 public/img/dev-logo-am.png       Developer monogram (panel footer credit)
 public/config.local.example.js   Key template — copy to config.local.js
 public/config.local.js           Your real keys, machine-only (git-ignored, never deployed)
@@ -115,7 +136,7 @@ scripts/build-public-config.js   Generates config.public.js from config.local.js
 firebase.json / .firebaserc      Firebase Hosting config (the /api rewrite is added once Cloud Run exists — DEPLOY.md §8)
 Dockerfile / .dockerignore       Cloud Run image for the API
 .github/workflows/               Auto-deploy Hosting to suncast.web.app on merge to main
-docs/                            SETUP, DEPLOY, EMBED, API, ARCHITECTURE
+docs/                            SETUP, DEPLOY, EMBED, API, ANALYTICS, ARCHITECTURE
 ```
 
 ## License

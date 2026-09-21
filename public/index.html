@@ -31,6 +31,8 @@
          config.local.js   – your machine only; may also hold the Google Maps
                              key. Never uploaded by `firebase deploy`. -->
   <!-- Absolute paths: the page is also served at /embed/v1, where relative URLs would break. -->
+  <!-- Product analytics (PostHog EU). Defines window.track(); silent on localhost. -->
+  <script src="/analytics.js"></script>
   <!-- UI strings (en/fr/es/de/it); the page picks the language in the script below. -->
   <script src="/i18n.js"></script>
   <script src="/config.public.js" onerror="window.__noPublicConfig = true"></script>
@@ -593,6 +595,9 @@
       return vars ? String(str).replace(/\{(\w+)\}/g, (m, k) => (k in vars ? vars[k] : m)) : str;
     }
     const $ = (id) => document.getElementById(id);
+    // Analytics for high-frequency controls (sliders): one event per burst.
+    const trackTimers = {};
+    function trackLater(event, props, ms = 1500) { clearTimeout(trackTimers[event]); trackTimers[event] = setTimeout(() => track(event, props), ms); }
     // Country → language, keyed by the IANA zone tz-lookup gives for a point.
     // Only used when neither the URL, a saved choice nor the browser decided.
     const ZONE_LANG = {
@@ -642,8 +647,9 @@
     document.querySelectorAll('details').forEach((d) => d.addEventListener('toggle', fitButtons));   // folded sections have no width until opened
     function setLang(code, { save = true } = {}) {
       if (!LANGS.includes(code) || code === LANG) return;
+      const prevLang = LANG;
       LANG = code; langSource = save ? 'saved' : langSource;
-      if (save) { try { localStorage.setItem('suncast.lang', code); } catch (_) {} }
+      if (save) { try { localStorage.setItem('suncast.lang', code); } catch (_) {} track('language_changed', { from: prevLang, to: code }); }
       applyLang();
       if (typeof onLangChanged === 'function') onLangChanged();   // dynamic text (defined below)
       fitButtons();
@@ -1175,6 +1181,7 @@
       compassRose.style.transform = `rotate(${(-h).toFixed(2)}deg)`;
     }
     $('compass').addEventListener('click', () => {
+      track('camera_action', { action: 'compass_north' });
       orbit.heading = 0;
       syncOrbitUI();
       applyOrbit();
@@ -1255,10 +1262,12 @@
         setSourceLabel('srcOsm');
         showSrcStatus('');
         toast('');
+        track('buildings_loaded', { source: 'osm' });
 
         flyToLocation(parseFloat($('lat').value), parseFloat($('lng').value), embedView);
         scheduleSunHours();
       } catch (e) {
+        track('buildings_load_failed', { source: 'osm', error: describeLoadError(e) });
         showSrcStatus(t('osmFailed', { err: describeLoadError(e) }), 'error');
         toast(t('buildingsFailedToast'), 'error', 6000);
       }
@@ -1290,9 +1299,11 @@
         setSourceLabel('srcGoogle');
         showSrcStatus('');
         toast('');
+        track('buildings_loaded', { source: 'google' });
 
         flyToLocation(parseFloat($('lat').value), parseFloat($('lng').value), embedView);
       } catch (e) {
+        track('buildings_load_failed', { source: 'google', error: describeLoadError(e) });
         let msg = t('googleFailed', { err: describeLoadError(e) });
         if (/not available for your account and region/i.test(msg)) msg += t('eeaNote');
         showSrcStatus(msg, 'error');
@@ -1313,6 +1324,7 @@
         return;
       }
       showLocStatus('');
+      track('location_changed', { method: 'coords' });
       setHouseMarker(lat, lng);
       flyToLocation(lat, lng);
     });
@@ -1335,6 +1347,7 @@
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           showLocStatus('');
+          track('location_changed', { method: 'geolocation' });
           $('lat').value = pos.coords.latitude.toFixed(5);
           $('lng').value = pos.coords.longitude.toFixed(5);
           setHouseMarker(pos.coords.latitude, pos.coords.longitude);
@@ -1342,13 +1355,14 @@
         },
         (err) => {
           const msg = { 1: t('geoDenied'), 2: t('geoUnavailable'), 3: t('geoTimeout') }[err.code] || t('geoFailed', { msg: err.message });
+          track('geolocation_failed', { code: err.code, where: 'button' });
           showLocStatus(msg, 'error');
         },
         { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }
       );
     });
 
-    $('time').addEventListener('input', () => { if (dayPlaying) setDayPlaying(false); updateSunPosition(); });
+    $('time').addEventListener('input', () => { if (dayPlaying) setDayPlaying(false); updateSunPosition(); trackLater('time_changed', { via: 'slider' }); });
 
     // ---- Play the day: sweep the time slider through 24 h (1 h per second) ----
     let dayPlaying = false;
@@ -1357,6 +1371,7 @@
     const DAY_HOURS_PER_SECOND = 1;
     const btnPlay = $('time-play');
     function setDayPlaying(on) {
+      if (on && !dayPlaying) track('day_played');
       dayPlaying = on;
       dayLastTs = 0;
       dayT = parseFloat($('time').value);
@@ -1377,8 +1392,8 @@
       }
       dayLastTs = ts;
     }
-    $('date').addEventListener('change', () => { refreshTzFromZone(parseFloat($('lng').value)); updateSunPosition(); scheduleSunHours(); scheduleSunPath(); });
-    $('tz').addEventListener('input', () => { tzUserSet = true; $('tz-zone').textContent = t('tzManual'); updateSunPosition(); scheduleSunHours(); scheduleSunPath(); });
+    $('date').addEventListener('change', () => { track('date_changed', { via: 'input' }); refreshTzFromZone(parseFloat($('lng').value)); updateSunPosition(); scheduleSunHours(); scheduleSunPath(); });
+    $('tz').addEventListener('input', () => { trackLater('timezone_changed', {}); tzUserSet = true; $('tz-zone').textContent = t('tzManual'); updateSunPosition(); scheduleSunHours(); scheduleSunPath(); });
 
     // Re-adopt the location whenever the camera settles after a non-orbit move
     // (mouse drag, "Go to coordinates").
@@ -1459,6 +1474,7 @@
         const shadedTxt = spans.length ? spans.slice(0, 4).map((x) => `${hhmm(x.start)}–${hhmm(x.end)}`).join(', ') + (spans.length > 4 ? ', …' : '') : t('sunHoursNever');
         const dateLabel = new Date(year, month, day).toLocaleDateString(LANG, { day: 'numeric', month: 'short' });
         renderSunHours('sunHoursResultHtml', { date: dateLabel, sun: fmtH(sunMin), day: fmtH(daylightMin), shaded: shadedTxt });
+        track('sun_hours_computed', { sun_minutes: sunMin, daylight_minutes: daylightMin, shaded_spans: spans.length });
         window.suncast.sunHours = { date: $('date').value, lat, lng, sunMinutes: sunMin, daylightMinutes: daylightMin, shaded: spans.map((x) => [hhmm(x.start), hhmm(x.end)]) };
       } catch (e) {
         if (seq === sunHoursSeq) renderSunHours('sunHoursErrHtml', { err: (e && e.message || e) });
@@ -1607,6 +1623,7 @@
       applyTzFromLocation(lat, lng);
       updateSunPosition();
       showLocStatus('');
+      track('location_changed', { method: 'map_click' });
     }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
     // Copy a deep link to the current place / date / time / camera.
@@ -1618,6 +1635,7 @@
       });
       if (tzUserSet) q.set('tzOffset', $('tz').value);
       const url = location.origin + '/?' + q.toString();
+      track('link_copied');
       try { await navigator.clipboard.writeText(url); showLocStatus(t('linkCopied'), 'ok'); }
       catch (_) { prompt(t('copyPrompt'), url); }
       setTimeout(() => showLocStatus(''), 2500);
@@ -1639,6 +1657,7 @@
             const lat = Cesium.Math.toDegrees(c.latitude), lng = Cesium.Math.toDegrees(c.longitude);
             $('lat').value = lat.toFixed(5); $('lng').value = lng.toFixed(5);
             setHouseMarker(lat, lng);
+            track('location_changed', { method: 'address' });
             flyToLocation(lat, lng, { heading: orbit.heading, pitch: orbit.pitch, range: orbit.range });
             return;
           }
@@ -1658,6 +1677,7 @@
     document.querySelectorAll('.chip[data-date]').forEach((btn) => {
       btn.addEventListener('click', () => {
         const v = btn.dataset.date;
+        track('date_changed', { via: 'chip', preset: v });
         $('date').value = (v === 'today') ? todayISO() : `${new Date().getFullYear()}-${v}`;
         refreshTzFromZone(parseFloat($('lng').value));
         updateSunPosition();
@@ -1682,9 +1702,10 @@
       $('range-val').innerText = Math.round(orbit.range) + ' m';
       applyOrbit();
     });
-    $('btn-rot-left').addEventListener('click',  () => nudgeHeading(-45));
-    $('btn-rot-right').addEventListener('click', () => nudgeHeading(45));
+    $('btn-rot-left').addEventListener('click',  () => { track('camera_action', { action: 'rotate_left' });  nudgeHeading(-45); });
+    $('btn-rot-right').addEventListener('click', () => { track('camera_action', { action: 'rotate_right' }); nudgeHeading(45); });
     $('btn-cam-reset').addEventListener('click', () => {
+      track('camera_action', { action: 'reset' });
       if (spinning) setSpinning(false);
       orbit.heading = 0; orbit.pitch = DEFAULT_PITCH; orbit.range = DEFAULT_RANGE;
       syncOrbitUI();
@@ -1702,8 +1723,8 @@
       if (dir < 0) viewer.camera.zoomIn(amount); else viewer.camera.zoomOut(amount);
       adoptView();
     }
-    $('zoom-in').addEventListener('click',  () => zoomStep(-1));
-    $('zoom-out').addEventListener('click', () => zoomStep(1));
+    $('zoom-in').addEventListener('click',  () => { track('camera_action', { action: 'zoom_in' });  zoomStep(-1); });
+    $('zoom-out').addEventListener('click', () => { track('camera_action', { action: 'zoom_out' }); zoomStep(1); });
 
     const btnSpin = $('btn-spin');
     function setSpinning(on) {
@@ -1722,7 +1743,7 @@
         lastCameraDrive = performance.now();
       }
     }
-    btnSpin.addEventListener('click', () => setSpinning(!spinning));
+    btnSpin.addEventListener('click', () => { if (!spinning) track('camera_action', { action: 'spin' }); setSpinning(!spinning); });
     // Any touch / mouse / wheel on the map stops the spin, like every map app.
     ['pointerdown', 'touchstart', 'wheel'].forEach((ev) => {
       viewer.scene.canvas.addEventListener(ev, () => { if (spinning) setSpinning(false); }, { passive: true });
@@ -1759,9 +1780,9 @@
       panelToggle.hidden = open;
       panelToggle.setAttribute('aria-expanded', String(open));
     }
-    panelToggle.addEventListener('click', () => setPanelOpen(true));
-    $('timebar-menu').addEventListener('click', () => setPanelOpen(uiPanel.classList.contains('collapsed')));
-    $('panel-close').addEventListener('click', () => setPanelOpen(false));
+    panelToggle.addEventListener('click', () => { track('panel_toggled', { open: true, via: 'toggle' }); setPanelOpen(true); });
+    $('timebar-menu').addEventListener('click', () => { const open = uiPanel.classList.contains('collapsed'); track('panel_toggled', { open, via: 'timebar' }); setPanelOpen(open); });
+    $('panel-close').addEventListener('click', () => { track('panel_toggled', { open: false, via: 'close' }); setPanelOpen(false); });
     setPanelOpen(!smallScreen.matches);
     smallScreen.addEventListener('change', (e) => setPanelOpen(!e.matches));
 
@@ -1833,9 +1854,14 @@
       setPanelOpen(false);
       const full = '/?' + URLP.toString();
       $('embed-open').href = full;
+      $('embed-open').addEventListener('click', () => track('embed_open_full_app'));
     }
 
     function startAtBestLocation() {
+      // One event per load describing how the session began; the funnel starts here.
+      function trackStart(mode, extra) {
+        track('app_started', Object.assign({ start_mode: mode, has_cesium_token: hasCesiumToken, lang: LANG, lang_source: langSource, sun_path_on: sunPathOn }, extra || {}));
+      }
       function proceed() {
         if (hasCesiumToken) loadOsmBuildings();
         else {
@@ -1851,6 +1877,7 @@
         $('lat').value = urlLat; $('lng').value = urlLng;
         if (URLP.get('marker') !== '0') addHouseMarker(urlLat, urlLng);   // mark THAT house
         applyEmbedParams();          // date / time / camera hints, if given
+        trackStart('deeplink');
         proceed();
         return;
       }
@@ -1859,10 +1886,12 @@
         $('lat').value = FALLBACK_LOCATION.lat; $('lng').value = FALLBACK_LOCATION.lng;
         $('embed-note').hidden = false;
         applyEmbedParams();
+        trackStart('embed_no_location');
         proceed();
         return;
       }
       function fallback(why) {
+        trackStart('fallback', { reason: why });
         $('lat').value = FALLBACK_LOCATION.lat;
         $('lng').value = FALLBACK_LOCATION.lng;
         if (why) console.info('Geolocation unavailable (' + why + '); starting at ' + FALLBACK_LOCATION.label);
@@ -1873,6 +1902,7 @@
       if (!window.isSecureContext)       { fallback('insecure context'); return; }
       navigator.geolocation.getCurrentPosition(
         (pos) => {
+          trackStart('geolocation');
           $('lat').value = pos.coords.latitude.toFixed(5);
           $('lng').value = pos.coords.longitude.toFixed(5);
           proceed();
