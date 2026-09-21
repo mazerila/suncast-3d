@@ -107,6 +107,7 @@ server.js                        Express server: static viewer + /api JSON route
 lib/sun.js                       Server-side sun math (SunCalc) behind the API
 public/index.html                Entire frontend (Cesium viewer + controls)
 public/i18n.js                   UI strings — English, French, Spanish, German, Italian
+public/img/dev-logo-am.png       Developer monogram (panel footer credit)
 public/config.local.example.js   Key template — copy to config.local.js
 public/config.local.js           Your real keys, machine-only (git-ignored, never deployed)
 public/config.public.js          Generated: publishable keys only (git-ignored)

@@ -66,6 +66,7 @@ window.SUNCAST_I18N = {
     sunHoursNever: 'never',
     sunHoursErrHtml: '☀ Direct sun at this spot: <span class="muted">not available ({err})</span>',
     addrLookup: 'Looking up the address…', addrNone: 'No address found nearby', addrSource: 'Address from OpenStreetMap (Nominatim)',
+    developedBy: 'Developed by', developedByAria: 'Developed by Antoine Mokhtari, Bald Studio',
     linkCopied: 'Link copied — it opens this exact view.', copyPrompt: 'Copy this link:',
   },
 
@@ -132,6 +133,7 @@ window.SUNCAST_I18N = {
     sunHoursNever: 'jamais',
     sunHoursErrHtml: '☀ Soleil direct à cet endroit : <span class="muted">indisponible ({err})</span>',
     addrLookup: 'Recherche de l\'adresse…', addrNone: 'Aucune adresse trouvée à proximité', addrSource: 'Adresse fournie par OpenStreetMap (Nominatim)',
+    developedBy: 'Développé par', developedByAria: 'Développé par Antoine Mokhtari, Bald Studio',
     linkCopied: 'Lien copié — il ouvre exactement cette vue.', copyPrompt: 'Copiez ce lien :',
   },
 
@@ -198,6 +200,7 @@ window.SUNCAST_I18N = {
     sunHoursNever: 'nunca',
     sunHoursErrHtml: '☀ Sol directo en este punto: <span class="muted">no disponible ({err})</span>',
     addrLookup: 'Buscando la dirección…', addrNone: 'No se encontró ninguna dirección cerca', addrSource: 'Dirección de OpenStreetMap (Nominatim)',
+    developedBy: 'Desarrollado por', developedByAria: 'Desarrollado por Antoine Mokhtari, Bald Studio',
     linkCopied: 'Enlace copiado — abre exactamente esta vista.', copyPrompt: 'Copia este enlace:',
   },
 
@@ -264,6 +267,7 @@ window.SUNCAST_I18N = {
     sunHoursNever: 'nie',
     sunHoursErrHtml: '☀ Direkte Sonne an diesem Punkt: <span class="muted">nicht verfügbar ({err})</span>',
     addrLookup: 'Adresse wird gesucht…', addrNone: 'Keine Adresse in der Nähe gefunden', addrSource: 'Adresse von OpenStreetMap (Nominatim)',
+    developedBy: 'Entwickelt von', developedByAria: 'Entwickelt von Antoine Mokhtari, Bald Studio',
     linkCopied: 'Link kopiert — er öffnet genau diese Ansicht.', copyPrompt: 'Diesen Link kopieren:',
   },
 
@@ -330,6 +334,7 @@ window.SUNCAST_I18N = {
     sunHoursNever: 'mai',
     sunHoursErrHtml: '☀ Sole diretto in questo punto: <span class="muted">non disponibile ({err})</span>',
     addrLookup: 'Ricerca dell\'indirizzo…', addrNone: 'Nessun indirizzo trovato nelle vicinanze', addrSource: 'Indirizzo da OpenStreetMap (Nominatim)',
+    developedBy: 'Sviluppato da', developedByAria: 'Sviluppato da Antoine Mokhtari, Bald Studio',
     linkCopied: 'Link copiato — apre esattamente questa vista.', copyPrompt: 'Copia questo link:',
   },
 };
