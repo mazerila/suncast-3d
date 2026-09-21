@@ -1,8 +1,9 @@
 # Analytics — what Suncast 3D measures, and how
 
-Product analytics run on **PostHog (EU cloud)**. The whole integration is one
-file, `public/analytics.js`, loaded first in `index.html`; the app only ever
-calls `track(event, props)`.
+Product analytics run on **PostHog (EU cloud)**, **cookieless**: no cookie,
+no localStorage, nothing to consent to, so there is no banner. The whole
+integration is one file, `public/analytics.js`, loaded first in `index.html`;
+the app only ever calls `track(event, props)`.
 
 | | |
 |---|---|
@@ -33,7 +34,10 @@ including PostHog's own autocaptured ones:
 | `is_test` | `true` · absent | Set when `?analytics=1` forced analytics on |
 
 PostHog's defaults also add `$current_url`, `$referrer`, browser/OS, screen
-size, and a `$pageview` / `$pageleave` pair per page load.
+size, `$timezone`, and a `$pageview` / `$pageleave` pair per page load. Every
+URL-like property is **scrubbed** first (see Privacy notes): `lat`, `lng`,
+`heading`, `pitch` and `range` are removed, so a deep link shows up as
+`https://suncast.web.app/?date=…&time=…`.
 
 ## Custom events
 
@@ -77,28 +81,46 @@ trackLater('thing_changed', { via: 'slider' });      // high-frequency controls:
   `location_changed`).
 - Add the new event to the table above.
 
+## Cookieless mode — what it means for the numbers
+
+`posthog.init` runs with `cookieless_mode: 'always'` and
+`person_profiles: 'never'`, and the PostHog project setting **Cookieless
+tracking** (server hash mode, stateful) is on. Consequences:
+
+- The browser sends the `$posthog_cookieless` sentinel instead of an id; the
+  server derives a visitor id from a **hash of IP + user agent + host with a
+  daily salt**. Nothing identifying is stored in the browser, and the hash
+  cannot be reversed or joined across days.
+- **Unique visitors are per day.** There is no cross-day retention, and a
+  weekly/monthly "unique visitors" figure is inflated (the same person counts
+  once per day). Use **sessions** and pageviews for week/month trends.
+- **Session replay and GeoIP country are not available** in this mode.
+  `$timezone` (e.g. `Europe/Paris`) is the country proxy.
+- Dashboard tiles were changed to match: *Countries* → *Visitor time zones*,
+  *Retention* → *Engagement depth*, *Weekly active* → *Sessions & pageviews
+  per week*.
+- Returning visitors from the first, cookie-based deploy (a few hours on
+  2026-09-22) had a `ph_<token>_posthog` cookie/localStorage entry;
+  `analytics.js` deletes it on load so they become cookieless too (PostHog
+  would otherwise keep the old id via `register_once`).
+
 ## Privacy notes — read before changing the config
 
-- `person_profiles: 'identified_only'` and the app never calls
-  `posthog.identify`, so visitors stay **anonymous events**: no person rows,
-  no cross-site identity.
-- **Inputs are masked** by PostHog's autocapture, so the address search box,
-  coordinates and key fields are never captured. Autocapture does record the
-  *text* of clicked elements.
-- **Session replay and heatmaps** are limited by the project settings to
-  `suncast.web.app` (PostHog "authorized domains"), so an embed on another
-  site is never recorded.
-- **Locations can still reach PostHog through the URL.** `$current_url` is
-  captured on every pageview, and Suncast deep links carry `?lat=…&lng=…` —
-  a visitor's own home after "Locate" → "Link", or the listing an embed shows.
-  The custom events avoid this on purpose; the pageview does not. If that is
-  more than you want, strip `lat`/`lng` in a `sanitize_properties` hook in
-  `analytics.js`, or turn `capture_pageview` off and rely on `app_started`.
-- **Cookies.** `persistence: 'localStorage+cookie'` stores an anonymous
-  distinct id in a first-party cookie, also inside embeds. There is no consent
-  banner. Under French/EU rules that is the point to revisit if the audience
-  grows: PostHog's cookieless mode (`persistence: 'memory'`) needs no consent
-  at the price of not recognising returning visitors.
+- **No cookie, no localStorage, no consent banner** (see above). This also
+  holds inside embeds on other sites.
+- **No person profiles, no `identify`**: visitors are anonymous events only.
+- **Coordinates never leave the browser in analytics.** The custom events
+  don't carry them, and a `before_send` hook scrubs `lat`, `lng`, `heading`,
+  `pitch` and `range` from every URL-like property — `$current_url`,
+  `$referrer`, `$pathname`, the `$set_once` initial-URL fields — before the
+  event is sent. A visitor's home after "Locate" → "Link", or the listing an
+  embed shows, is therefore not in PostHog.
+- **Addresses are masked.** PostHog's autocapture masks form inputs anyway;
+  the address search box (`.cesium-geocoder-input`) and the reverse-geocoded
+  address line (`#addr`) additionally carry the `ph-no-capture` class, so
+  neither their text nor a click on them is captured.
+- Autocapture still records the *text* of other clicked elements (button
+  labels), browser/OS, screen size and `$timezone`.
 - The published token is write-only; anyone can send junk events with it
   (true of every browser analytics tool). Dashboards filter on
   `product = suncast` and drop `is_test`.

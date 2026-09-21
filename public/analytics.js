@@ -4,6 +4,8 @@
 // - All products in the "armo products" PostHog project share one project, so
 //   every event carries product = "suncast" (a super property) and dashboards
 //   filter on it.
+// - Cookieless: no cookie or localStorage is ever written, so no consent banner
+//   is needed. Coordinates are stripped from URLs before sending.
 // - Nothing is sent from localhost / LAN dev servers, so local testing never
 //   pollutes the numbers. Add ?analytics=1 to the URL to override when testing
 //   the pipeline; those events carry is_test = true so dashboards can drop them.
@@ -25,15 +27,47 @@
   // Official PostHog snippet (array.js loader).
   !function(t,e){var o,n,p,r;e.__SV||(window.posthog && window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}p||((p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",p.onerror=function(){p=null},(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r));var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],Object.defineProperty(u,"toString",{configurable:!0,enumerable:!0,writable:!0,value:function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e}}),Object.defineProperty(u.people,"toString",{configurable:!0,enumerable:!0,writable:!0,value:function(){return u.toString(1)+".people (stub)"}}),o="vu fu pu gu bu init Hu zu qu ju Gu Xa Bu Qu Du eh ih nh sh rh oh capture getExtension Uu cu hh calculateEventProperties uh register register_once register_for_session unregister unregister_for_session gh Nu dh getFeatureFlag getFeatureFlagPayload getFeatureFlagResult getAllFeatureFlags isFeatureEnabled reloadFeatureFlags updateFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey displaySurvey cancelPendingSurvey canRenderSurvey canRenderSurveyAsync mh identify setPersonProperties unsetPersonProperties group setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset yh shutdown setIdentity clearIdentity get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException addExceptionStep captureLog startExceptionAutocapture stopExceptionAutocapture loadToolbar get_property getSessionProperty fh Xu createPersonProfile setInternalOrTestUser ph wu opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing get_explicit_consent_status is_capturing clear_opt_in_out_capturing Ju debug Ya Os getPageViewId captureTraceFeedback captureTraceMetric Ru".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
 
+  // Query params that pin a visitor to a place (their home after "Locate me →
+  // Copy link", or a listing inside an embed). Stripped from every URL-like
+  // property before it leaves the browser; the custom events never carry them.
+  var PRIVATE_PARAMS = ['lat', 'lng', 'heading', 'pitch', 'range'];
+  function scrubUrl(v) {
+    if (typeof v !== 'string' || v.indexOf('lat=') === -1) return v;
+    try {
+      var u = new URL(v, location.origin);
+      PRIVATE_PARAMS.forEach(function (k) { u.searchParams.delete(k); });
+      return u.toString();
+    } catch (_) { return v; }
+  }
+  function scrubProps(props) {
+    for (var k in props) {
+      if (typeof props[k] === 'string') props[k] = scrubUrl(props[k]);
+      else if (props[k] && typeof props[k] === 'object' && !Array.isArray(props[k])) scrubProps(props[k]);
+    }
+    return props;
+  }
+
+  // The first deploy (2026-09-22, a few hours) used cookie persistence. Remove
+  // that identifier so returning visitors are cookieless too. Harmless otherwise.
+  try { localStorage.removeItem('ph_' + TOKEN + '_posthog'); } catch (_) {}
+  ['', '; domain=' + location.hostname].forEach(function (d) {
+    document.cookie = 'ph_' + TOKEN + '_posthog=; Max-Age=0; path=/' + d;
+  });
+
   posthog.init(TOKEN, {
     api_host: HOST,
     defaults: '2026-05-30',
-    person_profiles: 'identified_only',    // anonymous visitors: events only, no person rows (cheaper, less PII)
+    // Cookieless: no cookie, no localStorage, nothing to consent to. PostHog
+    // counts unique visitors per day with a server-side hash (project setting
+    // "Cookieless tracking" must be on). Trade-off: no cross-day retention,
+    // no session replay, no GeoIP — see docs/ANALYTICS.md.
+    cookieless_mode: 'always',
+    person_profiles: 'never',
     capture_pageview: true,
     capture_pageleave: true,               // needed for bounce rate / time on page
     autocapture: true,
     capture_heatmaps: true,
-    persistence: 'localStorage+cookie',
+    before_send: function (ev) { if (ev && ev.properties) scrubProps(ev.properties); return ev; },
   });
 
   // Attached to every event from this page, including autocaptured ones.

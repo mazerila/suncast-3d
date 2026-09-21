@@ -385,7 +385,7 @@
           <input type="number" id="lat" value="48.8049" step="0.0001" aria-label="Latitude" placeholder="Latitude" data-i18n-aria="latitude" data-i18n-placeholder="latitude">
           <input type="number" id="lng" value="2.1204" step="0.0001" aria-label="Longitude" placeholder="Longitude" data-i18n-aria="longitude" data-i18n-placeholder="longitude">
         </div>
-        <div id="addr" title="Address from OpenStreetMap (Nominatim)" data-i18n-title="addrSource" hidden></div>
+        <div id="addr" class="ph-no-capture" title="Address from OpenStreetMap (Nominatim)" data-i18n-title="addrSource" hidden></div>
         <div class="row row-tight">
           <button id="btn-fly" class="btn-ghost" type="button" title="Go to the coordinates above" data-i18n-title="goTitle"><svg class="ico" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg><span data-i18n="go">Go</span></button>
           <button id="btn-geo" class="btn-ghost" type="button" title="Use my current location" data-i18n-title="locateTitle"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg><span data-i18n="locate">Locate</span></button>
@@ -733,7 +733,7 @@
     if (viewer.geocoder && viewer.geocoder.container) {
       $('geocoder-slot').appendChild(viewer.geocoder.container);
       const inp = viewer.geocoder.container.querySelector('.cesium-geocoder-input');
-      if (inp) { inp.placeholder = t('geocoderPlaceholder'); inp.id = 'geocoder-input'; }
+      if (inp) { inp.placeholder = t('geocoderPlaceholder'); inp.id = 'geocoder-input'; inp.classList.add('ph-no-capture'); }   // keep typed addresses out of analytics
     }
 
     let osmBuildings = null;

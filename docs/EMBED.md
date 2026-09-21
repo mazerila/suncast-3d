@@ -88,9 +88,11 @@ address (building heights approximate; vegetation not modelled)."*
 The embed reports usage to the same PostHog project as the full app, with
 `app_mode = embed` and `embed_host` = the embedding page's hostname (from the
 referrer), so the site owner can see how much use comes from each integrator.
-Visitors are anonymous; session replay is not recorded on embedding sites.
-`lat`/`lng` from the embed URL do appear in the pageview's `$current_url` —
-see [`ANALYTICS.md`](ANALYTICS.md) § Privacy notes.
+Tracking is cookieless — the iframe sets no cookie or storage on the
+embedding site, so it adds nothing to that site's consent obligations.
+Visitors are anonymous, there is no session replay, and `lat`/`lng` are
+scrubbed from the embed URL before any event is sent — see
+[`ANALYTICS.md`](ANALYTICS.md).
 
 ## Cost / quota
 

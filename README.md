@@ -42,18 +42,21 @@ denied or unavailable it falls back to the **Château de Versailles**.
 Product analytics run on PostHog (EU cloud) via `public/analytics.js`, which is
 loaded first in `index.html` and exposes `track(event, props)` — a no-op on
 localhost / LAN, so local testing sends nothing (`?analytics=1` forces it on;
-those events are flagged `is_test`). Every event carries `product = suncast`
-and `app_mode` (`full` | `embed`, plus the embedding hostname). Visitors stay
-anonymous (no `identify`, inputs masked); the custom events never contain
-coordinates, addresses or keys. The public write-only project token lives in
-the repo on purpose.
+those events are flagged `is_test`). Tracking is **cookieless**: no cookie, no
+localStorage, no consent banner; unique visitors are a per-day server-side
+hash, so there is no cross-day retention, no session replay and no GeoIP
+(`$timezone` stands in for country). Every event carries `product = suncast`
+and `app_mode` (`full` | `embed`, plus the embedding hostname). Coordinates
+are scrubbed from every URL before sending, the address box and address line
+are masked, and the custom events never contain coordinates, addresses or
+keys. The public write-only project token lives in the repo on purpose.
 
 Custom events: `app_started`, `location_changed`, `buildings_loaded`,
 `buildings_load_failed`, `sun_hours_computed`, `day_played`, `time_changed`,
 `date_changed`, `timezone_changed`, `link_copied`, `camera_action`,
 `language_changed`, `panel_toggled`, `geolocation_failed`, `embed_open_full_app`.
-Their properties, the dashboard link, how to add an event and the privacy
-notes (what the pageview URL reveals, cookies) are in
+Their properties, the dashboard link, how to add an event, what cookieless
+mode changes in the numbers and the privacy notes are in
 [`docs/ANALYTICS.md`](docs/ANALYTICS.md).
 
 ## Quick start
