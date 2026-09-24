@@ -17,7 +17,7 @@ Everything below follows from that.
 | `public/guide/guide.css` | Shared stylesheet for the five guide pages (one copy, not five). |
 | `public/llms.txt` | Plain-language summary for AI assistants: what the app does, its distinctive output, its limits, deep-link parameters, page list. |
 | `public/robots.txt` | Allows everything, names the AI crawlers explicitly, points to the sitemap. |
-| `public/sitemap.xml` | `/`, `/guide/`, `/guide/fr/` with `xhtml:link` alternates. |
+| `public/sitemap.xml` | `/` plus the five guide URLs, each with `xhtml:link` alternates. |
 | `public/img/og-card.png` | 1200×630 social card (source: `scripts/og-card.html`, rendered in a browser and saved). |
 | `firebase.json` | `X-Robots-Tag: noindex, nofollow` on `/embed` and `/embed/**`; cache headers for the new file types. |
 
