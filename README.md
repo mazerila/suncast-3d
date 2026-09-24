@@ -120,6 +120,7 @@ Commit `config.local.example.js` (the template); never `config.local.js` or
 - [`docs/EMBED.md`](docs/EMBED.md) — iframe embed URL contract (`/embed/v1`) and what the 3D view can and can't show.
 - [`docs/API.md`](docs/API.md) — HTTP API reference.
 - [`docs/ANALYTICS.md`](docs/ANALYTICS.md) — PostHog events, properties, dashboard, privacy notes.
+- [`docs/SEO.md`](docs/SEO.md) — how the site is made findable and citable (incl. by AI answer engines).
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — how the viewer, sun math, and
   orbit camera work.
 
@@ -131,6 +132,11 @@ lib/sun.js                       Server-side sun math (SunCalc) behind the API
 public/index.html                Entire frontend (Cesium viewer + controls)
 public/i18n.js                   UI strings — English, French, Spanish, German, Italian
 public/analytics.js              PostHog loader; defines track() (silent on localhost)
+public/guide/                    Written guide (en, fr) — the crawlable/citable content
+public/robots.txt                Crawl rules; AI crawlers explicitly allowed
+public/sitemap.xml               / and the guide pages, with hreflang alternates
+public/llms.txt                  Plain-language summary for AI assistants
+public/img/og-card.png           1200x630 social card (source: scripts/og-card.html)
 public/img/dev-logo-am.png       Developer monogram (panel footer credit)
 public/config.local.example.js   Key template — copy to config.local.js
 public/config.local.js           Your real keys, machine-only (git-ignored, never deployed)
@@ -139,7 +145,7 @@ scripts/build-public-config.js   Generates config.public.js from config.local.js
 firebase.json / .firebaserc      Firebase Hosting config (the /api rewrite is added once Cloud Run exists — DEPLOY.md §8)
 Dockerfile / .dockerignore       Cloud Run image for the API
 .github/workflows/               Auto-deploy Hosting to suncast.web.app on merge to main
-docs/                            SETUP, DEPLOY, EMBED, API, ANALYTICS, ARCHITECTURE
+docs/                            SETUP, DEPLOY, EMBED, API, ANALYTICS, SEO, ARCHITECTURE
 ```
 
 ## License

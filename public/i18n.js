@@ -5,7 +5,7 @@
 window.SUNCAST_I18N = {
   en: {
     name: 'English',
-    docTitle: 'Suncast 3D — Daylight & Shadow Simulator',
+    docTitle: 'Suncast 3D — Sun & Shadow Simulator for Any Address',
     embedTitle: 'Suncast 3D — embedded view',
     sub: 'Daylight & shadow simulator',
     controls: '☰ Controls', showControls: 'Show controls', hideControls: 'Hide controls', hidePanel: 'Hide panel',
@@ -67,12 +67,13 @@ window.SUNCAST_I18N = {
     sunHoursErrHtml: '☀ Direct sun at this spot: <span class="muted">not available ({err})</span>',
     addrLookup: 'Looking up the address…', addrNone: 'No address found nearby', addrSource: 'Address from OpenStreetMap (Nominatim)',
     developedBy: 'Developed by', developedByAria: 'Developed by Antoine Mokhtari, Bald Studio',
+    guide: 'Guide', guideTitle: 'How to read sun and shadows for an address',
     linkCopied: 'Link copied — it opens this exact view.', copyPrompt: 'Copy this link:',
   },
 
   fr: {
     name: 'Français',
-    docTitle: 'Suncast 3D — Simulateur d\'ensoleillement et d\'ombres',
+    docTitle: 'Suncast 3D — Simulateur d\'ensoleillement et d\'ombres pour toute adresse',
     embedTitle: 'Suncast 3D — vue intégrée',
     sub: 'Simulateur d\'ensoleillement et d\'ombres',
     controls: '☰ Commandes', showControls: 'Afficher les commandes', hideControls: 'Masquer les commandes', hidePanel: 'Masquer le panneau',
@@ -134,12 +135,13 @@ window.SUNCAST_I18N = {
     sunHoursErrHtml: '☀ Soleil direct à cet endroit : <span class="muted">indisponible ({err})</span>',
     addrLookup: 'Recherche de l\'adresse…', addrNone: 'Aucune adresse trouvée à proximité', addrSource: 'Adresse fournie par OpenStreetMap (Nominatim)',
     developedBy: 'Développé par', developedByAria: 'Développé par Antoine Mokhtari, Bald Studio',
+    guide: 'Guide', guideTitle: 'Comment lire l\'ensoleillement et les ombres d\'une adresse',
     linkCopied: 'Lien copié — il ouvre exactement cette vue.', copyPrompt: 'Copiez ce lien :',
   },
 
   es: {
     name: 'Español',
-    docTitle: 'Suncast 3D — Simulador de luz solar y sombras',
+    docTitle: 'Suncast 3D — Simulador de sol y sombras para cualquier dirección',
     embedTitle: 'Suncast 3D — vista integrada',
     sub: 'Simulador de luz solar y sombras',
     controls: '☰ Controles', showControls: 'Mostrar controles', hideControls: 'Ocultar controles', hidePanel: 'Ocultar panel',
@@ -201,12 +203,13 @@ window.SUNCAST_I18N = {
     sunHoursErrHtml: '☀ Sol directo en este punto: <span class="muted">no disponible ({err})</span>',
     addrLookup: 'Buscando la dirección…', addrNone: 'No se encontró ninguna dirección cerca', addrSource: 'Dirección de OpenStreetMap (Nominatim)',
     developedBy: 'Desarrollado por', developedByAria: 'Desarrollado por Antoine Mokhtari, Bald Studio',
+    guide: 'Guía', guideTitle: 'Cómo leer el sol y las sombras de una dirección',
     linkCopied: 'Enlace copiado — abre exactamente esta vista.', copyPrompt: 'Copia este enlace:',
   },
 
   de: {
     name: 'Deutsch',
-    docTitle: 'Suncast 3D — Sonnenlicht- und Schattensimulator',
+    docTitle: 'Suncast 3D — Sonnen- und Schattensimulator für jede Adresse',
     embedTitle: 'Suncast 3D — eingebettete Ansicht',
     sub: 'Sonnenlicht- und Schattensimulator',
     controls: '☰ Steuerung', showControls: 'Steuerung anzeigen', hideControls: 'Steuerung ausblenden', hidePanel: 'Panel ausblenden',
@@ -268,12 +271,13 @@ window.SUNCAST_I18N = {
     sunHoursErrHtml: '☀ Direkte Sonne an diesem Punkt: <span class="muted">nicht verfügbar ({err})</span>',
     addrLookup: 'Adresse wird gesucht…', addrNone: 'Keine Adresse in der Nähe gefunden', addrSource: 'Adresse von OpenStreetMap (Nominatim)',
     developedBy: 'Entwickelt von', developedByAria: 'Entwickelt von Antoine Mokhtari, Bald Studio',
+    guide: 'Anleitung', guideTitle: 'Sonne und Schatten einer Adresse richtig lesen',
     linkCopied: 'Link kopiert — er öffnet genau diese Ansicht.', copyPrompt: 'Diesen Link kopieren:',
   },
 
   it: {
     name: 'Italiano',
-    docTitle: 'Suncast 3D — Simulatore di luce solare e ombre',
+    docTitle: 'Suncast 3D — Simulatore di sole e ombre per qualsiasi indirizzo',
     embedTitle: 'Suncast 3D — vista incorporata',
     sub: 'Simulatore di luce solare e ombre',
     controls: '☰ Comandi', showControls: 'Mostra i comandi', hideControls: 'Nascondi i comandi', hidePanel: 'Nascondi il pannello',
@@ -335,6 +339,7 @@ window.SUNCAST_I18N = {
     sunHoursErrHtml: '☀ Sole diretto in questo punto: <span class="muted">non disponibile ({err})</span>',
     addrLookup: 'Ricerca dell\'indirizzo…', addrNone: 'Nessun indirizzo trovato nelle vicinanze', addrSource: 'Indirizzo da OpenStreetMap (Nominatim)',
     developedBy: 'Sviluppato da', developedByAria: 'Sviluppato da Antoine Mokhtari, Bald Studio',
+    guide: 'Guida', guideTitle: 'Come leggere sole e ombre di un indirizzo',
     linkCopied: 'Link copiato — apre esattamente questa vista.', copyPrompt: 'Copia questo link:',
   },
 };

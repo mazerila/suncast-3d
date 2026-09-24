@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How to Read Sun and Shadows for an Address — Suncast 3D Guide</title>
+<meta name="description" content="What the sun altitude, bearing, shadow length and hours of direct sun mean for a house or flat — how Suncast 3D computes them, how accurate they are, and how to answer questions like “will the neighbour's building block my winter sun?”">
+<link rel="canonical" href="https://suncast.web.app/guide/">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+<link rel="alternate" hreflang="en" href="https://suncast.web.app/guide/">
+<link rel="alternate" hreflang="fr" href="https://suncast.web.app/guide/fr/">
+<link rel="alternate" hreflang="x-default" href="https://suncast.web.app/guide/">
+<meta name="theme-color" content="#e8820c">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Suncast 3D">
+<meta property="og:title" content="How to read sun and shadows for an address">
+<meta property="og:description" content="What sun altitude, bearing, shadow length and hours of direct sun mean for a house or flat — and how accurate a 3D shadow model really is.">
+<meta property="og:url" content="https://suncast.web.app/guide/">
+<meta property="og:image" content="https://suncast.web.app/img/og-card.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://suncast.web.app/img/og-card.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='88'%3E%E2%98%80%EF%B8%8F%3C/text%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #f6f7f9; --paper: #fff; --fg: #1e2530; --muted: #6b7484; --line: #e3e6ea;
+    --accent: #e8820c; --accent-ink: #a2590a; --sun-soft: #fff7ec; --sun-line: #f6e0bf;
+    --cyan-soft: #ecfeff; --cyan-line: #a5f3fc; --cyan-ink: #155e75;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #151a21; --paper: #1c222b; --fg: #e7ebf0; --muted: #9aa4b2; --line: #2b323c;
+            --accent: #f0a23c; --accent-ink: #f3c07a; --sun-soft: #2a2114; --sun-line: #4a3a1e;
+            --cyan-soft: #14262b; --cyan-line: #1f4b55; --cyan-ink: #9fe3ef; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.62 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; padding: 0 20px 64px; }
+  .wrap { max-width: 720px; margin: 0 auto; }
+  header.top { display: flex; align-items: center; gap: 10px; padding: 18px 0; border-bottom: 1px solid var(--line); margin-bottom: 30px; }
+  header.top a.brand { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--fg); text-decoration: none; }
+  header.top .cta { margin-left: auto; font-size: 14px; font-weight: 600; color: #fff; background: var(--accent); padding: 8px 14px; border-radius: 8px; text-decoration: none; }
+  header.top .cta:hover { background: var(--accent-ink); }
+  h1 { font-size: clamp(26px, 5vw, 36px); line-height: 1.15; margin: 0 0 14px; text-wrap: balance; }
+  h2 { font-size: 21px; margin: 38px 0 10px; line-height: 1.25; }
+  h3 { font-size: 16px; margin: 24px 0 6px; }
+  p, li { max-width: 68ch; }
+  a { color: var(--accent-ink); }
+  .lede { font-size: 18px; color: var(--muted); margin-bottom: 8px; }
+  .meta { font-size: 13px; color: var(--muted); border-bottom: 1px solid var(--line); padding-bottom: 20px; }
+  .card { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; margin: 18px 0; }
+  .readout { background: var(--sun-soft); border: 1px solid var(--sun-line); border-radius: 10px; padding: 11px 13px; font-size: 14px; }
+  .hours { background: var(--cyan-soft); border: 1px solid var(--cyan-line); color: var(--cyan-ink); border-radius: 10px; padding: 11px 13px; font-size: 14px; }
+  ol.steps { padding-left: 20px; } ol.steps li { margin: 7px 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 14.5px; margin: 14px 0; }
+  th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+  .tablewrap { overflow-x: auto; }
+  .faq h3 { margin-top: 20px; }
+  .places { display: flex; flex-wrap: wrap; gap: 8px; padding: 0; list-style: none; margin: 12px 0 0; }
+  .places a { display: inline-block; font-size: 13px; font-weight: 600; text-decoration: none; color: var(--fg); background: var(--paper); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; }
+  .places a:hover { border-color: var(--accent); color: var(--accent-ink); }
+  footer { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 13.5px; color: var(--muted); }
+  footer a { color: var(--muted); }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .92em; background: var(--paper); border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; }
+</style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://suncast.web.app/guide/#guide",
+      "headline": "How to read sun and shadows for an address",
+      "description": "What sun altitude, bearing, shadow length and hours of direct sun mean for a house or flat, how Suncast 3D computes them, and how accurate the model is.",
+      "inLanguage": "en",
+      "url": "https://suncast.web.app/guide/",
+      "datePublished": "2026-09-23",
+      "dateModified": "2026-09-23",
+      "author": { "@type": "Person", "name": "Antoine Mokhtari", "url": "https://bald.studio/team/#antoine-mokhtari" },
+      "about": ["Sunlight analysis", "Shadow study", "Real estate", "Solar energy"],
+      "isPartOf": { "@id": "https://suncast.web.app/#app" }
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://suncast.web.app/guide/#faq",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "How many hours of direct sunlight does a house or garden get?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Pick the spot on the 3D map and Suncast 3D casts a ray towards the sun every 15 minutes of daylight against the 3D buildings and terrain. It reports, for the chosen date, how many hours of that day the spot is in direct sun and which intervals are in shadow, for example 4 h 45 of 9 h 20 of daylight with shadow from 07:45 to 10:00. Repeat for 21 June and 21 December to see the summer and winter extremes."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Will the building next door block my sun in winter?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Set the date to 21 December, the shortest day, when the sun stays lowest. If the direct-sun figure collapses compared with June, or the shaded intervals cover the middle of the day, a neighbouring building is in the way. The sun-path arc shows the sun's whole track for that date, so you can see which side the obstruction sits on. Note that OpenStreetMap rarely records real building heights, so Suncast extrudes a default height: the direction and the timing are reliable, the exact height of a neighbour's shadow is an estimate."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Which way does this flat or garden face, and is south-facing always best?",
+          "acceptedAnswer": { "@type": "Answer", "text": "The readout gives the sun's bearing in degrees and as a compass point, and the compass keeps north marked while you rotate the camera. In the northern hemisphere a south-facing facade gets sun from mid-morning to mid-afternoon all year, an east-facing one gets morning sun only, and a west-facing one gets hot late-afternoon sun in summer. South-facing is not automatically best: a west-facing terrace suits evening use, and in hot climates a north-facing room stays cooler. What matters more than the compass direction is whether anything blocks the sun, which is what the direct-sun hours measure."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is a 3D shadow simulator accurate enough to rely on?",
+          "acceptedAnswer": { "@type": "Answer", "text": "The sun position itself is astronomical and accurate to a fraction of a degree, and the terrain comes from real elevation data, so sunrise and sunset times, sun angles and shadow directions are trustworthy. The buildings come from OpenStreetMap footprints: in many countries the footprints are complete, but height tags are usually missing and a default height is extruded, and trees, hedges and walls are not modelled at all. Use it to understand orientation, timing and whether a neighbour sits between the plot and the sun, not as a legally binding shadow study."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is Suncast 3D free, and does it need an account?",
+          "acceptedAnswer": { "@type": "Answer", "text": "It is free and needs no account or sign-up. It runs entirely in the browser, works worldwide, and is available in English, French, Spanish, German and Italian. The source code is published under the MIT licence."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I check sunlight before buying or renting a property?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes, and it is the most common use. Enter the address, place the marker on the plot or the balcony, then compare 21 June and 21 December. The answer you want is the hours of direct sun on the short winter day, since that is when low sun and long shadows decide whether a room or garden gets light at all. A property listing that says south-facing tells you the orientation but nothing about the building opposite."
+          }
+        }
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Suncast 3D", "item": "https://suncast.web.app/" },
+        { "@type": "ListItem", "position": 2, "name": "Guide", "item": "https://suncast.web.app/guide/" }
+      ]
+    }
+  ]
+}
+</script>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <a class="brand" href="/"><span aria-hidden="true">☀️</span> Suncast 3D</a>
+  <a class="cta" href="/">Open the map</a>
+</header>
+
+<main>
+<h1>How to read sun and shadows for an address</h1>
+<p class="lede">What the numbers mean, how they are computed, and how far to trust them.</p>
+<p class="meta">A practical guide to <a href="/">Suncast 3D</a>, a free web app that shows the real sun and building shadows in 3D for any address, date and time. Updated 23 September 2026. Also in <a href="/guide/fr/" hreflang="fr">français</a>.</p>
+
+<h2>What the app shows</h2>
+<p>
+  Suncast 3D puts the sun exactly where it would really be — for the latitude and longitude
+  you choose, the calendar date, the time of day and the location's real time zone — and
+  renders the shadows that the 3D buildings and the terrain cast at that instant. Four things
+  come out of that:
+</p>
+<ul>
+  <li><strong>The sun's position</strong>: how high it stands above the horizon (its altitude) and the direction it comes from (its bearing, or azimuth).</li>
+  <li><strong>The shadows themselves</strong>, drawn on the buildings and the ground, which you can sweep through the day with the time slider or the ▶ play button.</li>
+  <li><strong>The hours of direct sun</strong> a chosen spot receives on that date, with the neighbouring buildings taken into account.</li>
+  <li><strong>The sun path</strong>: the arc the sun traces across the sky that day, with the sunrise and sunset directions marked on the ground.</li>
+</ul>
+
+<h2>Using it in a minute</h2>
+<ol class="steps">
+  <li>Type the address in the search box, or the coordinates, or press <em>Locate</em> — or simply click the spot on the map. The chosen building is tinted cyan and its street address appears under the coordinates.</li>
+  <li>Pick a date. The chips jump to today, the March and September equinoxes and the June and December solstices — the four dates worth checking.</li>
+  <li>Drag the time slider along the bottom, or press ▶ to play the day at one hour per second. The slider's track is coloured night, twilight and daylight for that date and place.</li>
+  <li>Rotate and tilt the camera to see the plot from every side; the compass keeps north marked.</li>
+  <li>Press <em>Link</em> to copy a URL that reopens exactly this place, date, time and camera angle — handy to send to an agent, an architect or a partner.</li>
+</ol>
+
+<h2>Reading the sun readout</h2>
+<div class="readout">☀️ Sun <strong>37.5°</strong> above the horizon · bearing <strong>146° SE</strong> · a 10 m house casts a <strong>13 m</strong> shadow ↑ 07:34 ↓ 19:59</div>
+<div class="tablewrap">
+<table>
+  <tr><th>Reading</th><th>What it means</th></tr>
+  <tr><td>Altitude (37.5° above the horizon)</td><td>How high the sun is. 0° is the horizon, 90° is straight overhead. Low sun means long shadows and light that comes in through windows rather than down onto them.</td></tr>
+  <tr><td>Bearing (146° SE)</td><td>The compass direction the sunlight comes from, 0° being north and 90° east. A facade faces the sun when the bearing points at it.</td></tr>
+  <tr><td>Shadow of a 10 m house (13 m)</td><td>A yardstick for the sun's height: at 45° a building casts a shadow as long as it is tall; at 20° it casts a shadow about three times its height. It scales — a 6 m house would cast about 8 m here.</td></tr>
+  <tr><td>↑ 07:34 ↓ 19:59</td><td>Sunrise and sunset in local time at that place, including daylight saving for the date you picked.</td></tr>
+</table>
+</div>
+
+<h2>The hours of direct sun — the number that matters</h2>
+<div class="hours">☀ Direct sun at this spot on 17 Sep: <strong>10 h 00</strong> of 12 h 15 daylight · in shadow: <strong>07:45–10:00</strong></div>
+<p>
+  Daylight hours are the same for everyone in a town. What differs from one plot to the next —
+  and from a ground-floor flat to the one above it — is how much of that daylight actually
+  reaches <em>your</em> spot rather than being intercepted by the building opposite. That is what
+  this line measures.
+</p>
+<p>
+  Every 15 minutes between sunrise and sunset, the app casts a ray from about 1.2 m above the
+  chosen point towards where the sun is at that moment, and checks whether it hits a building
+  or the terrain first. Blocked samples are merged into the shaded intervals shown at the end
+  of the line. So a garden reading “4 h 30 of 9 h 20 daylight, in shadow 12:15–17:05” is telling
+  you that it loses the whole afternoon to something standing to its south-west.
+</p>
+<p>
+  Check two dates and you know almost everything: <strong>21 June</strong>, when the sun is at its
+  highest and shadows are shortest, and <strong>21 December</strong>, when the sun barely climbs and
+  a single building can take the entire day. Properties are sold in spring on their June behaviour
+  and lived in through December.
+</p>
+
+<h2>The sun path arc</h2>
+<p>
+  The gold arc drawn over the chosen spot is the sun's track for that whole day, from the point
+  where it rises to the point where it sets, with a dot showing where it is at the time on the
+  slider. Two short lines on the ground point at the sunrise and sunset directions, labelled with
+  their times. It makes the season visible: in June the arc is tall and wide, the ends swinging
+  well north of east and west; in December it is a low shallow curve hugging the southern sky
+  (in the northern hemisphere; mirrored south of the equator). If a roof, a tree line or a ridge
+  cuts across the arc, that is exactly when the spot loses the sun.
+</p>
+
+<h2>How accurate is it?</h2>
+<p>Being explicit about this matters more than the numbers themselves:</p>
+<div class="tablewrap">
+<table>
+  <tr><th>Part of the model</th><th>How good it is</th></tr>
+  <tr><td>Sun position, sunrise and sunset, day length</td><td><strong>Accurate.</strong> Standard astronomical formulas, using the location's real IANA time zone including daylight saving for the chosen date.</td></tr>
+  <tr><td>Terrain</td><td><strong>Real elevation data</strong>, so hills, valleys and slopes shade correctly.</td></tr>
+  <tr><td>Building footprints</td><td><strong>From OpenStreetMap.</strong> Coverage is excellent in much of Europe — in France the cadastre was imported, so suburban neighbours are all present.</td></tr>
+  <tr><td>Building heights</td><td><strong>Approximate.</strong> Most buildings carry no height tag in OpenStreetMap, so a default height is extruded. A two-storey house and a four-storey block can look alike. Shadow <em>direction</em> and <em>timing</em> are right; the length of a specific neighbour's shadow is an estimate.</td></tr>
+  <tr><td>Trees, hedges, walls, balconies, roof overhangs</td><td><strong>Not modelled.</strong> A mature tree to the south can cost a ground-floor flat hours of winter sun that the model still counts as sunny.</td></tr>
+  <tr><td>Windows and interiors</td><td><strong>Not modelled.</strong> The app answers what reaches the facade or the plot, not how deep the light travels into a room.</td></tr>
+</table>
+</div>
+<p>
+  In short: it is a reliable way to understand orientation, timing, and whether a neighbour sits
+  between a plot and the sun. It is not a substitute for a surveyed shadow study of the kind a
+  planning dispute may require, and it should not be presented as one.
+</p>
+
+<h2>What people use it for</h2>
+<h3>Buying or renting a home</h3>
+<p>
+  “South-facing” in a listing describes the orientation, not the sunlight: the building across the
+  street decides the outcome. Place the marker on the balcony or the room in question, compare
+  June and December, and you have the question answered before the viewing. Suncast can also be
+  embedded in a property listing so that visitors see the sunlight for that specific address.
+</p>
+<h3>Gardens and growing</h3>
+<p>
+  Vegetables and fruit generally want six or more hours of direct summer sun; most shade-tolerant
+  ornamentals cope with three to four. Sample a few points across the plot — the number varies a
+  lot between the top of a garden and the wall at the bottom.
+</p>
+<h3>Solar panels</h3>
+<p>
+  A roof with a long stretch of unobstructed midday sun in winter is the good candidate. Suncast
+  gives a fast first filter — orientation and obstructions — before a proper yield study with
+  local irradiance data.
+</p>
+<h3>Photography, filming and events</h3>
+<p>
+  The sun path and the play button answer where the light will fall on a facade at a given hour
+  on a given date, which is the golden-hour scouting question, and whether a terrace will still
+  be sunlit at 6 p.m. in September.
+</p>
+
+<h2 class="faq" id="faq">Frequently asked questions</h2>
+<div class="faq">
+  <h3>How many hours of direct sunlight does a house or garden get?</h3>
+  <p>Pick the spot and read the direct-sun line: it gives the hours of sun and the shaded intervals for the chosen date, with neighbouring buildings taken into account. Check 21 June and 21 December for the two extremes.</p>
+
+  <h3>Will the building next door block my sun in winter?</h3>
+  <p>Set the date to 21 December, when the sun stays lowest. If the direct-sun figure collapses compared with June, or the shaded intervals cover the middle of the day, something is in the way — the sun path arc shows which side it is on. Remember that heights are approximate.</p>
+
+  <h3>Which way does this flat face, and is south-facing always best?</h3>
+  <p>The readout gives the sun's bearing in degrees and as a compass point. South-facing suits all-day light in the northern hemisphere, east-facing gives morning sun, west-facing gives warm evenings. It is not automatically best: a west-facing terrace is better for evening use, and in hot climates a cooler north-facing room is welcome. Obstructions matter more than orientation.</p>
+
+  <h3>Is a 3D shadow simulator accurate enough to rely on?</h3>
+  <p>The astronomy and the terrain are accurate; building footprints are real but their heights are mostly default values, and vegetation is absent. Trust the direction, the timing and the presence of an obstruction; treat shadow lengths as estimates.</p>
+
+  <h3>Is it free? Do I need an account?</h3>
+  <p>Free, no account, no sign-up, worldwide, in five languages. The code is open source under the MIT licence.</p>
+
+  <h3>Can I put this on my own website?</h3>
+  <p>Yes — there is an iframe embed for a single address, documented in the <a href="https://github.com/mazerila/suncast-3d/blob/main/docs/EMBED.md">embed contract</a>. Estate-agency listings are the main use.</p>
+
+  <h3>Which data does it use, and does it track me?</h3>
+  <p>Buildings and addresses come from OpenStreetMap, terrain and imagery from Cesium ion. Analytics are cookieless — no cookie, no browser storage, no consent banner — and coordinates are never sent with them: your searches stay in your browser.</p>
+</div>
+
+<h2>Try it on a known place</h2>
+<p>Each link opens the map already aimed, on the December solstice at noon — the hardest light of the year:</p>
+<ul class="places">
+  <li><a href="/?lat=48.85837&amp;lng=2.29448&amp;date=2026-12-21&amp;time=12:00">Eiffel Tower, Paris</a></li>
+  <li><a href="/?lat=41.89021&amp;lng=12.49223&amp;date=2026-12-21&amp;time=12:00">Colosseum, Rome</a></li>
+  <li><a href="/?lat=40.41310&amp;lng=-3.69216&amp;date=2026-12-21&amp;time=12:00">Puerta del Sol, Madrid</a></li>
+  <li><a href="/?lat=52.51628&amp;lng=13.37770&amp;date=2026-12-21&amp;time=12:00">Brandenburg Gate, Berlin</a></li>
+  <li><a href="/?lat=51.50072&amp;lng=-0.12462&amp;date=2026-12-21&amp;time=12:00">Westminster, London</a></li>
+  <li><a href="/?lat=40.75797&amp;lng=-73.98566&amp;date=2026-12-21&amp;time=12:00">Times Square, New York</a></li>
+</ul>
+
+<h2>Beyond the map</h2>
+<p>
+  Suncast 3D is open source (<a href="https://github.com/mazerila/suncast-3d">github.com/mazerila/suncast-3d</a>,
+  MIT licence). Other sites can embed a single address in an iframe, and the repository documents
+  a small JSON API for sun position and daylight metrics. The interface is available in English,
+  French, Spanish, German and Italian, chosen from your browser or the flag at the bottom of the
+  control panel.
+</p>
+</main>
+
+<footer>
+  <p><a href="/">Suncast 3D</a> · <a href="/guide/fr/" hreflang="fr">Version française</a> · <a href="https://github.com/mazerila/suncast-3d">Source</a> · Buildings and addresses © OpenStreetMap contributors (ODbL); terrain and imagery via Cesium ion.</p>
+</footer>
+
+</div>
+</body>
+</html>

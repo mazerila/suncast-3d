@@ -5,14 +5,85 @@
   <!-- maximum-scale=1 stops iOS zooming the page when a text field is focused;
        viewport-fit=cover makes env(safe-area-inset-*) work on notched phones. -->
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-  <title>Suncast 3D — Daylight &amp; Shadow Simulator</title>
-  <meta name="description" content="See real sun and building shadows in 3D for any address, date and time of day. Free, works worldwide.">
+  <title>Suncast 3D — Sun &amp; Shadow Simulator for Any Address</title>
+  <meta name="description" content="See where the sun falls and where buildings cast shadows, in 3D, for any address, date and time. Get the hours of direct sun a spot really gets — neighbouring buildings included. Free, worldwide, no sign-up.">
   <meta name="theme-color" content="#e8820c">
+  <link rel="canonical" href="https://suncast.web.app/">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+
+  <!-- Social cards -->
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Suncast 3D — Daylight &amp; Shadow Simulator">
-  <meta property="og:description" content="See real sun and building shadows in 3D for any address, date and time of day.">
+  <meta property="og:site_name" content="Suncast 3D">
+  <meta property="og:title" content="Suncast 3D — Sun &amp; Shadow Simulator for Any Address">
+  <meta property="og:description" content="See where the sun falls and where buildings cast shadows, in 3D, for any address, date and time — including the hours of direct sun a spot really gets.">
   <meta property="og:url" content="https://suncast.web.app/">
+  <meta property="og:image" content="https://suncast.web.app/img/og-card.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Suncast 3D: 3D buildings with sun shadows, a sun path arc and the hours of direct sun for an address.">
+  <meta property="og:locale" content="en">
+  <meta property="og:locale:alternate" content="fr">
+  <meta property="og:locale:alternate" content="es">
+  <meta property="og:locale:alternate" content="de">
+  <meta property="og:locale:alternate" content="it">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Suncast 3D — Sun &amp; Shadow Simulator for Any Address">
+  <meta name="twitter:description" content="Real sun and building shadows in 3D for any address, date and time — plus the hours of direct sun a spot really gets.">
+  <meta name="twitter:image" content="https://suncast.web.app/img/og-card.png">
+
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='88'%3E%E2%98%80%EF%B8%8F%3C/text%3E%3C/svg%3E">
+
+  <!-- The 3D data and libraries come from these hosts; connecting early cuts ~200 ms off first paint. -->
+  <link rel="preconnect" href="https://cesium.com" crossorigin>
+  <link rel="preconnect" href="https://assets.ion.cesium.com" crossorigin>
+  <link rel="preconnect" href="https://api.cesium.com" crossorigin>
+  <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+  <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+
+  <!-- What this page is, for search engines and AI assistants that read structured data
+       rather than render the 3D scene. Kept factual: no ratings, no invented claims. -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebApplication",
+        "@id": "https://suncast.web.app/#app",
+        "name": "Suncast 3D",
+        "alternateName": "Suncast 3D sun and shadow simulator",
+        "url": "https://suncast.web.app/",
+        "applicationCategory": "UtilitiesApplication",
+        "applicationSubCategory": "Sun and shadow simulation",
+        "operatingSystem": "Any (runs in a web browser)",
+        "browserRequirements": "Requires WebGL",
+        "isAccessibleForFree": true,
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
+        "inLanguage": ["en", "fr", "es", "de", "it"],
+        "description": "Web app that shows astronomically accurate sun position and building shadows on a 3D city model for any address, date and time of day, and computes how many hours of direct sunlight a chosen spot receives once neighbouring buildings are taken into account.",
+        "featureList": [
+          "Sun position and shadows in 3D for any address worldwide",
+          "Hours of direct sun at a chosen spot, with occlusion by neighbouring buildings",
+          "Sun path arc with sunrise and sunset directions",
+          "Time-of-day slider and play-the-day animation",
+          "Shareable deep links and an iframe embed for other sites",
+          "Interface in English, French, Spanish, German and Italian"
+        ],
+        "screenshot": "https://suncast.web.app/img/og-card.png",
+        "softwareHelp": { "@id": "https://suncast.web.app/guide/#guide" },
+        "author": { "@id": "https://bald.studio/team/#antoine-mokhtari" },
+        "license": "https://github.com/mazerila/suncast-3d/blob/main/LICENSE",
+        "sameAs": ["https://github.com/mazerila/suncast-3d"]
+      },
+      {
+        "@type": "Person",
+        "@id": "https://bald.studio/team/#antoine-mokhtari",
+        "name": "Antoine Mokhtari",
+        "url": "https://bald.studio/team/#antoine-mokhtari",
+        "jobTitle": "Software engineer"
+      }
+    ]
+  }
+  </script>
 
   <!-- CesiumJS -->
   <script src="https://cesium.com/downloads/cesiumjs/releases/1.115/Build/Cesium/Cesium.js"></script>
@@ -109,8 +180,15 @@
     }
     #panel-close:hover { background: #e2e5ea; }
     /* Language: one flag per language (inline SVG, so they also show on Windows). */
+    #noscript-note { position: fixed; inset: 0; z-index: 2000; overflow: auto; padding: 32px 20px; background: var(--bg); color: var(--fg); }
+    #noscript-note > div, #noscript-note h1, #noscript-note p { max-width: 62ch; margin-left: auto; margin-right: auto; }
+    #noscript-note h1 { font-size: 22px; margin: 0 0 12px; }
+    #noscript-note p { font-size: 15px; line-height: 1.6; }
+
     .panel-foot { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; }
     #lang { position: relative; display: flex; }
+    #guide-link { margin-left: 12px; margin-right: auto; font-size: 12px; font-weight: 600; color: var(--muted); text-decoration: none; }
+    #guide-link:hover { color: var(--accent-ink); text-decoration: underline; }
     /* Developer credit (same treatment as the Montvalier site): the "am" monogram
        painted as a mask in the link's text colour; "Developed by" types itself in on hover. */
     #author { display: inline-flex; align-items: center; padding: 8px 0; color: rgba(70, 80, 95, .45); transition: color .5s; text-decoration: none; }
@@ -361,6 +439,28 @@
 
   <div id="cesiumContainer"></div>
 
+  <!-- Without JavaScript (or WebGL) the 3D scene cannot run. Say what this page is
+       and where to read about it, rather than showing an empty screen. -->
+  <noscript>
+    <div id="noscript-note">
+      <h1>Suncast 3D — sun and shadow simulator</h1>
+      <p>
+        Suncast 3D shows where the sun is and where buildings cast their shadows, in
+        3D, for any address on Earth, on any date and at any time of day. Pick a spot
+        and it also computes how many hours of <strong>direct sunlight</strong> that spot
+        gets on that date — with the shadows of the neighbouring buildings taken into
+        account — and draws the day's sun path over it, with the sunrise and sunset
+        directions on the ground.
+      </p>
+      <p>
+        The 3D view needs JavaScript and WebGL, which are switched off or unavailable in
+        this browser. You can still read
+        <a href="/guide/">the guide: how to read sun and shadows for an address</a>,
+        which explains what the app measures, how accurate it is, and what the numbers mean.
+      </p>
+    </div>
+  </noscript>
+
   <button id="panel-toggle" type="button" aria-label="Show controls" aria-expanded="true" aria-controls="ui-panel" hidden data-i18n="controls" data-i18n-aria="showControls">☰ Controls</button>
 
   <div id="ui-panel">
@@ -516,6 +616,7 @@
       <!-- Panel footer: language (current flag; click opens the list, upwards) and the author's logo -->
       <div class="panel-foot">
         <div id="lang" role="group" aria-label="Language" data-i18n-aria="language"></div>
+        <a id="guide-link" href="/guide/" target="_blank" rel="noopener" data-i18n="guide" data-i18n-title="guideTitle" title="How to read sun and shadows for an address">Guide</a>
         <a id="author" href="https://bald.studio/team/#antoine-mokhtari" target="_blank" rel="me noopener noreferrer" aria-label="Developed by Antoine Mokhtari, Bald Studio" data-i18n-aria="developedByAria">
           <span class="author-label" aria-hidden="true"><span><span data-i18n="developedBy">Developed by</span></span></span>
           <span class="author-mark" aria-hidden="true"></span>
@@ -631,6 +732,9 @@
       $('lang-btn').innerHTML = FLAGS[LANG] || LANG;
       $('lang-btn').title = $('lang-btn').ariaLabel = `${t('language')}: ${I18N[LANG].name || LANG}`;
       box.querySelectorAll('#lang-menu .flag').forEach((b) => b.setAttribute('aria-current', String(b.dataset.lang === LANG)));
+      // French readers get the French guide; everyone else the English one.
+      const gl = $('guide-link');
+      if (gl) gl.href = (LANG === 'fr') ? '/guide/fr/' : '/guide/';
       const gi = document.querySelector('.cesium-geocoder-input');
       if (gi) gi.placeholder = t('geocoderPlaceholder');
     }

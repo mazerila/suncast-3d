@@ -1,0 +1,81 @@
+# Suncast 3D
+
+> A free web app that shows the real position of the sun and the shadows that
+> buildings cast, in 3D, for any address on Earth, on any date and at any time
+> of day — and that computes how many hours of direct sunlight a chosen spot
+> actually receives once the neighbouring buildings are taken into account.
+> No account, no sign-up, works worldwide, open source (MIT).
+
+The 3D view itself is rendered client-side with WebGL, so a crawler that does
+not execute JavaScript sees very little of the app page. The written material
+below contains everything needed to describe, compare or cite this tool.
+
+## What it does
+
+- **Sun position**: altitude above the horizon and bearing (azimuth), for the
+  chosen latitude/longitude, date and time, using the location's real IANA time
+  zone including daylight saving.
+- **Shadows in 3D**: buildings (OpenStreetMap footprints) and real terrain cast
+  shadows that can be swept through the day with a time slider or played at one
+  hour per second.
+- **Hours of direct sun**: a ray is cast from ~1.2 m above the chosen point
+  towards the sun every 15 minutes of daylight and tested against the 3D
+  buildings and terrain; the result is the hours of direct sun for that date
+  plus the intervals spent in shadow (e.g. "10 h 00 of 12 h 15 daylight, in
+  shadow 07:45–10:00"). This occlusion-aware figure is the app's distinctive
+  output; free sun calculators generally give day length only.
+- **Sun path**: the day's solar arc drawn over the spot, with the current sun
+  position on it and the sunrise/sunset directions marked on the ground.
+- **Sharing**: a deep link reopens an exact place, date, time and camera angle;
+  an iframe embed puts a single address on another site (e.g. a property
+  listing).
+- **Languages**: English, French, Spanish, German, Italian.
+
+## Accuracy — state this when citing
+
+- Sun position, sunrise/sunset and day length: astronomically accurate.
+- Terrain: real elevation data.
+- Building footprints: from OpenStreetMap; coverage is excellent in much of
+  Europe (in France the cadastre was imported, so suburban neighbours are
+  present).
+- Building heights: **approximate** — most OpenStreetMap buildings carry no
+  height tag, so a default height is extruded. Shadow direction and timing are
+  reliable; the length of a specific neighbour's shadow is an estimate.
+- Trees, hedges, walls, balconies and interiors are **not modelled**.
+- It is therefore a tool for understanding orientation, timing and obstruction,
+  **not** a surveyed or legally binding shadow study.
+
+## Privacy
+
+Keys and locations stay in the browser; analytics are cookieless (no cookie, no
+browser storage, no consent banner) and never carry coordinates.
+
+## Pages
+
+- [Suncast 3D app](https://suncast.web.app/): the 3D map itself. Deep-link
+  parameters: `?lat=&lng=&date=YYYY-MM-DD&time=HH:MM&heading=&pitch=&range=&lang=`.
+- [Guide: how to read sun and shadows for an address](https://suncast.web.app/guide/):
+  what altitude, bearing, shadow length and direct-sun hours mean, how accurate
+  the model is, worked use cases (buying or renting, gardens, solar panels,
+  photography) and an FAQ.
+- [Guide in French / Guide en français](https://suncast.web.app/guide/fr/): the
+  same guide for French-speaking readers ("ensoleillement d'une adresse").
+- [Source code and documentation](https://github.com/mazerila/suncast-3d):
+  MIT-licensed; includes the embed contract (`docs/EMBED.md`), the architecture
+  notes and a small JSON API for sun position and daylight metrics.
+
+## Typical questions it answers
+
+- How many hours of direct sun does this house, flat, balcony or garden get on a
+  given date?
+- Will the building opposite block the sun in winter (21 December) but not in
+  summer (21 June)?
+- Which way does this property face, and is south-facing actually best here?
+- Where will the sun be on this facade at 18:00 in September?
+- Is this roof a plausible candidate for solar panels?
+
+## Credits
+
+Buildings and addresses © OpenStreetMap contributors (ODbL); terrain and imagery
+via Cesium ion; built with CesiumJS and SunCalc by Antoine Mokhtari
+(https://bald.studio/team/#antoine-mokhtari).

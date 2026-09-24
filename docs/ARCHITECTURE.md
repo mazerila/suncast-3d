@@ -85,7 +85,7 @@ HTTPS/geolocation caveats.
     ├─ <details> Camera & orbit     heading / tilt / distance / spin  (folded)
     ├─ <details> #setup Map data & keys   ion token, Google key, how-to guides (folded;
     │                                     opens itself when no token is present)
-    └─ .panel-foot      #lang (current-language flag; click opens the list, upwards) · #author (developer credit:
+    └─ .panel-foot      #guide-link (→ /guide/, /guide/fr/ in French) · #lang (current-language flag; click opens the list, upwards) · #author (developer credit:
                         "am" monogram as a CSS mask in currentColor, "Developed by" types in on hover → bald.studio)
   #mapctl              fixed right column above the time bar: #compass · ＋ · − · fullscreen (Cesium's, re-parented)
   #toast               fixed top-centre transient message (loading / errors), toast(msg, tone, ms)

@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ensoleillement d'une adresse : comment lire le soleil et les ombres — Guide Suncast 3D</title>
+<meta name="description" content="Hauteur du soleil, azimut, longueur d'ombre et heures d'ensoleillement direct : ce que ces chiffres disent d'une maison ou d'un appartement, comment Suncast 3D les calcule et jusqu'où leur faire confiance — « l'immeuble d'en face me privera-t-il de soleil en hiver ? »">
+<link rel="canonical" href="https://suncast.web.app/guide/fr/">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+<link rel="alternate" hreflang="fr" href="https://suncast.web.app/guide/fr/">
+<link rel="alternate" hreflang="en" href="https://suncast.web.app/guide/">
+<link rel="alternate" hreflang="x-default" href="https://suncast.web.app/guide/">
+<meta name="theme-color" content="#e8820c">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Suncast 3D">
+<meta property="og:title" content="Ensoleillement d'une adresse : comment lire le soleil et les ombres">
+<meta property="og:description" content="Ce que signifient la hauteur du soleil, l'azimut et les heures d'ensoleillement direct d'un logement — et la précision réelle d'une simulation d'ombres en 3D.">
+<meta property="og:url" content="https://suncast.web.app/guide/fr/">
+<meta property="og:image" content="https://suncast.web.app/img/og-card.png">
+<meta property="og:locale" content="fr">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://suncast.web.app/img/og-card.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='88'%3E%E2%98%80%EF%B8%8F%3C/text%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #f6f7f9; --paper: #fff; --fg: #1e2530; --muted: #6b7484; --line: #e3e6ea;
+    --accent: #e8820c; --accent-ink: #a2590a; --sun-soft: #fff7ec; --sun-line: #f6e0bf;
+    --cyan-soft: #ecfeff; --cyan-line: #a5f3fc; --cyan-ink: #155e75;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #151a21; --paper: #1c222b; --fg: #e7ebf0; --muted: #9aa4b2; --line: #2b323c;
+            --accent: #f0a23c; --accent-ink: #f3c07a; --sun-soft: #2a2114; --sun-line: #4a3a1e;
+            --cyan-soft: #14262b; --cyan-line: #1f4b55; --cyan-ink: #9fe3ef; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.62 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; padding: 0 20px 64px; }
+  .wrap { max-width: 720px; margin: 0 auto; }
+  header.top { display: flex; align-items: center; gap: 10px; padding: 18px 0; border-bottom: 1px solid var(--line); margin-bottom: 30px; }
+  header.top a.brand { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--fg); text-decoration: none; }
+  header.top .cta { margin-left: auto; font-size: 14px; font-weight: 600; color: #fff; background: var(--accent); padding: 8px 14px; border-radius: 8px; text-decoration: none; }
+  header.top .cta:hover { background: var(--accent-ink); }
+  h1 { font-size: clamp(26px, 5vw, 36px); line-height: 1.15; margin: 0 0 14px; text-wrap: balance; }
+  h2 { font-size: 21px; margin: 38px 0 10px; line-height: 1.25; }
+  h3 { font-size: 16px; margin: 24px 0 6px; }
+  p, li { max-width: 68ch; }
+  a { color: var(--accent-ink); }
+  .lede { font-size: 18px; color: var(--muted); margin-bottom: 8px; }
+  .meta { font-size: 13px; color: var(--muted); border-bottom: 1px solid var(--line); padding-bottom: 20px; }
+  .readout { background: var(--sun-soft); border: 1px solid var(--sun-line); border-radius: 10px; padding: 11px 13px; font-size: 14px; }
+  .hours { background: var(--cyan-soft); border: 1px solid var(--cyan-line); color: var(--cyan-ink); border-radius: 10px; padding: 11px 13px; font-size: 14px; }
+  ol.steps { padding-left: 20px; } ol.steps li { margin: 7px 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 14.5px; margin: 14px 0; }
+  th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+  .tablewrap { overflow-x: auto; }
+  .faq h3 { margin-top: 20px; }
+  .places { display: flex; flex-wrap: wrap; gap: 8px; padding: 0; list-style: none; margin: 12px 0 0; }
+  .places a { display: inline-block; font-size: 13px; font-weight: 600; text-decoration: none; color: var(--fg); background: var(--paper); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; }
+  .places a:hover { border-color: var(--accent); color: var(--accent-ink); }
+  footer { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 13.5px; color: var(--muted); }
+  footer a { color: var(--muted); }
+</style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://suncast.web.app/guide/fr/#guide",
+      "headline": "Ensoleillement d'une adresse : comment lire le soleil et les ombres",
+      "description": "Ce que signifient la hauteur du soleil, l'azimut, la longueur d'ombre et les heures d'ensoleillement direct d'un logement, comment Suncast 3D les calcule et quelle confiance leur accorder.",
+      "inLanguage": "fr",
+      "url": "https://suncast.web.app/guide/fr/",
+      "datePublished": "2026-09-23",
+      "dateModified": "2026-09-23",
+      "author": { "@type": "Person", "name": "Antoine Mokhtari", "url": "https://bald.studio/team/#antoine-mokhtari" },
+      "about": ["Ensoleillement", "Étude d'ombres", "Immobilier", "Énergie solaire"],
+      "isPartOf": { "@id": "https://suncast.web.app/#app" }
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://suncast.web.app/guide/fr/#faq",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Combien d'heures d'ensoleillement direct reçoit une maison ou un jardin ?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Choisissez le point sur la carte 3D : Suncast 3D lance un rayon vers le soleil toutes les 15 minutes de la journée et vérifie s'il rencontre d'abord un bâtiment ou le relief. Il indique, pour la date choisie, le nombre d'heures d'ensoleillement direct et les plages à l'ombre, par exemple 4 h 45 sur 9 h 20 de jour, à l'ombre de 07:45 à 10:00. Comparez le 21 juin et le 21 décembre pour connaître les deux extrêmes."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "L'immeuble d'en face va-t-il me priver de soleil en hiver ?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Réglez la date au 21 décembre, jour le plus court, quand le soleil reste le plus bas. Si les heures d'ensoleillement direct s'effondrent par rapport à juin, ou si les plages d'ombre couvrent le milieu de journée, un bâtiment fait obstacle ; la course du soleil montre de quel côté. Attention : OpenStreetMap renseigne rarement la hauteur réelle des bâtiments, une hauteur par défaut est donc utilisée. La direction et les horaires sont fiables, la hauteur exacte de l'ombre d'un voisin est une estimation."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Une exposition plein sud est-elle toujours la meilleure ?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Non, pas automatiquement. Au nord de l'équateur, une façade sud reçoit le soleil de la fin de matinée au milieu d'après-midi toute l'année, une façade est n'a que le soleil du matin, une façade ouest reçoit le soleil chaud de fin de journée. Une terrasse à l'ouest convient mieux aux soirées, et une pièce au nord reste plus fraîche en climat chaud. Surtout, ce qui compte davantage que l'orientation, c'est de savoir si quelque chose bloque le soleil : c'est précisément ce que mesurent les heures d'ensoleillement direct."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Une simulation d'ombres en 3D est-elle assez précise ?",
+          "acceptedAnswer": { "@type": "Answer", "text": "La position du soleil est astronomique et précise à une fraction de degré, et le relief provient de données d'altitude réelles : lever, coucher, hauteurs et directions d'ombre sont fiables. Les bâtiments proviennent des emprises OpenStreetMap — en France l'import du cadastre les rend quasi complètes — mais la hauteur est presque toujours absente et remplacée par une valeur par défaut, et les arbres, haies et murs ne sont pas modélisés. C'est un outil pour comprendre l'orientation, les horaires et la présence d'un obstacle, pas une étude d'ensoleillement opposable."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Suncast 3D est-il gratuit ? Faut-il créer un compte ?",
+          "acceptedAnswer": { "@type": "Answer", "text": "L'outil est gratuit et ne demande aucun compte ni inscription. Il fonctionne entièrement dans le navigateur, partout dans le monde, en français, anglais, espagnol, allemand et italien. Le code source est publié sous licence MIT."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Peut-on vérifier l'ensoleillement avant d'acheter ou de louer ?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Oui, c'est l'usage le plus fréquent. Saisissez l'adresse, placez le repère sur la parcelle ou le balcon, puis comparez le 21 juin et le 21 décembre. Le chiffre décisif est celui du jour d'hiver : c'est alors que le soleil rasant et les ombres longues déterminent si une pièce ou un jardin reçoit encore de la lumière. Une annonce « plein sud » indique l'orientation, jamais l'immeuble d'en face."
+          }
+        }
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Suncast 3D", "item": "https://suncast.web.app/" },
+        { "@type": "ListItem", "position": 2, "name": "Guide", "item": "https://suncast.web.app/guide/fr/" }
+      ]
+    }
+  ]
+}
+</script>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <a class="brand" href="/?lang=fr"><span aria-hidden="true">☀️</span> Suncast 3D</a>
+  <a class="cta" href="/?lang=fr">Ouvrir la carte</a>
+</header>
+
+<main>
+<h1>Ensoleillement d'une adresse : comment lire le soleil et les ombres</h1>
+<p class="lede">Ce que signifient les chiffres, comment ils sont calculés, et jusqu'où leur faire confiance.</p>
+<p class="meta">Guide pratique de <a href="/?lang=fr">Suncast 3D</a>, application web gratuite qui montre le soleil réel et les ombres des bâtiments en 3D pour n'importe quelle adresse, date et heure. Mise à jour le 23 septembre 2026. Aussi en <a href="/guide/" hreflang="en">anglais</a>.</p>
+
+<h2>Ce que montre l'application</h2>
+<p>
+  Suncast 3D place le soleil là où il se trouve réellement — pour la latitude et la longitude
+  choisies, la date, l'heure et le fuseau horaire réel du lieu — et calcule les ombres projetées
+  par les bâtiments et le relief à cet instant. Quatre informations en découlent :
+</p>
+<ul>
+  <li><strong>La position du soleil</strong> : sa hauteur au-dessus de l'horizon et la direction d'où il vient (l'azimut).</li>
+  <li><strong>Les ombres</strong>, dessinées sur les bâtiments et le sol, que l'on parcourt avec le curseur de temps ou le bouton ▶.</li>
+  <li><strong>Les heures d'ensoleillement direct</strong> reçues par un point précis à cette date, obstacles voisins compris.</li>
+  <li><strong>La course du soleil</strong> : l'arc parcouru ce jour-là, avec les directions de lever et de coucher marquées au sol.</li>
+</ul>
+
+<h2>En une minute</h2>
+<ol class="steps">
+  <li>Saisissez l'adresse dans la barre de recherche, ou les coordonnées, ou appuyez sur <em>Ma position</em> — ou cliquez simplement le point sur la carte. Le bâtiment choisi se colore en cyan et son adresse s'affiche sous les coordonnées.</li>
+  <li>Choisissez une date. Les raccourcis mènent à aujourd'hui, aux équinoxes de mars et septembre et aux solstices de juin et décembre : les quatre dates à vérifier.</li>
+  <li>Faites glisser le curseur de temps en bas de l'écran, ou appuyez sur ▶ pour dérouler la journée à raison d'une heure par seconde. La barre est colorée selon la nuit, le crépuscule et le jour pour cette date et ce lieu.</li>
+  <li>Tournez et inclinez la caméra pour voir la parcelle sous tous les angles ; la boussole garde le nord repéré.</li>
+  <li><em>Lien</em> copie une URL qui rouvre exactement ce lieu, cette date, cette heure et cette vue — pratique à envoyer à un agent, un architecte ou son conjoint.</li>
+</ol>
+
+<h2>Lire la ligne de lecture du soleil</h2>
+<div class="readout">☀️ Soleil à <strong>37,5°</strong> au-dessus de l'horizon · azimut <strong>146° SE</strong> · une maison de 10 m projette une ombre de <strong>13 m</strong> ↑ 07:34 ↓ 19:59</div>
+<div class="tablewrap">
+<table>
+  <tr><th>Indication</th><th>Signification</th></tr>
+  <tr><td>Hauteur (37,5° au-dessus de l'horizon)</td><td>L'élévation du soleil : 0° à l'horizon, 90° au zénith. Un soleil bas donne des ombres longues et une lumière qui entre par les fenêtres plutôt qu'elle ne tombe dessus.</td></tr>
+  <tr><td>Azimut (146° SE)</td><td>La direction d'où vient la lumière, 0° étant le nord et 90° l'est. Une façade est ensoleillée quand l'azimut pointe vers elle.</td></tr>
+  <tr><td>Ombre d'une maison de 10 m (13 m)</td><td>Un repère pour la hauteur du soleil : à 45°, un bâtiment projette une ombre égale à sa hauteur ; à 20°, environ trois fois sa hauteur. C'est proportionnel — une maison de 6 m projetterait ici environ 8 m.</td></tr>
+  <tr><td>↑ 07:34 ↓ 19:59</td><td>Lever et coucher du soleil en heure locale, heure d'été comprise pour la date choisie.</td></tr>
+</table>
+</div>
+
+<h2>Les heures d'ensoleillement direct : le chiffre qui compte</h2>
+<div class="hours">☀ Soleil direct à cet endroit le 17 sept. : <strong>10 h 00</strong> sur 12 h 15 de jour · à l'ombre : <strong>07:45–10:00</strong></div>
+<p>
+  La durée du jour est la même pour toute une ville. Ce qui change d'une parcelle à l'autre — et
+  d'un rez-de-chaussée à l'étage au-dessus — c'est la part de cette lumière qui atteint
+  réellement <em>votre</em> point plutôt que d'être interceptée par l'immeuble d'en face. C'est ce
+  que mesure cette ligne.
+</p>
+<p>
+  Toutes les 15 minutes entre le lever et le coucher, l'application lance un rayon depuis environ
+  1,20 m au-dessus du point choisi en direction du soleil, et regarde s'il rencontre d'abord un
+  bâtiment ou le relief. Les échantillons bloqués sont regroupés en plages d'ombre. Un jardin qui
+  affiche « 4 h 30 sur 9 h 20 de jour, à l'ombre 12:15–17:05 » perd donc tout l'après-midi à cause
+  de quelque chose situé au sud-ouest.
+</p>
+<p>
+  Deux dates suffisent à presque tout savoir : le <strong>21 juin</strong>, soleil au plus haut et
+  ombres au plus court, et le <strong>21 décembre</strong>, où le soleil monte à peine et où un seul
+  immeuble peut prendre la journée entière. Les biens se visitent au printemps sur leur
+  comportement de juin, et se vivent en décembre.
+</p>
+
+<h2>L'arc de la course du soleil</h2>
+<p>
+  L'arc doré tracé au-dessus du point choisi représente la trajectoire du soleil pour la journée,
+  du lever au coucher, avec un point indiquant sa position à l'heure du curseur. Deux courtes
+  lignes au sol pointent vers les directions de lever et de coucher, avec leurs horaires. La saison
+  devient visible : en juin l'arc est haut et large, ses extrémités bien au nord de l'est et de
+  l'ouest ; en décembre c'est une courbe basse qui rase le ciel sud (dans l'hémisphère nord).
+  Si un toit, une ligne d'arbres ou une crête coupe cet arc, c'est exactement à ce moment que le
+  point perd le soleil.
+</p>
+
+<h2>Quelle précision ?</h2>
+<p>Le dire clairement importe plus que les chiffres eux-mêmes :</p>
+<div class="tablewrap">
+<table>
+  <tr><th>Élément du modèle</th><th>Fiabilité</th></tr>
+  <tr><td>Position du soleil, lever, coucher, durée du jour</td><td><strong>Exacts.</strong> Formules astronomiques standard, avec le fuseau horaire IANA réel du lieu, heure d'été comprise pour la date choisie.</td></tr>
+  <tr><td>Relief</td><td><strong>Données d'altitude réelles</strong> : collines, vallées et pentes ombrent correctement.</td></tr>
+  <tr><td>Emprises des bâtiments</td><td><strong>OpenStreetMap.</strong> En France, l'import du cadastre rend les emprises quasi complètes : les maisons voisines sont bien présentes et projettent leur ombre sur la parcelle.</td></tr>
+  <tr><td>Hauteurs des bâtiments</td><td><strong>Approximatives.</strong> La plupart des bâtiments n'ont pas d'attribut de hauteur dans OpenStreetMap : une hauteur par défaut est appliquée. Une maison de plain-pied et un immeuble de quatre étages peuvent se ressembler. La <em>direction</em> et les <em>horaires</em> d'ombre sont justes ; la longueur de l'ombre d'un voisin précis est une estimation.</td></tr>
+  <tr><td>Arbres, haies, murs, balcons, débords de toit</td><td><strong>Non modélisés.</strong> Un grand arbre au sud peut coûter à un rez-de-chaussée des heures de soleil hivernal que le modèle compte encore comme ensoleillées.</td></tr>
+  <tr><td>Fenêtres et intérieurs</td><td><strong>Non modélisés.</strong> L'outil répond sur ce qui atteint la façade ou la parcelle, pas sur la profondeur de pénétration de la lumière dans une pièce.</td></tr>
+</table>
+</div>
+<p>
+  En résumé : un moyen fiable de comprendre l'orientation, les horaires et la présence d'un
+  obstacle entre une parcelle et le soleil. Ce n'est pas une étude d'ensoleillement relevée sur le
+  terrain, du type de celles qu'un litige d'urbanisme peut exiger, et il ne faut pas la présenter
+  comme telle.
+</p>
+
+<h2>À quoi cela sert</h2>
+<h3>Acheter ou louer un logement</h3>
+<p>
+  « Plein sud » dans une annonce décrit l'orientation, pas l'ensoleillement : c'est l'immeuble d'en
+  face qui décide. Placez le repère sur le balcon ou la pièce concernée, comparez juin et décembre,
+  et la question est réglée avant la visite. Suncast peut aussi être intégré à une annonce
+  immobilière pour montrer l'ensoleillement de l'adresse précise.
+</p>
+<h3>Jardins et potagers</h3>
+<p>
+  Les légumes et les fruitiers demandent en général six heures ou plus de soleil direct en été ; la
+  plupart des plantes d'ombre se contentent de trois à quatre. Échantillonnez plusieurs points : la
+  valeur varie beaucoup entre le haut du jardin et le mur du fond.
+</p>
+<h3>Panneaux solaires</h3>
+<p>
+  Un pan de toiture dégagé au milieu de la journée en hiver est le bon candidat. Suncast sert de
+  premier filtre — orientation et obstacles — avant une étude de production avec les données
+  d'irradiation locales.
+</p>
+<h3>Photographie, tournage, événements</h3>
+<p>
+  La course du soleil et le bouton ▶ répondent à la question du repérage : où tombera la lumière
+  sur une façade à telle heure et telle date, et la terrasse sera-t-elle encore au soleil à 18 h en
+  septembre.
+</p>
+
+<h2 class="faq" id="faq">Questions fréquentes</h2>
+<div class="faq">
+  <h3>Combien d'heures de soleil direct reçoit une maison ou un jardin ?</h3>
+  <p>Choisissez le point et lisez la ligne d'ensoleillement direct : elle donne les heures de soleil et les plages d'ombre pour la date choisie, obstacles voisins compris. Comparez le 21 juin et le 21 décembre.</p>
+
+  <h3>L'immeuble d'en face va-t-il me priver de soleil en hiver ?</h3>
+  <p>Réglez la date au 21 décembre. Si le chiffre s'effondre par rapport à juin, ou si les plages d'ombre couvrent le milieu de journée, un obstacle fait écran — l'arc solaire montre de quel côté. Les hauteurs restent approximatives.</p>
+
+  <h3>Une exposition plein sud est-elle toujours la meilleure ?</h3>
+  <p>Non. Le sud donne de la lumière toute la journée, l'est le soleil du matin, l'ouest des soirées chaudes. Une terrasse à l'ouest est souvent préférable pour le soir, et une pièce au nord reste plus fraîche en été. Les obstacles comptent davantage que l'orientation.</p>
+
+  <h3>Une simulation 3D est-elle assez précise ?</h3>
+  <p>L'astronomie et le relief sont exacts ; les emprises des bâtiments sont réelles mais leurs hauteurs sont pour l'essentiel des valeurs par défaut, et la végétation est absente. Fiez-vous à la direction, aux horaires et à la présence d'un obstacle ; considérez les longueurs d'ombre comme des estimations.</p>
+
+  <h3>Est-ce gratuit ? Faut-il un compte ?</h3>
+  <p>Gratuit, sans compte ni inscription, partout dans le monde, en cinq langues. Le code est open source sous licence MIT.</p>
+
+  <h3>Puis-je l'intégrer à mon site ?</h3>
+  <p>Oui — une intégration iframe pour une adresse unique est documentée dans le <a href="https://github.com/mazerila/suncast-3d/blob/main/docs/EMBED.md">contrat d'intégration</a>. Les annonces immobilières en sont l'usage principal.</p>
+
+  <h3>Quelles données, et suis-je suivi ?</h3>
+  <p>Bâtiments et adresses viennent d'OpenStreetMap, relief et imagerie de Cesium ion. La mesure d'audience est sans cookie — aucun stockage dans le navigateur, aucune bannière de consentement — et les coordonnées ne lui sont jamais transmises : vos recherches restent dans votre navigateur.</p>
+</div>
+
+<h2>Essayer sur un lieu connu</h2>
+<p>Chaque lien ouvre la carte déjà cadrée, au solstice d'hiver à midi — la lumière la plus difficile de l'année :</p>
+<ul class="places">
+  <li><a href="/?lat=48.85837&amp;lng=2.29448&amp;date=2026-12-21&amp;time=12:00&amp;lang=fr">Tour Eiffel, Paris</a></li>
+  <li><a href="/?lat=45.76404&amp;lng=4.83566&amp;date=2026-12-21&amp;time=12:00&amp;lang=fr">Bellecour, Lyon</a></li>
+  <li><a href="/?lat=43.29639&amp;lng=5.36978&amp;date=2026-12-21&amp;time=12:00&amp;lang=fr">Vieux-Port, Marseille</a></li>
+  <li><a href="/?lat=44.84122&amp;lng=-0.57998&amp;date=2026-12-21&amp;time=12:00&amp;lang=fr">Bordeaux</a></li>
+  <li><a href="/?lat=48.58392&amp;lng=7.75110&amp;date=2026-12-21&amp;time=12:00&amp;lang=fr">Strasbourg</a></li>
+  <li><a href="/?lat=48.80479&amp;lng=2.12041&amp;date=2026-12-21&amp;time=12:00&amp;lang=fr">Château de Versailles</a></li>
+</ul>
+
+<h2>Au-delà de la carte</h2>
+<p>
+  Suncast 3D est open source (<a href="https://github.com/mazerila/suncast-3d">github.com/mazerila/suncast-3d</a>,
+  licence MIT). D'autres sites peuvent intégrer une adresse dans une iframe, et le dépôt documente
+  une petite API JSON pour la position du soleil et la durée d'ensoleillement. L'interface existe
+  en français, anglais, espagnol, allemand et italien : elle suit votre navigateur, ou le drapeau
+  en bas du panneau de commandes.
+</p>
+</main>
+
+<footer>
+  <p><a href="/?lang=fr">Suncast 3D</a> · <a href="/guide/" hreflang="en">English version</a> · <a href="https://github.com/mazerila/suncast-3d">Code source</a> · Bâtiments et adresses © les contributeurs OpenStreetMap (ODbL) ; relief et imagerie via Cesium ion.</p>
+</footer>
+
+</div>
+</body>
+</html>
