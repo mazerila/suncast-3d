@@ -13,7 +13,8 @@ Everything below follows from that.
 | `public/index.html` `<head>` | Title, description, canonical, robots, Open Graph + Twitter cards, `preconnect` to the 3D hosts, JSON-LD (`WebApplication` + `Person`). |
 | `public/index.html` `<noscript>` | Real prose describing the app and a link to the guide, for readers without JS/WebGL — and for crawlers that don't render. |
 | `public/guide/index.html` | The **content asset**: what the readings mean, how the numbers are computed, honest accuracy limits, use cases, FAQ. `TechArticle` + `FAQPage` + `BreadcrumbList`. |
-| `public/guide/fr/index.html` | Same in French (the primary market), cross-linked with `hreflang`. |
+| `public/guide/{fr,es,de,it}/index.html` | The same guide in the app's other four languages — a translation, not a stub: localised title, description, FAQ questions, example cities and `og:locale`. All five point at each other with `hreflang` + `x-default`, and each has a language row in its footer. |
+| `public/guide/guide.css` | Shared stylesheet for the five guide pages (one copy, not five). |
 | `public/llms.txt` | Plain-language summary for AI assistants: what the app does, its distinctive output, its limits, deep-link parameters, page list. |
 | `public/robots.txt` | Allows everything, names the AI crawlers explicitly, points to the sitemap. |
 | `public/sitemap.xml` | `/`, `/guide/`, `/guide/fr/` with `xhtml:link` alternates. |
@@ -31,7 +32,13 @@ Everything below follows from that.
 - **No `hreflang` on the app page.** The five languages share one URL and are
   switched client-side, so there is nothing distinct for a search engine to
   index per language. The *guide* is where language-specific URLs exist
-  (`/guide/` ↔ `/guide/fr/`), and those carry `hreflang` + `x-default`.
+  (`/guide/`, `/guide/fr/`, `/guide/es/`, `/guide/de/`, `/guide/it/`), and each
+  carries the full set of `hreflang` links plus `x-default` → `/guide/`.
+- **Guides are translated, not machine-swapped.** The FAQ questions in each
+  language are the questions people actually type in that language
+  ("nimmt mir das Nachbarhaus im Winter die Sonne?"), not word-for-word
+  renderings of the English ones — that is the whole point of having the page
+  in that language. The example cities are local too.
 - **The runtime title must match the static one.** `document.title` is set from
   `i18n.js` (`docTitle`) on load and on every language switch; if that string
   drifts from the `<title>` in the HTML, the rendered title Google indexes is
@@ -46,16 +53,20 @@ Everything below follows from that.
 
 ## Adding a language to the guide
 
+The five current languages match the app's interface languages. For a sixth:
+
 1. Copy `public/guide/index.html` to `public/guide/<lang>/index.html`, translate
    the prose, the `<title>`, the description and the JSON-LD `FAQPage` answers
-   (the questions are what people type into a search box — translate them as
-   questions people actually ask in that language, don't transliterate).
-2. Set `lang="<lang>"`, the canonical to the new URL, and add the new
-   `hreflang` line to **every** guide page (they must all point at each other,
-   plus `x-default` → `/guide/`).
+   (the questions are what people type into a search box — write the questions
+   people actually ask in that language, don't transliterate), and swap the
+   example cities for local ones.
+2. Set `lang="<lang>"`, `og:locale`, the canonical to the new URL, and add the
+   new `hreflang` line to **every** guide page (they must all point at each
+   other, plus `x-default` → `/guide/`). Add it to each footer language row.
 3. Add the URL to `public/sitemap.xml` with the same `xhtml:link` block.
-4. In `public/index.html`, extend the `#guide-link` rule in `applyLang()` so
-   that language points at its own guide.
+4. Add the language to `public/i18n.js` and `public/llms.txt`. The app's
+   `#guide-link` needs no change: `applyLang()` derives the path from `LANG`
+   (`/guide/` for English, `/guide/<lang>/` otherwise).
 
 ## Checks after a change
 

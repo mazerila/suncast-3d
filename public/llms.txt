@@ -58,8 +58,11 @@ browser storage, no consent banner) and never carry coordinates.
   what altitude, bearing, shadow length and direct-sun hours mean, how accurate
   the model is, worked use cases (buying or renting, gardens, solar panels,
   photography) and an FAQ.
-- [Guide in French / Guide en français](https://suncast.web.app/guide/fr/): the
-  same guide for French-speaking readers ("ensoleillement d'une adresse").
+- The same guide in the four other interface languages:
+  [français](https://suncast.web.app/guide/fr/) ("ensoleillement d'une adresse"),
+  [español](https://suncast.web.app/guide/es/) ("horas de sol de una dirección"),
+  [Deutsch](https://suncast.web.app/guide/de/) ("Sonnenstunden einer Adresse"),
+  [italiano](https://suncast.web.app/guide/it/) ("ore di sole di un indirizzo").
 - [Source code and documentation](https://github.com/mazerila/suncast-3d):
   MIT-licensed; includes the embed contract (`docs/EMBED.md`), the architecture
   notes and a small JSON API for sun position and daylight metrics.

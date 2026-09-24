@@ -32,7 +32,7 @@ suntrace3d.com/viewer.
   [`docs/EMBED.md`](docs/EMBED.md).
 - **Five languages** — English, French, Spanish, German, Italian — picked from
   the browser or the country on the map, switchable in the panel (`?lang=fr`
-  forces one).
+  forces one), each with its own written [guide](https://suncast.web.app/guide/).
 
 On load it flies to your **current location** (browser geolocation); if that is
 denied or unavailable it falls back to the **Château de Versailles**.
@@ -132,7 +132,7 @@ lib/sun.js                       Server-side sun math (SunCalc) behind the API
 public/index.html                Entire frontend (Cesium viewer + controls)
 public/i18n.js                   UI strings — English, French, Spanish, German, Italian
 public/analytics.js              PostHog loader; defines track() (silent on localhost)
-public/guide/                    Written guide (en, fr) — the crawlable/citable content
+public/guide/                    Written guide (en, fr, es, de, it) — the crawlable/citable content
 public/robots.txt                Crawl rules; AI crawlers explicitly allowed
 public/sitemap.xml               / and the guide pages, with hreflang alternates
 public/llms.txt                  Plain-language summary for AI assistants

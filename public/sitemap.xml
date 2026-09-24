@@ -3,26 +3,68 @@
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://suncast.web.app/</loc>
-    <lastmod>2026-09-23</lastmod>
+    <lastmod>2026-09-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://suncast.web.app/guide/</loc>
-    <lastmod>2026-09-23</lastmod>
+    <lastmod>2026-09-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://suncast.web.app/guide/"/>
     <xhtml:link rel="alternate" hreflang="fr" href="https://suncast.web.app/guide/fr/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://suncast.web.app/guide/es/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://suncast.web.app/guide/de/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://suncast.web.app/guide/it/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://suncast.web.app/guide/"/>
   </url>
   <url>
     <loc>https://suncast.web.app/guide/fr/</loc>
-    <lastmod>2026-09-23</lastmod>
+    <lastmod>2026-09-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://suncast.web.app/guide/"/>
     <xhtml:link rel="alternate" hreflang="fr" href="https://suncast.web.app/guide/fr/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://suncast.web.app/guide/es/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://suncast.web.app/guide/de/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://suncast.web.app/guide/it/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://suncast.web.app/guide/"/>
+  </url>
+  <url>
+    <loc>https://suncast.web.app/guide/es/</loc>
+    <lastmod>2026-09-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://suncast.web.app/guide/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://suncast.web.app/guide/fr/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://suncast.web.app/guide/es/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://suncast.web.app/guide/de/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://suncast.web.app/guide/it/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://suncast.web.app/guide/"/>
+  </url>
+  <url>
+    <loc>https://suncast.web.app/guide/de/</loc>
+    <lastmod>2026-09-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://suncast.web.app/guide/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://suncast.web.app/guide/fr/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://suncast.web.app/guide/es/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://suncast.web.app/guide/de/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://suncast.web.app/guide/it/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://suncast.web.app/guide/"/>
+  </url>
+  <url>
+    <loc>https://suncast.web.app/guide/it/</loc>
+    <lastmod>2026-09-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://suncast.web.app/guide/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://suncast.web.app/guide/fr/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://suncast.web.app/guide/es/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://suncast.web.app/guide/de/"/>
+    <xhtml:link rel="alternate" hreflang="it" href="https://suncast.web.app/guide/it/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://suncast.web.app/guide/"/>
   </url>
 </urlset>

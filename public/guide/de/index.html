@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sonnenstunden einer Adresse: Sonne und Schatten richtig lesen — Suncast-3D-Anleitung</title>
+<meta name="description" content="Sonnenhöhe, Azimut, Schattenlänge und direkte Sonnenstunden: was diese Zahlen über ein Haus oder eine Wohnung aussagen, wie Suncast 3D sie berechnet und wie weit man ihnen trauen darf — „nimmt mir das Nachbarhaus im Winter die Sonne?“">
+<link rel="canonical" href="https://suncast.web.app/guide/de/">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+<link rel="alternate" hreflang="en" href="https://suncast.web.app/guide/">
+<link rel="alternate" hreflang="fr" href="https://suncast.web.app/guide/fr/">
+<link rel="alternate" hreflang="es" href="https://suncast.web.app/guide/es/">
+<link rel="alternate" hreflang="de" href="https://suncast.web.app/guide/de/">
+<link rel="alternate" hreflang="it" href="https://suncast.web.app/guide/it/">
+<link rel="alternate" hreflang="x-default" href="https://suncast.web.app/guide/">
+<meta name="theme-color" content="#e8820c">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Suncast 3D">
+<meta property="og:title" content="Sonnenstunden einer Adresse: Sonne und Schatten richtig lesen">
+<meta property="og:description" content="Was Sonnenhöhe, Azimut und direkte Sonnenstunden über eine Wohnung aussagen — und wie genau eine 3D-Schattensimulation wirklich ist.">
+<meta property="og:url" content="https://suncast.web.app/guide/de/">
+<meta property="og:image" content="https://suncast.web.app/img/og-card.png">
+<meta property="og:locale" content="de">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://suncast.web.app/img/og-card.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='88'%3E%E2%98%80%EF%B8%8F%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="/guide/guide.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "@id": "https://suncast.web.app/guide/de/#guide",
+      "headline": "Sonnenstunden einer Adresse: Sonne und Schatten richtig lesen",
+      "description": "Was Sonnenhöhe, Azimut, Schattenlänge und direkte Sonnenstunden über ein Haus oder eine Wohnung aussagen, wie Suncast 3D sie berechnet und wie verlässlich sie sind.",
+      "inLanguage": "de",
+      "url": "https://suncast.web.app/guide/de/",
+      "datePublished": "2026-09-24",
+      "dateModified": "2026-09-24",
+      "author": { "@type": "Person", "name": "Antoine Mokhtari", "url": "https://bald.studio/team/#antoine-mokhtari" },
+      "about": ["Besonnung", "Verschattungsstudie", "Immobilien", "Solarenergie"],
+      "isPartOf": { "@id": "https://suncast.web.app/#app" }
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://suncast.web.app/guide/de/#faq",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Wie viele Stunden direkte Sonne bekommt ein Haus oder ein Garten?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Wählen Sie den Punkt auf der 3D-Karte: Suncast 3D schickt alle 15 Minuten des Tageslichts einen Strahl in Richtung Sonne und prüft, ob er zuerst auf ein Gebäude oder auf das Gelände trifft. Für das gewählte Datum wird ausgegeben, wie viele Stunden der Punkt in direkter Sonne liegt und welche Zeiträume im Schatten sind, zum Beispiel 4 h 45 von 9 h 20 Tageslicht, im Schatten von 07:45 bis 10:00. Vergleichen Sie den 21. Juni und den 21. Dezember, um beide Extreme zu sehen."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Nimmt mir das Nachbarhaus im Winter die Sonne?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Stellen Sie das Datum auf den 21. Dezember, den kürzesten Tag, an dem die Sonne am tiefsten bleibt. Bricht der Wert der direkten Sonnenstunden gegenüber Juni ein, oder liegen die Schattenzeiten mitten am Tag, steht ein Gebäude im Weg; der Sonnenbogen zeigt, auf welcher Seite. Beachten Sie: OpenStreetMap erfasst die tatsächliche Gebäudehöhe nur selten, deshalb wird eine Standardhöhe verwendet. Richtung und Zeitpunkte sind verlässlich, die genaue Höhe des Nachbarschattens ist eine Schätzung."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Ist eine Südausrichtung immer die beste?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Nicht automatisch. Auf der Nordhalbkugel bekommt eine Südfassade das ganze Jahr über Sonne vom späten Vormittag bis zum Nachmittag, eine Ostfassade nur Morgensonne, eine Westfassade die warme Abendsonne. Eine Westterrasse eignet sich besser für den Feierabend, und in heißen Lagen bleibt ein Nordzimmer angenehm kühl. Vor allem aber zählt mehr als die Himmelsrichtung, ob etwas die Sonne verdeckt — genau das messen die direkten Sonnenstunden."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Ist eine 3D-Schattensimulation genau genug?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Der Sonnenstand ist astronomisch berechnet und auf Bruchteile eines Grades genau, das Gelände stammt aus echten Höhendaten: Sonnenaufgang, Sonnenuntergang, Sonnenhöhen und Schattenrichtungen sind verlässlich. Die Gebäude stammen aus OpenStreetMap-Grundrissen — in weiten Teilen Europas vollständig —, doch die Höhe fehlt meist und wird durch einen Standardwert ersetzt; Bäume, Hecken und Mauern sind gar nicht modelliert. Das Werkzeug dient dazu, Ausrichtung, Zeitpunkte und Verschattung durch Nachbargebäude zu verstehen, nicht als rechtsverbindliche Verschattungsstudie."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Ist Suncast 3D kostenlos? Braucht man ein Konto?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Es ist kostenlos und benötigt weder Konto noch Anmeldung. Es läuft vollständig im Browser, weltweit, auf Deutsch, Englisch, Französisch, Spanisch und Italienisch. Der Quellcode ist unter der MIT-Lizenz veröffentlicht."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Kann ich die Besonnung vor Kauf oder Miete prüfen?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Ja, das ist der häufigste Anwendungsfall. Adresse eingeben, den Marker auf das Grundstück oder den Balkon setzen und den 21. Juni mit dem 21. Dezember vergleichen. Entscheidend ist der Winterwert: Dann bestimmen tiefe Sonne und lange Schatten, ob ein Zimmer oder ein Garten überhaupt Licht bekommt. Ein Inserat mit „Südlage“ nennt die Ausrichtung, aber nie das Haus gegenüber."
+          }
+        }
+      ]
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Suncast 3D", "item": "https://suncast.web.app/" },
+        { "@type": "ListItem", "position": 2, "name": "Anleitung", "item": "https://suncast.web.app/guide/de/" }
+      ]
+    }
+  ]
+}
+</script>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <a class="brand" href="/?lang=de"><span aria-hidden="true">☀️</span> Suncast 3D</a>
+  <a class="cta" href="/?lang=de">Karte öffnen</a>
+</header>
+
+<main>
+<h1>Sonnenstunden einer Adresse: Sonne und Schatten richtig lesen</h1>
+<p class="lede">Was die Zahlen bedeuten, wie sie berechnet werden und wie weit man ihnen trauen darf.</p>
+<p class="meta">Praxisanleitung zu <a href="/?lang=de">Suncast 3D</a>, einer kostenlosen Web-App, die den echten Sonnenstand und die Gebäudeschatten in 3D für jede Adresse, jedes Datum und jede Uhrzeit zeigt. Stand: 24. September 2026.</p>
+
+<h2>Was die App zeigt</h2>
+<p>
+  Suncast 3D setzt die Sonne genau dorthin, wo sie tatsächlich stünde — für die gewählte
+  geografische Breite und Länge, das Kalenderdatum, die Tageszeit und die echte Zeitzone des
+  Ortes — und berechnet die Schatten, die Gebäude und Gelände in diesem Moment werfen. Vier
+  Dinge ergeben sich daraus:
+</p>
+<ul>
+  <li><strong>Der Sonnenstand</strong>: wie hoch die Sonne über dem Horizont steht und aus welcher Richtung sie kommt (der Azimut).</li>
+  <li><strong>Die Schatten selbst</strong>, auf Gebäuden und Boden, die sich mit dem Zeitregler oder der ▶-Taste durch den Tag bewegen lassen.</li>
+  <li><strong>Die direkten Sonnenstunden</strong>, die ein bestimmter Punkt an diesem Datum erhält — mit den Nachbargebäuden.</li>
+  <li><strong>Die Sonnenbahn</strong>: der Bogen, den die Sonne an diesem Tag beschreibt, mit den Richtungen von Sonnenaufgang und -untergang am Boden.</li>
+</ul>
+
+<h2>In einer Minute</h2>
+<ol class="steps">
+  <li>Adresse in die Suche eingeben, oder die Koordinaten, oder <em>Standort</em> antippen — oder einfach den Punkt auf der Karte anklicken. Das gewählte Gebäude wird cyan eingefärbt, seine Anschrift erscheint unter den Koordinaten.</li>
+  <li>Ein Datum wählen. Die Schnellwahl führt zu heute, zu den Tagundnachtgleichen im März und September und zu den Sonnenwenden im Juni und Dezember — den vier Daten, die sich zu prüfen lohnen.</li>
+  <li>Den Zeitregler am unteren Rand ziehen oder ▶ drücken, um den Tag mit einer Stunde pro Sekunde ablaufen zu lassen. Die Leiste ist für dieses Datum und diesen Ort nach Nacht, Dämmerung und Tag eingefärbt.</li>
+  <li>Die Kamera drehen und neigen, um das Grundstück von allen Seiten zu sehen; der Kompass hält Norden markiert.</li>
+  <li><em>Link</em> kopiert eine URL, die genau diesen Ort, dieses Datum, diese Uhrzeit und diese Ansicht wieder öffnet — praktisch für Makler, Architektin oder Partner.</li>
+</ol>
+
+<h2>Die Sonnenzeile lesen</h2>
+<div class="readout">☀️ Sonne <strong>37,5°</strong> über dem Horizont · Richtung <strong>146° SO</strong> · ein 10 m hohes Haus wirft <strong>13 m</strong> Schatten ↑ 07:34 ↓ 19:59</div>
+<div class="tablewrap">
+<table>
+  <tr><th>Angabe</th><th>Bedeutung</th></tr>
+  <tr><td>Höhe (37,5° über dem Horizont)</td><td>Wie hoch die Sonne steht: 0° am Horizont, 90° im Zenit. Tiefe Sonne bedeutet lange Schatten und Licht, das durch die Fenster hereinfällt, statt auf sie herab.</td></tr>
+  <tr><td>Richtung (146° SO)</td><td>Die Himmelsrichtung, aus der das Licht kommt, mit 0° für Norden und 90° für Osten. Eine Fassade liegt in der Sonne, wenn der Azimut auf sie zeigt.</td></tr>
+  <tr><td>Schatten eines 10-m-Hauses (13 m)</td><td>Ein Maßstab für die Sonnenhöhe: bei 45° wirft ein Gebäude einen Schatten so lang wie seine Höhe, bei 20° etwa das Dreifache. Der Wert skaliert — ein 6-m-Haus würfe hier rund 8 m.</td></tr>
+  <tr><td>↑ 07:34 ↓ 19:59</td><td>Sonnenaufgang und -untergang in Ortszeit, Sommerzeit für das gewählte Datum eingerechnet.</td></tr>
+</table>
+</div>
+
+<h2>Die direkten Sonnenstunden — die entscheidende Zahl</h2>
+<div class="hours">☀ Direkte Sonne an diesem Punkt am 17. Sept.: <strong>10 h 00</strong> von 12 h 15 Tageslicht · im Schatten: <strong>07:45–10:00</strong></div>
+<p>
+  Die Tageslänge ist für eine ganze Stadt gleich. Was sich von Grundstück zu Grundstück
+  unterscheidet — und zwischen Erdgeschoss und der Wohnung darüber — ist, wie viel davon
+  tatsächlich <em>Ihren</em> Punkt erreicht, statt vom Haus gegenüber abgefangen zu werden. Genau
+  das misst diese Zeile.
+</p>
+<p>
+  Alle 15 Minuten zwischen Sonnenaufgang und -untergang schickt die App einen Strahl von etwa
+  1,20 m über dem gewählten Punkt in Richtung Sonne und prüft, ob er zuerst auf ein Gebäude oder
+  das Gelände trifft. Blockierte Stichproben werden zu den Schattenzeiträumen am Zeilenende
+  zusammengefasst. Ein Garten mit „4 h 30 von 9 h 20 Tageslicht, im Schatten 12:15–17:05“ verliert
+  also den ganzen Nachmittag an etwas im Südwesten.
+</p>
+<p>
+  Zwei Daten genügen fast: der <strong>21. Juni</strong>, wenn die Sonne am höchsten steht und die
+  Schatten am kürzesten sind, und der <strong>21. Dezember</strong>, wenn die Sonne kaum steigt und
+  ein einziges Gebäude den ganzen Tag nehmen kann. Immobilien werden im Frühjahr nach ihrem
+  Juni-Verhalten besichtigt — und im Dezember bewohnt.
+</p>
+
+<h2>Der Sonnenbogen</h2>
+<p>
+  Der goldene Bogen über dem gewählten Punkt ist die Bahn der Sonne für diesen ganzen Tag, vom
+  Aufgangs- bis zum Untergangspunkt, mit einem Punkt für die Position zur eingestellten Uhrzeit.
+  Zwei kurze Linien am Boden zeigen die Richtungen von Auf- und Untergang samt Zeiten. Damit wird
+  die Jahreszeit sichtbar: Im Juni ist der Bogen hoch und weit, die Enden liegen deutlich nördlich
+  von Ost und West; im Dezember ist er eine flache Kurve nahe am Südhimmel (auf der Nordhalbkugel;
+  südlich des Äquators spiegelverkehrt). Schneidet ein Dach, eine Baumreihe oder ein Höhenzug
+  diesen Bogen, verliert der Punkt genau dann die Sonne.
+</p>
+
+<h2>Wie genau ist das?</h2>
+<p>Das offen zu sagen ist wichtiger als die Zahlen selbst:</p>
+<div class="tablewrap">
+<table>
+  <tr><th>Teil des Modells</th><th>Verlässlichkeit</th></tr>
+  <tr><td>Sonnenstand, Auf- und Untergang, Tageslänge</td><td><strong>Exakt.</strong> Astronomische Standardformeln mit der echten IANA-Zeitzone des Ortes, Sommerzeit für das gewählte Datum eingerechnet.</td></tr>
+  <tr><td>Gelände</td><td><strong>Echte Höhendaten</strong>, Hügel, Täler und Hänge verschatten also korrekt.</td></tr>
+  <tr><td>Gebäudegrundrisse</td><td><strong>Aus OpenStreetMap.</strong> Die Abdeckung ist in weiten Teilen Europas ausgezeichnet, Nachbargebäude sind vorhanden und werfen ihren Schatten auf das Grundstück.</td></tr>
+  <tr><td>Gebäudehöhen</td><td><strong>Näherungswerte.</strong> Die meisten Gebäude tragen in OpenStreetMap kein Höhen-Tag, daher wird eine Standardhöhe extrudiert. Ein Einfamilienhaus und ein viergeschossiger Block können gleich aussehen. <em>Richtung</em> und <em>Zeitpunkte</em> der Verschattung stimmen; die Länge des Schattens eines bestimmten Nachbarn ist geschätzt.</td></tr>
+  <tr><td>Bäume, Hecken, Mauern, Balkone, Dachüberstände</td><td><strong>Nicht modelliert.</strong> Ein großer Baum im Süden kann einer Erdgeschosswohnung Stunden Wintersonne kosten, die das Modell noch als sonnig zählt.</td></tr>
+  <tr><td>Fenster und Innenräume</td><td><strong>Nicht modelliert.</strong> Beantwortet wird, was die Fassade oder das Grundstück erreicht, nicht wie tief das Licht in einen Raum dringt.</td></tr>
+</table>
+</div>
+<p>
+  Kurz: ein verlässlicher Weg, Ausrichtung, Zeitpunkte und die Frage zu verstehen, ob ein Nachbar
+  zwischen Grundstück und Sonne steht. Kein Ersatz für eine vermessene Verschattungsstudie, wie
+  sie ein Baustreit verlangen kann — und so sollte sie auch nicht dargestellt werden.
+</p>
+
+<h2>Wofür es genutzt wird</h2>
+<h3>Wohnung kaufen oder mieten</h3>
+<p>
+  „Südlage“ im Inserat beschreibt die Ausrichtung, nicht das Licht: Entscheidend ist das Haus
+  gegenüber. Setzen Sie den Marker auf den Balkon oder das fragliche Zimmer, vergleichen Sie Juni
+  und Dezember — und die Frage ist vor der Besichtigung geklärt. Suncast lässt sich auch in ein
+  Immobilieninserat einbetten, damit Interessenten die Besonnung genau dieser Adresse sehen.
+</p>
+<h3>Garten und Anbau</h3>
+<p>
+  Gemüse und Obst wollen in der Regel sechs oder mehr Stunden direkte Sommersonne; die meisten
+  schattenverträglichen Zierpflanzen kommen mit drei bis vier aus. Messen Sie mehrere Punkte — der
+  Wert schwankt stark zwischen dem oberen Gartenteil und der Mauer am Ende.
+</p>
+<h3>Photovoltaik</h3>
+<p>
+  Eine Dachfläche mit lange unverschatteter Mittagssonne im Winter ist der gute Kandidat. Suncast
+  ist der schnelle Vorfilter — Ausrichtung und Hindernisse — vor einer Ertragsberechnung mit
+  lokalen Einstrahlungsdaten.
+</p>
+<h3>Fotografie, Dreharbeiten, Veranstaltungen</h3>
+<p>
+  Sonnenbahn und ▶-Taste beantworten die Motivsuche: wo das Licht an einem bestimmten Datum zu
+  einer bestimmten Stunde auf eine Fassade fällt, und ob die Terrasse im September um 18 Uhr noch
+  in der Sonne liegt.
+</p>
+
+<h2 class="faq" id="faq">Häufige Fragen</h2>
+<div class="faq">
+  <h3>Wie viele Stunden direkte Sonne bekommt ein Haus oder ein Garten?</h3>
+  <p>Punkt wählen und die Zeile zur direkten Sonne lesen: Sie nennt die Sonnenstunden und die Schattenzeiten für das gewählte Datum, Nachbargebäude eingerechnet. Vergleichen Sie den 21. Juni und den 21. Dezember.</p>
+
+  <h3>Nimmt mir das Nachbarhaus im Winter die Sonne?</h3>
+  <p>Datum auf den 21. Dezember stellen. Bricht der Wert gegenüber Juni ein oder liegen die Schattenzeiten mitten am Tag, steht etwas im Weg — der Sonnenbogen zeigt, auf welcher Seite. Die Höhen bleiben Näherungswerte.</p>
+
+  <h3>Ist Südausrichtung immer am besten?</h3>
+  <p>Nein. Süden gibt Licht den ganzen Tag, Osten die Morgensonne, Westen warme Abende. Eine Westterrasse ist für den Abend oft besser, ein Nordzimmer bleibt im Sommer kühl. Hindernisse wiegen schwerer als die Himmelsrichtung.</p>
+
+  <h3>Ist eine 3D-Simulation genau genug?</h3>
+  <p>Astronomie und Gelände sind exakt; die Grundrisse sind echt, ihre Höhen aber überwiegend Standardwerte, und Vegetation fehlt. Verlassen Sie sich auf Richtung, Zeitpunkte und das Vorhandensein eines Hindernisses; Schattenlängen sind Schätzungen.</p>
+
+  <h3>Kostenlos? Konto nötig?</h3>
+  <p>Kostenlos, ohne Konto und ohne Anmeldung, weltweit und in fünf Sprachen. Der Code ist quelloffen unter MIT-Lizenz.</p>
+
+  <h3>Kann ich das auf meiner Website einbinden?</h3>
+  <p>Ja — es gibt eine iframe-Einbindung für eine einzelne Adresse, dokumentiert im <a href="https://github.com/mazerila/suncast-3d/blob/main/docs/EMBED.md">Embed-Vertrag</a>. Immobilieninserate sind der Hauptanwendungsfall.</p>
+
+  <h3>Welche Daten werden genutzt, und werde ich getrackt?</h3>
+  <p>Gebäude und Adressen kommen von OpenStreetMap, Gelände und Luftbilder über Cesium ion. Die Nutzungsmessung ist cookielos — kein Browser-Speicher, kein Consent-Banner — und enthält nie Koordinaten: Ihre Suchen bleiben in Ihrem Browser.</p>
+</div>
+
+<h2>An einem bekannten Ort ausprobieren</h2>
+<p>Jeder Link öffnet die Karte fertig ausgerichtet, zur Wintersonnenwende mittags — dem schwierigsten Licht des Jahres:</p>
+<ul class="places">
+  <li><a href="/?lat=52.51628&amp;lng=13.37770&amp;date=2026-12-21&amp;time=12:00&amp;lang=de">Brandenburger Tor, Berlin</a></li>
+  <li><a href="/?lat=48.13714&amp;lng=11.57549&amp;date=2026-12-21&amp;time=12:00&amp;lang=de">Marienplatz, München</a></li>
+  <li><a href="/?lat=53.55108&amp;lng=9.99368&amp;date=2026-12-21&amp;time=12:00&amp;lang=de">Rathaus, Hamburg</a></li>
+  <li><a href="/?lat=50.94130&amp;lng=6.95825&amp;date=2026-12-21&amp;time=12:00&amp;lang=de">Dom, Köln</a></li>
+  <li><a href="/?lat=48.20849&amp;lng=16.37208&amp;date=2026-12-21&amp;time=12:00&amp;lang=de">Stephansdom, Wien</a></li>
+  <li><a href="/?lat=47.37175&amp;lng=8.54247&amp;date=2026-12-21&amp;time=12:00&amp;lang=de">Zürich</a></li>
+</ul>
+
+<h2>Über die Karte hinaus</h2>
+<p>
+  Suncast 3D ist quelloffen (<a href="https://github.com/mazerila/suncast-3d">github.com/mazerila/suncast-3d</a>,
+  MIT-Lizenz). Andere Websites können eine einzelne Adresse als iframe einbinden, und das Repository
+  dokumentiert eine kleine JSON-API für Sonnenstand und Tageslichtwerte. Die Oberfläche gibt es auf
+  Deutsch, Englisch, Französisch, Spanisch und Italienisch: Sie folgt Ihrem Browser oder der Flagge
+  unten im Bedienfeld.
+</p>
+</main>
+
+<footer>
+  <ul class="langs">
+    <li><a href="/guide/" hreflang="en">English</a></li>
+    <li><a href="/guide/fr/" hreflang="fr">Français</a></li>
+    <li><a href="/guide/es/" hreflang="es">Español</a></li>
+    <li aria-current="page">Deutsch</li>
+    <li><a href="/guide/it/" hreflang="it">Italiano</a></li>
+  </ul>
+  <p><a href="/?lang=de">Suncast 3D</a> · <a href="https://github.com/mazerila/suncast-3d">Quellcode</a> · Gebäude und Adressen © OpenStreetMap-Mitwirkende (ODbL); Gelände und Luftbilder über Cesium ion.</p>
+</footer>
+
+</div>
+</body>
+</html>

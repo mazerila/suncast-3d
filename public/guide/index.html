@@ -9,6 +9,9 @@
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
 <link rel="alternate" hreflang="en" href="https://suncast.web.app/guide/">
 <link rel="alternate" hreflang="fr" href="https://suncast.web.app/guide/fr/">
+<link rel="alternate" hreflang="es" href="https://suncast.web.app/guide/es/">
+<link rel="alternate" hreflang="de" href="https://suncast.web.app/guide/de/">
+<link rel="alternate" hreflang="it" href="https://suncast.web.app/guide/it/">
 <link rel="alternate" hreflang="x-default" href="https://suncast.web.app/guide/">
 <meta name="theme-color" content="#e8820c">
 <meta property="og:type" content="article">
@@ -20,47 +23,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://suncast.web.app/img/og-card.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='88'%3E%E2%98%80%EF%B8%8F%3C/text%3E%3C/svg%3E">
-<style>
-  :root {
-    --bg: #f6f7f9; --paper: #fff; --fg: #1e2530; --muted: #6b7484; --line: #e3e6ea;
-    --accent: #e8820c; --accent-ink: #a2590a; --sun-soft: #fff7ec; --sun-line: #f6e0bf;
-    --cyan-soft: #ecfeff; --cyan-line: #a5f3fc; --cyan-ink: #155e75;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root { --bg: #151a21; --paper: #1c222b; --fg: #e7ebf0; --muted: #9aa4b2; --line: #2b323c;
-            --accent: #f0a23c; --accent-ink: #f3c07a; --sun-soft: #2a2114; --sun-line: #4a3a1e;
-            --cyan-soft: #14262b; --cyan-line: #1f4b55; --cyan-ink: #9fe3ef; }
-  }
-  * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.62 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; padding: 0 20px 64px; }
-  .wrap { max-width: 720px; margin: 0 auto; }
-  header.top { display: flex; align-items: center; gap: 10px; padding: 18px 0; border-bottom: 1px solid var(--line); margin-bottom: 30px; }
-  header.top a.brand { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--fg); text-decoration: none; }
-  header.top .cta { margin-left: auto; font-size: 14px; font-weight: 600; color: #fff; background: var(--accent); padding: 8px 14px; border-radius: 8px; text-decoration: none; }
-  header.top .cta:hover { background: var(--accent-ink); }
-  h1 { font-size: clamp(26px, 5vw, 36px); line-height: 1.15; margin: 0 0 14px; text-wrap: balance; }
-  h2 { font-size: 21px; margin: 38px 0 10px; line-height: 1.25; }
-  h3 { font-size: 16px; margin: 24px 0 6px; }
-  p, li { max-width: 68ch; }
-  a { color: var(--accent-ink); }
-  .lede { font-size: 18px; color: var(--muted); margin-bottom: 8px; }
-  .meta { font-size: 13px; color: var(--muted); border-bottom: 1px solid var(--line); padding-bottom: 20px; }
-  .card { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; margin: 18px 0; }
-  .readout { background: var(--sun-soft); border: 1px solid var(--sun-line); border-radius: 10px; padding: 11px 13px; font-size: 14px; }
-  .hours { background: var(--cyan-soft); border: 1px solid var(--cyan-line); color: var(--cyan-ink); border-radius: 10px; padding: 11px 13px; font-size: 14px; }
-  ol.steps { padding-left: 20px; } ol.steps li { margin: 7px 0; }
-  table { border-collapse: collapse; width: 100%; font-size: 14.5px; margin: 14px 0; }
-  th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
-  th { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
-  .tablewrap { overflow-x: auto; }
-  .faq h3 { margin-top: 20px; }
-  .places { display: flex; flex-wrap: wrap; gap: 8px; padding: 0; list-style: none; margin: 12px 0 0; }
-  .places a { display: inline-block; font-size: 13px; font-weight: 600; text-decoration: none; color: var(--fg); background: var(--paper); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; }
-  .places a:hover { border-color: var(--accent); color: var(--accent-ink); }
-  footer { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 13.5px; color: var(--muted); }
-  footer a { color: var(--muted); }
-  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .92em; background: var(--paper); border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; }
-</style>
+<link rel="stylesheet" href="/guide/guide.css">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -142,7 +105,7 @@
 <main>
 <h1>How to read sun and shadows for an address</h1>
 <p class="lede">What the numbers mean, how they are computed, and how far to trust them.</p>
-<p class="meta">A practical guide to <a href="/">Suncast 3D</a>, a free web app that shows the real sun and building shadows in 3D for any address, date and time. Updated 23 September 2026. Also in <a href="/guide/fr/" hreflang="fr">français</a>.</p>
+<p class="meta">A practical guide to <a href="/">Suncast 3D</a>, a free web app that shows the real sun and building shadows in 3D for any address, date and time. Updated 24 September 2026. Also in <a href="/guide/fr/" hreflang="fr">français</a>, <a href="/guide/es/" hreflang="es">español</a>, <a href="/guide/de/" hreflang="de">Deutsch</a> and <a href="/guide/it/" hreflang="it">italiano</a>.</p>
 
 <h2>What the app shows</h2>
 <p>
@@ -304,7 +267,14 @@
 </main>
 
 <footer>
-  <p><a href="/">Suncast 3D</a> · <a href="/guide/fr/" hreflang="fr">Version française</a> · <a href="https://github.com/mazerila/suncast-3d">Source</a> · Buildings and addresses © OpenStreetMap contributors (ODbL); terrain and imagery via Cesium ion.</p>
+  <ul class="langs">
+    <li aria-current="page">English</li>
+    <li><a href="/guide/fr/" hreflang="fr">Français</a></li>
+    <li><a href="/guide/es/" hreflang="es">Español</a></li>
+    <li><a href="/guide/de/" hreflang="de">Deutsch</a></li>
+    <li><a href="/guide/it/" hreflang="it">Italiano</a></li>
+  </ul>
+  <p><a href="/">Suncast 3D</a> · <a href="https://github.com/mazerila/suncast-3d">Source</a> · Buildings and addresses © OpenStreetMap contributors (ODbL); terrain and imagery via Cesium ion.</p>
 </footer>
 
 </div>

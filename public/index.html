@@ -732,9 +732,9 @@
       $('lang-btn').innerHTML = FLAGS[LANG] || LANG;
       $('lang-btn').title = $('lang-btn').ariaLabel = `${t('language')}: ${I18N[LANG].name || LANG}`;
       box.querySelectorAll('#lang-menu .flag').forEach((b) => b.setAttribute('aria-current', String(b.dataset.lang === LANG)));
-      // French readers get the French guide; everyone else the English one.
+      // Each language has its own guide page.
       const gl = $('guide-link');
-      if (gl) gl.href = (LANG === 'fr') ? '/guide/fr/' : '/guide/';
+      if (gl) gl.href = (LANG === 'en') ? '/guide/' : `/guide/${LANG}/`;   // one guide page per language
       const gi = document.querySelector('.cesium-geocoder-input');
       if (gi) gi.placeholder = t('geocoderPlaceholder');
     }
