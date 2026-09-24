@@ -13,8 +13,8 @@ Everything below follows from that.
 | `public/index.html` `<head>` | Title, description, canonical, robots, Open Graph + Twitter cards, `preconnect` to the 3D hosts, JSON-LD (`WebApplication` + `Person`). |
 | `public/index.html` `<noscript>` | Real prose describing the app and a link to the guide, for readers without JS/WebGL — and for crawlers that don't render. |
 | `public/guide/index.html` | The **content asset**: what the readings mean, how the numbers are computed, honest accuracy limits, use cases, FAQ. `TechArticle` + `FAQPage` + `BreadcrumbList`. |
-| `public/guide/{fr,es,de,it}/index.html` | The same guide in the app's other four languages — a translation, not a stub: localised title, description, FAQ questions, example cities and `og:locale`. All five point at each other with `hreflang` + `x-default`, and each has a language row in its footer. |
-| `public/guide/guide.css` | Shared stylesheet for the five guide pages (one copy, not five). |
+| `public/guide/{fr,es,de,it}/index.html` | The same guide in the app's other four languages — a translation, not a stub: localised title, description, FAQ questions, example cities and `og:locale`. All five point at each other with `hreflang` + `x-default`. |
+| `public/guide/guide.css`, `guide.js` | Shared stylesheet and the language selector (the app's flag-and-menu pattern; each entry is a plain link, with a `<noscript>` fallback). |
 | `public/llms.txt` | Plain-language summary for AI assistants: what the app does, its distinctive output, its limits, deep-link parameters, page list. |
 | `public/robots.txt` | Allows everything, names the AI crawlers explicitly, points to the sitemap. |
 | `public/sitemap.xml` | `/` plus the five guide URLs, each with `xhtml:link` alternates. |
@@ -46,6 +46,9 @@ Everything below follows from that.
 - **No invented structured data.** No `aggregateRating`, no review counts, no
   fake organisation. Schema.org markup states only what is true: a free web
   application, its features, its author, its licence.
+- **The guide is a reference, not a sales page.** Numbered sections, tables,
+  neutral wording; no feature boasting, no repository or licence links, no list
+  of supported languages. Users came to find out how the tool works.
 - **Accuracy limits are stated, not hidden.** OpenStreetMap heights are
   defaults, vegetation is absent. Saying so is what makes the guide worth
   citing — and an answer engine that quotes the caveat is doing the site a

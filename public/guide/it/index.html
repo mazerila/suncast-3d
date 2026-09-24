@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Ore di sole di un indirizzo: come leggere sole e ombre — Guida Suncast 3D</title>
-<meta name="description" content="Altezza del sole, azimut, lunghezza dell'ombra e ore di sole diretto: cosa dicono questi numeri su una casa o un appartamento, come li calcola Suncast 3D e quanto fidarsi — «il palazzo di fronte mi toglierà il sole d'inverno?»">
+<title>Guida a Suncast 3D — sole, ombre e ore di sole diretto</title>
+<meta name="description" content="Uso di Suncast 3D: scegliere una posizione, impostare data e ora, leggere altezza e azimut del sole, le ore di sole diretto di un punto, il percorso solare e i limiti di precisione del modello.">
 <link rel="canonical" href="https://suncast.web.app/guide/it/">
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
 <link rel="alternate" hreflang="en" href="https://suncast.web.app/guide/">
@@ -16,8 +16,8 @@
 <meta name="theme-color" content="#e8820c">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="Suncast 3D">
-<meta property="og:title" content="Ore di sole di un indirizzo: come leggere sole e ombre">
-<meta property="og:description" content="Cosa significano altezza del sole, azimut e ore di sole diretto per un'abitazione — e quanto è davvero precisa una simulazione di ombre in 3D.">
+<meta property="og:title" content="Guida a Suncast 3D — sole, ombre e ore di sole diretto">
+<meta property="og:description" content="Scegliere una posizione, impostare data e ora e leggere la posizione del sole, le ore di sole diretto e il percorso solare — con i limiti di precisione del modello.">
 <meta property="og:url" content="https://suncast.web.app/guide/it/">
 <meta property="og:image" content="https://suncast.web.app/img/og-card.png">
 <meta property="og:locale" content="it">
@@ -32,8 +32,8 @@
     {
       "@type": "TechArticle",
       "@id": "https://suncast.web.app/guide/it/#guide",
-      "headline": "Ore di sole di un indirizzo: come leggere sole e ombre",
-      "description": "Cosa significano altezza del sole, azimut, lunghezza dell'ombra e ore di sole diretto per un'abitazione, come li calcola Suncast 3D e quanta fiducia riporvi.",
+      "headline": "Guida a Suncast 3D — sole, ombre e ore di sole diretto",
+      "description": "Riferimento di Suncast 3D: scegliere una posizione, impostare data e ora, leggere la posizione del sole e le ore di sole diretto, il percorso solare, la condivisione e l'integrazione, e i limiti di precisione del modello.",
       "inLanguage": "it",
       "url": "https://suncast.web.app/guide/it/",
       "datePublished": "2026-09-24",
@@ -48,38 +48,32 @@
       "mainEntity": [
         {
           "@type": "Question",
-          "name": "Quante ore di sole diretto riceve una casa o un giardino?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Scegliete il punto sulla mappa 3D: Suncast 3D lancia un raggio verso il sole ogni 15 minuti di luce e verifica se incontra prima un edificio o il terreno. Per la data scelta indica quante ore il punto è in sole diretto e quali fasce restano in ombra, per esempio 4 h 45 su 9 h 20 di luce, in ombra dalle 07:45 alle 10:00. Confrontate il 21 giugno e il 21 dicembre per vedere i due estremi."
+          "name": "Quante ore di sole diretto riceve un punto specifico?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Selezionate il punto sulla mappa 3D. Ogni 15 minuti di luce viene lanciato un raggio verso il sole e verificato contro gli edifici 3D e il terreno. Il risultato sono le ore di sole diretto per la data scelta e le fasce trascorse in ombra, per esempio 4 h 45 su 9 h 20 di luce, in ombra dalle 07:45 alle 10:00."
           }
         },
         {
           "@type": "Question",
-          "name": "Il palazzo di fronte mi toglierà il sole d'inverno?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Impostate la data al 21 dicembre, il giorno più corto, quando il sole resta più basso. Se le ore di sole diretto crollano rispetto a giugno, o se le fasce d'ombra coprono il mezzogiorno, c'è un edificio di mezzo; l'arco solare mostra da che parte. Attenzione: OpenStreetMap registra di rado l'altezza reale degli edifici, quindi viene usata un'altezza predefinita. Direzione e orari sono affidabili, l'altezza esatta dell'ombra del vicino è una stima."
+          "name": "Come capire se un edificio vicino toglie il sole d'inverno?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Impostate la data al 21 dicembre, quando il sole resta più basso, e confrontate le ore di sole diretto con il 21 giugno. Un calo marcato, o fasce d'ombra che coprono le ore centrali, indica un ostacolo. L'arco del percorso solare mostra da che parte si trova."
           }
         },
         {
           "@type": "Question",
-          "name": "L'esposizione a sud è sempre la migliore?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Non automaticamente. Nell'emisfero nord una facciata a sud prende sole da metà mattina a metà pomeriggio tutto l'anno, una a est solo il sole del mattino, una a ovest il sole caldo di fine giornata. Un terrazzo a ovest è migliore per la sera e, nei climi caldi, una stanza a nord resta più fresca. Soprattutto, conta più dell'orientamento sapere se qualcosa blocca il sole: è esattamente ciò che misurano le ore di sole diretto."
+          "name": "Quanto è preciso il modello delle ombre?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Posizione del sole, alba, tramonto e durata del giorno sono astronomicamente esatti e il terreno usa dati altimetrici reali. Le impronte degli edifici provengono da OpenStreetMap, ma la maggior parte non ha il tag dell'altezza, quindi viene estrusa un'altezza predefinita. Alberi, siepi, muri e balconi non sono modellati. Direzione e orari delle ombre sono affidabili; la lunghezza dell'ombra di un edificio specifico è una stima."
           }
         },
         {
           "@type": "Question",
-          "name": "Una simulazione di ombre in 3D è abbastanza precisa?",
-          "acceptedAnswer": { "@type": "Answer", "text": "La posizione del sole è astronomica e precisa a frazioni di grado, e il terreno deriva da dati altimetrici reali: alba, tramonto, altezze e direzioni delle ombre sono affidabili. Gli edifici provengono dalle impronte di OpenStreetMap, molto complete in gran parte d'Europa, ma l'altezza è quasi sempre assente e sostituita da un valore predefinito, e alberi, siepi e muri non sono modellati. Serve a capire orientamento, orari e presenza di un ostacolo, non come studio di soleggiamento con valore legale."
+          "name": "Che cosa indica l'azimut mostrato?",
+          "acceptedAnswer": { "@type": "Answer", "text": "È la direzione da cui arriva la luce, con 0 gradi a nord e 90 gradi a est, indicata in gradi e come punto cardinale. Una facciata è al sole quando l'azimut punta verso di essa."
           }
         },
         {
           "@type": "Question",
-          "name": "Suncast 3D è gratuito? Serve un account?",
-          "acceptedAnswer": { "@type": "Answer", "text": "È gratuito e non richiede account né registrazione. Funziona interamente nel browser, in tutto il mondo, in italiano, inglese, francese, spagnolo e tedesco. Il codice sorgente è pubblicato con licenza MIT."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "Posso verificare la luce prima di comprare o affittare?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Sì, è l'uso più frequente. Inserite l'indirizzo, mettete il segnaposto sul lotto o sul balcone e confrontate il 21 giugno con il 21 dicembre. Il dato decisivo è quello invernale: è allora che il sole basso e le ombre lunghe decidono se una stanza o un giardino ricevono luce. Un annuncio che dice «esposizione a sud» indica l'orientamento, mai il palazzo di fronte."
+          "name": "Si può integrare Suncast 3D in un altro sito?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Sì. Un iframe verso /embed/v1 con i parametri lat e lng mostra la vista 3D di un indirizzo senza il pannello dei comandi, mantenendo il cursore del tempo. Parametri facoltativi impostano data, ora, angolo di camera e lingua."
           }
         }
       ]
@@ -100,152 +94,163 @@
 
 <header class="top">
   <a class="brand" href="/?lang=it"><span aria-hidden="true">☀️</span> Suncast 3D</a>
+  <div id="lang" data-current="it"><noscript><a href="/guide/">EN</a> <a href="/guide/fr/">FR</a> <a href="/guide/es/">ES</a> <a href="/guide/de/">DE</a></noscript></div>
   <a class="cta" href="/?lang=it">Apri la mappa</a>
 </header>
 
 <main>
-<h1>Ore di sole di un indirizzo: come leggere sole e ombre</h1>
-<p class="lede">Cosa significano i numeri, come vengono calcolati e fino a che punto fidarsene.</p>
-<p class="meta">Guida pratica a <a href="/?lang=it">Suncast 3D</a>, applicazione web gratuita che mostra il sole reale e le ombre degli edifici in 3D per qualsiasi indirizzo, data e ora. Aggiornata il 24 settembre 2026.</p>
+<h1>Guida a Suncast 3D</h1>
+<p class="lede">Posizione del sole, ombre degli edifici e ore di sole diretto per un indirizzo.</p>
+<p class="meta">Suncast 3D colloca il sole dove si trova realmente per una posizione, una data e un'ora date, e calcola le ombre proiettate da edifici e terreno in quell'istante. Questa pagina descrive i comandi, la lettura dei risultati e ciò che il modello consente di concludere.</p>
 
-<h2>Cosa mostra l'applicazione</h2>
-<p>
-  Suncast 3D mette il sole esattamente dove si troverebbe davvero — per la latitudine e la
-  longitudine scelte, la data, l'ora del giorno e il fuso orario reale del luogo — e calcola le
-  ombre che gli edifici in 3D e il terreno proiettano in quell'istante. Ne derivano quattro cose:
-</p>
+<h2>1. Scegliere una posizione</h2>
 <ul>
-  <li><strong>La posizione del sole</strong>: quanto è alto sull'orizzonte e da che direzione arriva (l'azimut).</li>
-  <li><strong>Le ombre</strong>, disegnate su edifici e suolo, che si percorrono con il cursore del tempo o con il pulsante ▶.</li>
-  <li><strong>Le ore di sole diretto</strong> che un punto preciso riceve in quella data, tenendo conto degli edifici vicini.</li>
-  <li><strong>Il percorso del sole</strong>: l'arco che traccia quel giorno, con le direzioni di alba e tramonto segnate a terra.</li>
+  <li><strong>Indirizzo</strong> — digitate un indirizzo o un luogo nella barra di ricerca in cima al pannello e scegliete un suggerimento.</li>
+  <li><strong>Coordinate</strong> — inserite latitudine e longitudine, poi <em>Vai</em> (o <kbd>Invio</kbd> in uno dei campi).</li>
+  <li><strong>Posizione</strong> — usa la geolocalizzazione del browser. Richiede una pagina sicura (HTTPS) e un'autorizzazione.</li>
+  <li><strong>Clic sulla mappa</strong> — seleziona il punto sotto il cursore senza spostare la camera.</li>
 </ul>
+<p>
+  L'edificio selezionato viene colorato di ciano e il suo indirizzo compare sotto le coordinate.
+  Lo scarto UTC è impostato automaticamente dal fuso orario reale del luogo, ora legale inclusa
+  per la data scelta; resta modificabile con il cursore.
+</p>
 
-<h2>In un minuto</h2>
-<ol class="steps">
-  <li>Scrivete l'indirizzo nella ricerca, o le coordinate, oppure premete <em>Posizione</em> — o semplicemente fate clic sul punto della mappa. L'edificio scelto si colora di ciano e il suo indirizzo compare sotto le coordinate.</li>
-  <li>Scegliete una data. Le scorciatoie portano a oggi, agli equinozi di marzo e settembre e ai solstizi di giugno e dicembre: le quattro date da controllare.</li>
-  <li>Trascinate il cursore del tempo in basso, o premete ▶ per scorrere la giornata a un'ora al secondo. La barra è colorata secondo notte, crepuscolo e giorno per quella data e quel luogo.</li>
-  <li>Ruotate e inclinate la camera per vedere il lotto da ogni lato; la bussola tiene segnato il nord.</li>
-  <li><em>Link</em> copia un URL che riapre esattamente questo luogo, data, ora e inquadratura — comodo da mandare all'agente, all'architetto o al partner.</li>
-</ol>
+<h2>2. Impostare data e ora</h2>
+<ul>
+  <li><strong>Data</strong> — il campo data, o le scorciatoie per oggi, gli equinozi di marzo e settembre e i solstizi di giugno e dicembre.</li>
+  <li><strong>Ora</strong> — il cursore fisso in fondo allo schermo, a passi di 15 minuti. Resta disponibile anche a pannello chiuso.</li>
+  <li><strong>Riproduzione</strong> — ▶ scorre la giornata a un'ora al secondo. Spostare il cursore mette in pausa.</li>
+</ul>
+<p class="note">La barra è colorata secondo notte, crepuscolo e luce diurna per quella data e quel luogo.</p>
 
-<h2>Leggere la riga del sole</h2>
+<h2>3. Leggere la riga del sole</h2>
 <div class="readout">☀️ Sole a <strong>37,5°</strong> sopra l'orizzonte · azimut <strong>146° SE</strong> · una casa di 10 m proietta un'ombra di <strong>13 m</strong> ↑ 07:34 ↓ 19:59</div>
 <div class="tablewrap">
 <table>
-  <tr><th>Dato</th><th>Significato</th></tr>
-  <tr><td>Altezza (37,5° sopra l'orizzonte)</td><td>Quanto è alto il sole: 0° all'orizzonte, 90° allo zenit. Un sole basso dà ombre lunghe e una luce che entra dalle finestre invece di cadervi sopra.</td></tr>
-  <tr><td>Azimut (146° SE)</td><td>La direzione da cui arriva la luce, con 0° a nord e 90° a est. Una facciata è al sole quando l'azimut punta verso di essa.</td></tr>
-  <tr><td>Ombra di una casa di 10 m (13 m)</td><td>Un metro di paragone per l'altezza del sole: a 45° un edificio proietta un'ombra pari alla sua altezza; a 20°, circa tre volte tanto. È proporzionale — una casa di 6 m qui proietterebbe circa 8 m.</td></tr>
-  <tr><td>↑ 07:34 ↓ 19:59</td><td>Alba e tramonto in ora locale, ora legale inclusa per la data scelta.</td></tr>
+  <tr><th>Valore</th><th>Significato</th></tr>
+  <tr><td>Altezza — 37,5° sopra l'orizzonte</td><td>L'elevazione del sole. 0° è l'orizzonte, 90° lo zenit. Un sole basso produce ombre lunghe.</td></tr>
+  <tr><td>Azimut — 146° SE</td><td>La direzione da cui arriva la luce, 0° nord e 90° est. Una facciata è al sole quando l'azimut punta verso di essa.</td></tr>
+  <tr><td>Ombra di una casa di 10 m — 13 m</td><td>Riferimento di scala per l'altezza del sole. A 45° l'ombra eguaglia l'altezza dell'edificio; a 20°, circa il triplo. Il valore è proporzionale all'altezza.</td></tr>
+  <tr><td>↑ 07:34 ↓ 19:59</td><td>Alba e tramonto in ora locale per la data selezionata.</td></tr>
 </table>
 </div>
+<p class="note">Sotto l'orizzonte la riga indica <em>Notte</em> e l'angolo del sole sotto l'orizzonte.</p>
 
-<h2>Le ore di sole diretto: il numero che conta</h2>
+<h2>4. Ore di sole diretto</h2>
 <div class="hours">☀ Sole diretto in questo punto il 17 set.: <strong>10 h 00</strong> su 12 h 15 di luce · in ombra: <strong>07:45–10:00</strong></div>
 <p>
-  Le ore di luce sono le stesse per un'intera città. Ciò che cambia da un lotto all'altro — e da un
-  piano terra all'appartamento sopra — è quanta di quella luce arrivi davvero al <em>vostro</em>
-  punto invece di fermarsi sul palazzo di fronte. È questo che misura la riga.
+  Le ore di luce sono uguali per un'intera città; ciò che cambia è quanta ne arriva a un punto
+  specifico invece di essere bloccata dagli edifici vicini. Ogni 15 minuti fra alba e tramonto
+  viene lanciato un raggio da 1,20 m sopra il punto selezionato verso il sole e verificato contro
+  gli edifici 3D e il terreno. I campioni bloccati sono raggruppati nelle fasce d'ombra in fondo
+  alla riga.
 </p>
 <p>
-  Ogni 15 minuti fra alba e tramonto l'applicazione lancia un raggio da circa 1,20 m sopra il punto
-  scelto verso la posizione del sole in quel momento e controlla se incontra prima un edificio o il
-  terreno. I campioni bloccati vengono raggruppati nelle fasce d'ombra in fondo alla riga. Un
-  giardino che segna «4 h 30 su 9 h 20 di luce, in ombra 12:15–17:05» sta perdendo tutto il
-  pomeriggio a causa di qualcosa a sud-ovest.
-</p>
-<p>
-  Con due date si sa quasi tutto: il <strong>21 giugno</strong>, sole al massimo e ombre più corte, e
-  il <strong>21 dicembre</strong>, quando il sole sale appena e un solo edificio può prendersi
-  l'intera giornata. Le case si visitano in primavera, con il comportamento di giugno, e si vivono
-  a dicembre.
+  Il valore viene ricalcolato a ogni cambio di posizione, data o fuso orario. Il confronto fra il
+  <strong>21 giugno</strong> (sole più alto, ombre più corte) e il <strong>21 dicembre</strong>
+  (sole più basso) dà i due estremi dell'anno.
 </p>
 
-<h2>L'arco del percorso solare</h2>
+<h2>5. Percorso del sole</h2>
 <p>
-  L'arco dorato tracciato sopra il punto scelto è la traiettoria del sole per l'intera giornata, dal
-  punto in cui sorge a quello in cui tramonta, con un pallino che indica dove si trova all'ora del
-  cursore. Due brevi linee a terra puntano verso le direzioni di alba e tramonto, con i rispettivi
-  orari. Rende visibile la stagione: a giugno l'arco è alto e ampio, con le estremità ben a nord di
-  est e ovest; a dicembre è una curva bassa che sfiora il cielo a sud (nell'emisfero nord; speculare
-  a sud dell'equatore). Se un tetto, una fila di alberi o un crinale taglia l'arco, è esattamente
-  quello il momento in cui il punto perde il sole.
+  Con <em>Mostra il percorso del sole</em> attivo, un arco dorato sopra il punto selezionato traccia
+  la traiettoria del sole per quel giorno, dall'alba al tramonto, con un indicatore all'ora
+  impostata. Due brevi linee a terra segnano le direzioni di alba e tramonto con i rispettivi
+  orari. L'arco è uno schema tracciato a raggio fisso e non proietta ombra.
 </p>
 
-<h2>Quanto è preciso?</h2>
-<p>Dirlo con chiarezza conta più dei numeri stessi:</p>
+<h2>6. Camera</h2>
 <div class="tablewrap">
 <table>
-  <tr><th>Parte del modello</th><th>Affidabilità</th></tr>
-  <tr><td>Posizione del sole, alba, tramonto, durata del giorno</td><td><strong>Esatti.</strong> Formule astronomiche standard, con il fuso orario IANA reale del luogo e l'ora legale della data scelta.</td></tr>
-  <tr><td>Terreno</td><td><strong>Dati altimetrici reali</strong>: colline, valli e pendii ombreggiano correttamente.</td></tr>
-  <tr><td>Impronte degli edifici</td><td><strong>Da OpenStreetMap.</strong> La copertura è ottima in gran parte d'Europa: gli edifici vicini ci sono e proiettano la loro ombra sul lotto.</td></tr>
-  <tr><td>Altezze degli edifici</td><td><strong>Approssimate.</strong> La maggior parte non ha il tag dell'altezza in OpenStreetMap, quindi viene estrusa un'altezza predefinita. Una casa a un piano e una palazzina di quattro possono sembrare uguali. <em>Direzione</em> e <em>orari</em> dell'ombra sono corretti; la lunghezza dell'ombra di un vicino specifico è una stima.</td></tr>
-  <tr><td>Alberi, siepi, muri, balconi, sporti di tetto</td><td><strong>Non modellati.</strong> Un albero grande a sud può costare a un piano terra ore di sole invernale che il modello conta ancora come soleggiate.</td></tr>
-  <tr><td>Finestre e interni</td><td><strong>Non modellati.</strong> Lo strumento risponde su ciò che arriva alla facciata o al lotto, non su quanto la luce penetri in una stanza.</td></tr>
+  <tr><th>Comando</th><th>Azione</th></tr>
+  <tr><td>Trascinare · ⟲ 45° · 45° ⟳ · frecce ◀ ▶</td><td>Ruotare attorno al punto selezionato.</td></tr>
+  <tr><td>Ctrl-trascinare · tasto centrale · cursore di inclinazione · frecce ▲ ▼</td><td>Cambiare l'inclinazione (da −5° a −89°).</td></tr>
+  <tr><td>Rotellina · pizzico · ＋ − · cursore di distanza</td><td>Cambiare la distanza dal punto (da 30 m a 15 km).</td></tr>
+  <tr><td>▶ Ruota</td><td>Ruota in continuo; qualsiasi interazione con la mappa lo interrompe.</td></tr>
+  <tr><td>Bussola</td><td>Indica il nord e l'azimut corrente del sole. Un clic orienta a nord.</td></tr>
+  <tr><td>↺ Reimposta camera</td><td>Torna a nord in alto, inclinazione −40°, 400 m.</td></tr>
+</table>
+</div>
+<p class="note">Cambiando posizione si mantengono inclinazione, distanza e orientamento correnti.</p>
+
+<h2>7. Condividere una vista o integrarla</h2>
+<p>
+  <em>Link</em> copia un URL che riapre posizione, data, ora e angolo di camera correnti. Gli stessi
+  parametri valgono per la mappa e per l'integrazione:
+</p>
+<div class="tablewrap">
+<table>
+  <tr><th>Parametro</th><th>Valori</th><th>Predefinito</th></tr>
+  <tr><td><code>lat</code>, <code>lng</code></td><td>−90…90, −180…180</td><td>geolocalizzazione, altrimenti Reggia di Versailles</td></tr>
+  <tr><td><code>date</code></td><td><code>AAAA-MM-GG</code></td><td>oggi</td></tr>
+  <tr><td><code>time</code></td><td><code>HH:MM</code> o ore decimali</td><td><code>12:00</code></td></tr>
+  <tr><td><code>tzOffset</code></td><td>−12…14</td><td>scarto UTC reale del luogo</td></tr>
+  <tr><td><code>heading</code>, <code>pitch</code>, <code>range</code></td><td>0…360, −89…−5, 30…15000 m</td><td>0, −40, 400</td></tr>
+  <tr><td><code>lang</code></td><td><code>en</code> <code>fr</code> <code>es</code> <code>de</code> <code>it</code></td><td>browser, altrimenti il paese mostrato</td></tr>
+  <tr><td><code>marker</code>, <code>path</code></td><td><code>0</code> per disattivare</td><td>attivi</td></tr>
+</table>
+</div>
+<p>Per inserire la vista in un'altra pagina — per esempio un annuncio immobiliare:</p>
+<p><code>&lt;iframe src="https://suncast.web.app/embed/v1?lat=48.8584&amp;lng=2.2945" width="100%" height="600" style="border:0" loading="lazy" allow="fullscreen"&gt;&lt;/iframe&gt;</code></p>
+<p class="note">L'integrazione mostra la vista 3D e il cursore del tempo, senza il pannello dei comandi.</p>
+
+<h2>8. Dati della mappa</h2>
+<p>
+  La sorgente predefinita sono gli edifici 3D di OpenStreetMap con immagini satellitari e terreno,
+  senza richiedere nulla al visitatore. In alternativa si possono caricare i Google Photorealistic
+  3D Tiles dalla sezione <em>Dati mappa</em> inserendo la propria chiave Google Cloud; la chiave
+  resta nel browser. Google non fornisce questi tile agli account con sede nell'UE/SEE.
+</p>
+
+<h2>9. Precisione e limiti</h2>
+<div class="tablewrap">
+<table>
+  <tr><th>Elemento</th><th>Stato</th></tr>
+  <tr><td>Posizione del sole, alba, tramonto, durata del giorno</td><td>Esatti dal punto di vista astronomico, con il fuso orario reale del luogo e la sua ora legale.</td></tr>
+  <tr><td>Terreno</td><td>Dati altimetrici reali; colline e pendii ombreggiano correttamente.</td></tr>
+  <tr><td>Impronte degli edifici</td><td>Da OpenStreetMap. Copertura ampia in gran parte d'Europa.</td></tr>
+  <tr><td>Altezze degli edifici</td><td>Approssimate — la maggior parte non ha il tag dell'altezza, viene estrusa un'altezza predefinita. Direzione e orari affidabili; lunghezza dell'ombra di un edificio specifico stimata.</td></tr>
+  <tr><td>Alberi, siepi, muri, balconi, sporti di tetto</td><td>Non modellati.</td></tr>
+  <tr><td>Finestre e interni</td><td>Non modellati. I risultati descrivono ciò che raggiunge la facciata o il lotto.</td></tr>
 </table>
 </div>
 <p>
-  In sintesi: un modo affidabile per capire orientamento, orari e se un vicino si frappone fra il
-  lotto e il sole. Non sostituisce uno studio di soleggiamento rilevato sul posto, del tipo che una
-  controversia edilizia può richiedere, e non va presentato come tale.
+  Adatto a valutare orientamento, orari e ostacoli. Non sostituisce uno studio di soleggiamento
+  rilevato sul posto.
 </p>
 
-<h2>A cosa serve</h2>
-<h3>Comprare o affittare casa</h3>
-<p>
-  «Esposizione a sud» in un annuncio descrive l'orientamento, non la luce: decide il palazzo di
-  fronte. Mettete il segnaposto sul balcone o sulla stanza in questione, confrontate giugno e
-  dicembre, e la risposta arriva prima della visita. Suncast può anche essere integrato in un
-  annuncio immobiliare per mostrare il soleggiamento di quell'indirizzo preciso.
-</p>
-<h3>Giardini e orti</h3>
-<p>
-  Ortaggi e alberi da frutto vogliono in genere sei o più ore di sole diretto d'estate; la maggior
-  parte delle piante da ombra si accontenta di tre o quattro. Campionate più punti: il valore
-  cambia molto fra la parte alta del giardino e il muro in fondo.
-</p>
-<h3>Pannelli solari</h3>
-<p>
-  Una falda di tetto libera a mezzogiorno d'inverno è il buon candidato. Suncast è il primo filtro
-  rapido — orientamento e ostacoli — prima di uno studio di produzione con i dati locali di
-  irraggiamento.
-</p>
-<h3>Fotografia, riprese, eventi</h3>
-<p>
-  Il percorso solare e il pulsante ▶ rispondono alla domanda del sopralluogo: dove cadrà la luce su
-  una facciata a una certa ora di una certa data, e se il terrazzo sarà ancora al sole alle 18 di
-  settembre.
-</p>
+<h2>10. Usi tipici</h2>
+<ul>
+  <li><strong>Immobiliare</strong> — verificare le ore di sole diretto di un lotto, di un balcone o di una facciata prima di una visita, e confrontare estate e inverno.</li>
+  <li><strong>Giardino</strong> — campionare più punti; ortaggi e alberi da frutto richiedono di norma sei o più ore di sole estivo, le piante da ombra tre o quattro.</li>
+  <li><strong>Pannelli solari</strong> — individuare falde libere a mezzogiorno d'inverno, come primo filtro prima di uno studio di produzione.</li>
+  <li><strong>Fotografia ed eventi</strong> — stabilire quando la luce raggiunge una facciata o uno spazio esterno in una data precisa.</li>
+</ul>
 
-<h2 class="faq" id="faq">Domande frequenti</h2>
+<h2 id="faq">Domande</h2>
 <div class="faq">
-  <h3>Quante ore di sole diretto riceve una casa o un giardino?</h3>
-  <p>Scegliete il punto e leggete la riga del sole diretto: dà le ore di sole e le fasce d'ombra per la data scelta, edifici vicini inclusi. Confrontate il 21 giugno e il 21 dicembre.</p>
+  <h3>Quante ore di sole diretto riceve un punto specifico?</h3>
+  <p>Selezionate il punto e leggete la riga del sole diretto: indica le ore di sole e le fasce d'ombra per la data scelta, edifici circostanti inclusi.</p>
 
-  <h3>Il palazzo di fronte mi toglierà il sole d'inverno?</h3>
-  <p>Impostate la data al 21 dicembre. Se il valore crolla rispetto a giugno, o se le fasce d'ombra coprono il mezzogiorno, qualcosa è di mezzo — l'arco solare mostra da che parte. Le altezze restano approssimate.</p>
+  <h3>Come capire se un edificio vicino toglie il sole d'inverno?</h3>
+  <p>Impostate la data al 21 dicembre e confrontate con il 21 giugno. Un calo marcato, o fasce d'ombra nelle ore centrali, indica un ostacolo; l'arco solare mostra da che parte.</p>
 
-  <h3>L'esposizione a sud è sempre la migliore?</h3>
-  <p>No. Il sud dà luce tutto il giorno, l'est il sole del mattino, l'ovest serate calde. Un terrazzo a ovest è spesso migliore per la sera, e una stanza a nord resta fresca d'estate. Gli ostacoli pesano più dell'orientamento.</p>
+  <h3>Quanto è preciso il modello?</h3>
+  <p>Astronomia e terreno sono esatti. Le impronte degli edifici sono reali, ma le altezze sono per lo più valori predefiniti e manca la vegetazione: le lunghezze delle ombre sono stime.</p>
 
-  <h3>Una simulazione 3D è abbastanza precisa?</h3>
-  <p>Astronomia e terreno sono esatti; le impronte degli edifici sono reali ma le altezze sono per lo più valori predefiniti, e manca la vegetazione. Fidatevi di direzione, orari e presenza di ostacoli; considerate le lunghezze delle ombre come stime.</p>
+  <h3>Che cosa indica l'azimut?</h3>
+  <p>La direzione da cui arriva la luce: 0° nord, 90° est, in gradi e come punto cardinale.</p>
 
-  <h3>È gratis? Serve un account?</h3>
-  <p>Gratuito, senza account né registrazione, in tutto il mondo e in cinque lingue. Il codice è open source con licenza MIT.</p>
+  <h3>Si può integrare in un altro sito?</h3>
+  <p>Sì — si veda la sezione 7 per l'iframe e i suoi parametri.</p>
 
-  <h3>Posso integrarlo nel mio sito?</h3>
-  <p>Sì — esiste un'integrazione iframe per un singolo indirizzo, documentata nel <a href="https://github.com/mazerila/suncast-3d/blob/main/docs/EMBED.md">contratto di integrazione</a>. Gli annunci immobiliari sono l'uso principale.</p>
-
-  <h3>Quali dati usa? Mi traccia?</h3>
-  <p>Edifici e indirizzi vengono da OpenStreetMap, terreno e immagini da Cesium ion. Le statistiche sono senza cookie — nessuna memorizzazione nel browser, nessun banner di consenso — e non contengono mai coordinate: le vostre ricerche restano nel vostro browser.</p>
+  <h3>Viene registrato qualcosa sulle mie ricerche?</h3>
+  <p>Chiavi e posizioni restano nel browser. Le statistiche d'uso sono senza cookie e non contengono mai coordinate.</p>
 </div>
 
-<h2>Provatelo su un luogo noto</h2>
-<p>Ogni link apre la mappa già inquadrata, al solstizio d'inverno a mezzogiorno — la luce più difficile dell'anno:</p>
+<h2>Località di esempio</h2>
+<p class="note">Ogni link apre la mappa al solstizio d'inverno, a mezzogiorno.</p>
 <ul class="places">
   <li><a href="/?lat=41.89021&amp;lng=12.49223&amp;date=2026-12-21&amp;time=12:00&amp;lang=it">Colosseo, Roma</a></li>
   <li><a href="/?lat=45.46420&amp;lng=9.19190&amp;date=2026-12-21&amp;time=12:00&amp;lang=it">Duomo, Milano</a></li>
@@ -254,28 +259,13 @@
   <li><a href="/?lat=40.85180&amp;lng=14.26810&amp;date=2026-12-21&amp;time=12:00&amp;lang=it">Napoli</a></li>
   <li><a href="/?lat=45.07030&amp;lng=7.68690&amp;date=2026-12-21&amp;time=12:00&amp;lang=it">Torino</a></li>
 </ul>
-
-<h2>Oltre la mappa</h2>
-<p>
-  Suncast 3D è open source (<a href="https://github.com/mazerila/suncast-3d">github.com/mazerila/suncast-3d</a>,
-  licenza MIT). Altri siti possono integrare un indirizzo in un iframe, e il repository documenta una
-  piccola API JSON per la posizione del sole e le ore di luce. L'interfaccia è disponibile in
-  italiano, inglese, francese, spagnolo e tedesco: segue il browser, oppure la bandiera in fondo al
-  pannello dei comandi.
-</p>
 </main>
 
 <footer>
-  <ul class="langs">
-    <li><a href="/guide/" hreflang="en">English</a></li>
-    <li><a href="/guide/fr/" hreflang="fr">Français</a></li>
-    <li><a href="/guide/es/" hreflang="es">Español</a></li>
-    <li><a href="/guide/de/" hreflang="de">Deutsch</a></li>
-    <li aria-current="page">Italiano</li>
-  </ul>
-  <p><a href="/?lang=it">Suncast 3D</a> · <a href="https://github.com/mazerila/suncast-3d">Codice sorgente</a> · Edifici e indirizzi © contributori OpenStreetMap (ODbL); terreno e immagini via Cesium ion.</p>
+  <p><a href="/?lang=it">Suncast 3D</a> · Edifici e indirizzi © contributori OpenStreetMap (ODbL); terreno e immagini via Cesium ion.</p>
 </footer>
 
 </div>
+<script src="/guide/guide.js"></script>
 </body>
 </html>
